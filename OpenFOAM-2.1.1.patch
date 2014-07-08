@@ -1,0 +1,5077 @@
+diff --git a/.gitignore b/.gitignore
+index 7c8bce0..039c370 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -42,6 +42,7 @@ linuxming*/
+ SiCortex*Gcc*/
+ solaris*Gcc*/
+ SunOS*Gcc*/
++darwin*Clang*/
+ platforms/
+ 
+ # reinstate wmake/rules that might look like build folders
+diff --git a/applications/solvers/combustion/chemFoam/Make/options b/applications/solvers/combustion/chemFoam/Make/options
+index d5a7a75..4d29d2f 100644
+--- a/applications/solvers/combustion/chemFoam/Make/options
++++ b/applications/solvers/combustion/chemFoam/Make/options
+@@ -12,6 +12,7 @@ EXE_INC = \
+ 
+ EXE_LIBS = \
+     -lfiniteVolume \
++    -lcompressibleTurbulenceModel \
+     -lcompressibleRASModels \
+     -lreactionThermophysicalModels \
+     -lbasicThermophysicalModels \
+diff --git a/applications/solvers/combustion/fireFoam/Make/options b/applications/solvers/combustion/fireFoam/Make/options
+index f1f6e1d..299e539 100644
+--- a/applications/solvers/combustion/fireFoam/Make/options
++++ b/applications/solvers/combustion/fireFoam/Make/options
+@@ -30,6 +30,7 @@ EXE_INC = \
+ EXE_LIBS = \
+     -lfiniteVolume \
+     -lmeshTools \
++    -lcompressibleTurbulenceModel \
+     -lcompressibleRASModels \
+     -lcompressibleLESModels \
+     -lspecie \
+@@ -46,5 +47,6 @@ EXE_LIBS = \
+     -lradiationModels \
+     -lsurfaceFilmModels \
+     -lpyrolysisModels \
++    -llagrangian \
+     -llagrangianIntermediate \
+     -lODE
+diff --git a/applications/solvers/compressible/rhoSimplecFoam/Make/options b/applications/solvers/compressible/rhoSimplecFoam/Make/options
+index 9d578f0..32165d0 100644
+--- a/applications/solvers/compressible/rhoSimplecFoam/Make/options
++++ b/applications/solvers/compressible/rhoSimplecFoam/Make/options
+@@ -9,6 +9,7 @@ EXE_INC = \
+ EXE_LIBS = \
+     -lbasicThermophysicalModels \
+     -lspecie \
++    -lcompressibleTurbulenceModel \
+     -lcompressibleRASModels \
+     -lfiniteVolume \
+     -lmeshTools
+diff --git a/applications/solvers/incompressible/adjointShapeOptimizationFoam/Make/options b/applications/solvers/incompressible/adjointShapeOptimizationFoam/Make/options
+index 1223bdd..dbc45d3 100644
+--- a/applications/solvers/incompressible/adjointShapeOptimizationFoam/Make/options
++++ b/applications/solvers/incompressible/adjointShapeOptimizationFoam/Make/options
+@@ -6,6 +6,7 @@ EXE_INC = \
+     -I$(LIB_SRC)/finiteVolume/lnInclude
+ 
+ EXE_LIBS = \
++    -lincompressibleTurbulenceModel \
+     -lincompressibleRASModels \
+     -lincompressibleTransportModels \
+     -lfiniteVolume
+diff --git a/applications/solvers/incompressible/channelFoam/Make/options b/applications/solvers/incompressible/channelFoam/Make/options
+index 76a1a29..929d95d 100644
+--- a/applications/solvers/incompressible/channelFoam/Make/options
++++ b/applications/solvers/incompressible/channelFoam/Make/options
+@@ -8,6 +8,7 @@ EXE_INC = \
+     -I$(LIB_SRC)/sampling/lnInclude
+ 
+ EXE_LIBS = \
++    -lincompressibleTurbulenceModel \
+     -lincompressibleLESModels \
+     -lincompressibleTransportModels \
+     -lfiniteVolume \
+diff --git a/applications/solvers/incompressible/pimpleFoam/pimpleDyMFoam/Make/options b/applications/solvers/incompressible/pimpleFoam/pimpleDyMFoam/Make/options
+index 6af3735..2cc3505 100644
+--- a/applications/solvers/incompressible/pimpleFoam/pimpleDyMFoam/Make/options
++++ b/applications/solvers/incompressible/pimpleFoam/pimpleDyMFoam/Make/options
+@@ -14,6 +14,7 @@ EXE_LIBS = \
+     -ldynamicMesh \
+     -lmeshTools \
+     -lincompressibleTransportModels \
++    -lincompressibleTurbulenceModel \
+     -lincompressibleRASModels \
+     -lincompressibleLESModels \
+     -lfiniteVolume
+diff --git a/applications/solvers/incompressible/simpleFoam/MRFSimpleFoam/Make/options b/applications/solvers/incompressible/simpleFoam/MRFSimpleFoam/Make/options
+index 057788a..f1887d9 100644
+--- a/applications/solvers/incompressible/simpleFoam/MRFSimpleFoam/Make/options
++++ b/applications/solvers/incompressible/simpleFoam/MRFSimpleFoam/Make/options
+@@ -8,6 +8,7 @@ EXE_INC = \
+     -I$(LIB_SRC)/meshTools/lnInclude
+ 
+ EXE_LIBS = \
++    -lincompressibleTurbulenceModel \
+     -lincompressibleRASModels \
+     -lincompressibleTransportModels \
+     -lfiniteVolume \
+diff --git a/applications/solvers/incompressible/simpleFoam/SRFSimpleFoam/Make/options b/applications/solvers/incompressible/simpleFoam/SRFSimpleFoam/Make/options
+index 7f0cca6..ef92b54 100644
+--- a/applications/solvers/incompressible/simpleFoam/SRFSimpleFoam/Make/options
++++ b/applications/solvers/incompressible/simpleFoam/SRFSimpleFoam/Make/options
+@@ -8,6 +8,7 @@ EXE_INC = \
+     -I$(LIB_SRC)/meshTools/lnInclude
+ 
+ EXE_LIBS = \
++    -lincompressibleTurbulenceModel \
+     -lincompressibleRASModels \
+     -lincompressibleTransportModels \
+     -lfiniteVolume \
+diff --git a/applications/solvers/lagrangian/icoUncoupledKinematicParcelDyMFoam/Make/options b/applications/solvers/lagrangian/icoUncoupledKinematicParcelDyMFoam/Make/options
+index f7bb7d2..2eb6082 100644
+--- a/applications/solvers/lagrangian/icoUncoupledKinematicParcelDyMFoam/Make/options
++++ b/applications/solvers/lagrangian/icoUncoupledKinematicParcelDyMFoam/Make/options
+@@ -24,6 +24,7 @@ EXE_LIBS = \
+     -lbasicThermophysicalModels \
+     -lspecie \
+     -lradiationModels \
++    -lincompressibleTurbulenceModel \
+     -lincompressibleRASModels \
+     -lincompressibleLESModels \
+     -lincompressibleTransportModels \
+diff --git a/applications/solvers/lagrangian/icoUncoupledKinematicParcelFoam/Make/options b/applications/solvers/lagrangian/icoUncoupledKinematicParcelFoam/Make/options
+index 9986f9f..657a560 100644
+--- a/applications/solvers/lagrangian/icoUncoupledKinematicParcelFoam/Make/options
++++ b/applications/solvers/lagrangian/icoUncoupledKinematicParcelFoam/Make/options
+@@ -20,6 +20,7 @@ EXE_LIBS = \
+     -lbasicThermophysicalModels \
+     -lspecie \
+     -lradiationModels \
++    -lincompressibleTurbulenceModel \
+     -lincompressibleRASModels \
+     -lincompressibleLESModels \
+     -lincompressibleTransportModels \
+diff --git a/applications/solvers/lagrangian/reactingParcelFilmFoam/Make/options b/applications/solvers/lagrangian/reactingParcelFilmFoam/Make/options
+index 5a1c428..0c0b72a 100644
+--- a/applications/solvers/lagrangian/reactingParcelFilmFoam/Make/options
++++ b/applications/solvers/lagrangian/reactingParcelFilmFoam/Make/options
+@@ -26,6 +26,7 @@ EXE_INC = \
+ EXE_LIBS = \
+     -lfiniteVolume \
+     -lmeshTools \
++    -lcompressibleTurbulenceModel \
+     -lcompressibleRASModels \
+     -lcompressibleLESModels \
+     -lspecie \
+@@ -39,6 +40,7 @@ EXE_LIBS = \
+     -lregionModels \
+     -lradiationModels \
+     -lsurfaceFilmModels \
++    -llagrangian \
+     -llagrangianIntermediate \
+     -lODE \
+     -lcombustionModels
+diff --git a/applications/solvers/multiphase/compressibleInterFoam/Make/options b/applications/solvers/multiphase/compressibleInterFoam/Make/options
+index c8ce69c..599567b 100644
+--- a/applications/solvers/multiphase/compressibleInterFoam/Make/options
++++ b/applications/solvers/multiphase/compressibleInterFoam/Make/options
+@@ -6,6 +6,7 @@ EXE_INC = \
+     -I$(LIB_SRC)/finiteVolume/lnInclude
+ 
+ EXE_LIBS = \
++    -linterfaceProperties \
+     -ltwoPhaseInterfaceProperties \
+     -lincompressibleTransportModels \
+     -lincompressibleTurbulenceModel \
+diff --git a/applications/solvers/multiphase/compressibleInterFoam/compressibleInterDyMFoam/Make/options b/applications/solvers/multiphase/compressibleInterFoam/compressibleInterDyMFoam/Make/options
+index b9b0ec5..427f56e 100644
+--- a/applications/solvers/multiphase/compressibleInterFoam/compressibleInterDyMFoam/Make/options
++++ b/applications/solvers/multiphase/compressibleInterFoam/compressibleInterDyMFoam/Make/options
+@@ -10,6 +10,7 @@ EXE_INC = \
+     -I$(LIB_SRC)/dynamicFvMesh/lnInclude
+ 
+ EXE_LIBS = \
++    -linterfaceProperties \
+     -ltwoPhaseInterfaceProperties \
+     -lincompressibleTransportModels \
+     -lincompressibleTurbulenceModel \
+diff --git a/applications/solvers/multiphase/compressibleTwoPhaseEulerFoam/pEqn.H b/applications/solvers/multiphase/compressibleTwoPhaseEulerFoam/pEqn.H
+index 34a9a26..75dc963 100644
+--- a/applications/solvers/multiphase/compressibleTwoPhaseEulerFoam/pEqn.H
++++ b/applications/solvers/multiphase/compressibleTwoPhaseEulerFoam/pEqn.H
+@@ -33,8 +33,8 @@
+     volScalarField rAU1(1.0/U1Eqn.A());
+     volScalarField rAU2(1.0/U2Eqn.A());
+ 
+-    surfaceScalarField rAlphaAU1f = fvc::interpolate(alpha1*rAU1);
+-    surfaceScalarField rAlphaAU2f = fvc::interpolate(alpha2*rAU2);
++    const surfaceScalarField& rAlphaAU1f = fvc::interpolate(alpha1*rAU1);
++    const surfaceScalarField& rAlphaAU2f = fvc::interpolate(alpha2*rAU2);
+ 
+     U1 = rAU1*U1Eqn.H();
+     U2 = rAU2*U2Eqn.H();
+@@ -88,7 +88,7 @@
+ 
+         if (pimple.finalNonOrthogonalIter())
+         {
+-            surfaceScalarField mSfGradp = pEqnIncomp.flux()/Dp;
++            surfaceScalarField mSfGradp(pEqnIncomp.flux()/Dp);
+             phi1 += rAlphaAU1f*mSfGradp/fvc::interpolate(rho1);
+             phi2 += rAlphaAU2f*mSfGradp/fvc::interpolate(rho2);
+             phi = alpha1f*phi1 + alpha2f*phi2;
+diff --git a/applications/solvers/multiphase/interFoam/LTSInterFoam/Make/options b/applications/solvers/multiphase/interFoam/LTSInterFoam/Make/options
+index 24349f6..054a8db 100644
+--- a/applications/solvers/multiphase/interFoam/LTSInterFoam/Make/options
++++ b/applications/solvers/multiphase/interFoam/LTSInterFoam/Make/options
+@@ -7,6 +7,7 @@ EXE_INC = \
+     -I$(LIB_SRC)/finiteVolume/lnInclude
+ 
+ EXE_LIBS = \
++    -linterfaceProperties \
+     -ltwoPhaseInterfaceProperties \
+     -lincompressibleTransportModels \
+     -lincompressibleTurbulenceModel \
+diff --git a/applications/solvers/multiphase/interFoam/MRFInterFoam/Make/options b/applications/solvers/multiphase/interFoam/MRFInterFoam/Make/options
+index 24349f6..054a8db 100644
+--- a/applications/solvers/multiphase/interFoam/MRFInterFoam/Make/options
++++ b/applications/solvers/multiphase/interFoam/MRFInterFoam/Make/options
+@@ -7,6 +7,7 @@ EXE_INC = \
+     -I$(LIB_SRC)/finiteVolume/lnInclude
+ 
+ EXE_LIBS = \
++    -linterfaceProperties \
+     -ltwoPhaseInterfaceProperties \
+     -lincompressibleTransportModels \
+     -lincompressibleTurbulenceModel \
+diff --git a/applications/solvers/multiphase/interFoam/Make/options b/applications/solvers/multiphase/interFoam/Make/options
+index c8ce69c..2b04a84 100644
+--- a/applications/solvers/multiphase/interFoam/Make/options
++++ b/applications/solvers/multiphase/interFoam/Make/options
+@@ -7,6 +7,7 @@ EXE_INC = \
+ 
+ EXE_LIBS = \
+     -ltwoPhaseInterfaceProperties \
++    -linterfaceProperties \
+     -lincompressibleTransportModels \
+     -lincompressibleTurbulenceModel \
+     -lincompressibleRASModels \
+diff --git a/applications/solvers/multiphase/interFoam/interDyMFoam/Make/options b/applications/solvers/multiphase/interFoam/interDyMFoam/Make/options
+index 102475c..ba60cb1 100644
+--- a/applications/solvers/multiphase/interFoam/interDyMFoam/Make/options
++++ b/applications/solvers/multiphase/interFoam/interDyMFoam/Make/options
+@@ -10,6 +10,7 @@ EXE_INC = \
+     -I$(LIB_SRC)/dynamicFvMesh/lnInclude
+ 
+ EXE_LIBS = \
++    -linterfaceProperties \
+     -ltwoPhaseInterfaceProperties \
+     -lincompressibleTransportModels \
+     -lincompressibleTurbulenceModel \
+diff --git a/applications/solvers/multiphase/interFoam/porousInterFoam/Make/options b/applications/solvers/multiphase/interFoam/porousInterFoam/Make/options
+index a33b9c8..6fc9874 100644
+--- a/applications/solvers/multiphase/interFoam/porousInterFoam/Make/options
++++ b/applications/solvers/multiphase/interFoam/porousInterFoam/Make/options
+@@ -8,6 +8,7 @@ EXE_INC = \
+     -I$(LIB_SRC)/meshTools/lnInclude
+ 
+ EXE_LIBS = \
++    -linterfaceProperties \
+     -ltwoPhaseInterfaceProperties \
+     -lincompressibleTransportModels \
+     -lincompressibleTurbulenceModel \
+diff --git a/applications/solvers/multiphase/interMixingFoam/Make/options b/applications/solvers/multiphase/interMixingFoam/Make/options
+index cb13572..439e239 100644
+--- a/applications/solvers/multiphase/interMixingFoam/Make/options
++++ b/applications/solvers/multiphase/interMixingFoam/Make/options
+@@ -16,4 +16,5 @@ EXE_LIBS = \
+     -lincompressibleTurbulenceModel \
+     -lincompressibleRASModels \
+     -lincompressibleLESModels \
++    -lincompressibleTurbulenceModel \
+     -lfiniteVolume
+diff --git a/applications/solvers/multiphase/interPhaseChangeFoam/Make/options b/applications/solvers/multiphase/interPhaseChangeFoam/Make/options
+index 960639f..5416a16 100644
+--- a/applications/solvers/multiphase/interPhaseChangeFoam/Make/options
++++ b/applications/solvers/multiphase/interPhaseChangeFoam/Make/options
+@@ -7,6 +7,7 @@ EXE_INC = \
+     -I$(LIB_SRC)/finiteVolume/lnInclude
+ 
+ EXE_LIBS = \
++    -linterfaceProperties \
+     -ltwoPhaseInterfaceProperties \
+     -lincompressibleTransportModels \
+     -lincompressibleTurbulenceModel \
+diff --git a/applications/solvers/multiphase/multiphaseEulerFoam/Make/options b/applications/solvers/multiphase/multiphaseEulerFoam/Make/options
+index 06ffdda..aa5e6a4 100644
+--- a/applications/solvers/multiphase/multiphaseEulerFoam/Make/options
++++ b/applications/solvers/multiphase/multiphaseEulerFoam/Make/options
+@@ -2,7 +2,6 @@ EXE_INC = \
+     -IphaseModel/lnInclude \
+     -ImultiphaseSystem/lnInclude \
+     -ImultiphaseFixedFluxPressure \
+-    /*-IkineticTheoryModels/lnInclude*/ \
+     -IinterfacialModels/lnInclude \
+     -I$(LIB_SRC)/transportModels \
+     -I$(LIB_SRC)/transportModels/incompressible/lnInclude \
+@@ -20,6 +19,6 @@ EXE_LIBS = \
+     -linterfaceProperties \
+     -lincompressibleTransportModels \
+     -lcompressibleMultiphaseEulerianInterfacialModels \
+-    /*-lcompressibleKineticTheoryModel*/ \
++    -lincompressibleTurbulenceModel \
+     -lincompressibleLESModels \
+     -lfiniteVolume
+diff --git a/applications/solvers/multiphase/multiphaseEulerFoam/interfacialModels/dragModels/GidaspowErgunWenYu/GidaspowErgunWenYu.C b/applications/solvers/multiphase/multiphaseEulerFoam/interfacialModels/dragModels/GidaspowErgunWenYu/GidaspowErgunWenYu.C
+index 9c4c04d..38303a5 100644
+--- a/applications/solvers/multiphase/multiphaseEulerFoam/interfacialModels/dragModels/GidaspowErgunWenYu/GidaspowErgunWenYu.C
++++ b/applications/solvers/multiphase/multiphaseEulerFoam/interfacialModels/dragModels/GidaspowErgunWenYu/GidaspowErgunWenYu.C
+@@ -71,7 +71,7 @@ Foam::tmp<Foam::volScalarField> Foam::dragModels::GidaspowErgunWenYu::K
+ ) const
+ {
+     volScalarField alpha2(max(phase2_, scalar(1.0e-6)));
+-    volScalarField d = phase1_.d();
++    const volScalarField& d = phase1_.d();
+     volScalarField bp(pow(alpha2, -2.65));
+     volScalarField Re(max(Ur*d/phase2_.nu(), scalar(1.0e-3)));
+ 
+diff --git a/applications/solvers/stressAnalysis/solidDisplacementFoam/readMechanicalProperties.H b/applications/solvers/stressAnalysis/solidDisplacementFoam/readMechanicalProperties.H
+index 6cfd4db..4d016be 100644
+--- a/applications/solvers/stressAnalysis/solidDisplacementFoam/readMechanicalProperties.H
++++ b/applications/solvers/stressAnalysis/solidDisplacementFoam/readMechanicalProperties.H
+@@ -75,7 +75,7 @@
+ 
+     autoPtr<volScalarField> EPtr;
+ 
+-    IOobject EIO
++    IOobject _EIO
+     (
+         "E",
+         runTime.timeName(0),
+@@ -92,7 +92,7 @@
+         (
+             new volScalarField
+             (
+-                EIO,
++                _EIO,
+                 mesh,
+                 dimensionedScalar
+                 (
+@@ -106,13 +106,13 @@
+     }
+     else if (EType == "field")
+     {
+-        EIO.readOpt() = IOobject::MUST_READ;
++        _EIO.readOpt() = IOobject::MUST_READ;
+ 
+         EPtr.reset
+         (
+             new volScalarField
+             (
+-                EIO,
++                _EIO,
+                 mesh
+             )
+         );
+@@ -189,9 +189,9 @@
+ 
+     Info<< "Calculating Lame's coefficients\n" << endl;
+ 
+-    volScalarField mu = E/(2.0*(1.0 + nu));
+-    volScalarField lambda = nu*E/((1.0 + nu)*(1.0 - 2.0*nu));
+-    volScalarField threeK = E/(1.0 - 2.0*nu);
++    volScalarField mu(E/(2.0*(1.0 + nu)));
++    volScalarField lambda(nu*E/((1.0 + nu)*(1.0 - 2.0*nu)));
++    volScalarField threeK(E/(1.0 - 2.0*nu));
+ 
+     Switch planeStress(mechanicalProperties.lookup("planeStress"));
+ 
+diff --git a/applications/solvers/stressAnalysis/solidEquilibriumDisplacementFoam/tractionDisplacementCorrection/tractionDisplacementCorrectionFvPatchVectorField.C b/applications/solvers/stressAnalysis/solidEquilibriumDisplacementFoam/tractionDisplacementCorrection/tractionDisplacementCorrectionFvPatchVectorField.C
+index 47a2005..c716d1c 100644
+--- a/applications/solvers/stressAnalysis/solidEquilibriumDisplacementFoam/tractionDisplacementCorrection/tractionDisplacementCorrectionFvPatchVectorField.C
++++ b/applications/solvers/stressAnalysis/solidEquilibriumDisplacementFoam/tractionDisplacementCorrection/tractionDisplacementCorrectionFvPatchVectorField.C
+@@ -159,9 +159,9 @@ void tractionDisplacementCorrectionFvPatchVectorField::updateCoeffs()
+     const fvPatchField<scalar>& nu =
+         patch().lookupPatchField<volScalarField, scalar>("nu");
+ 
+-    scalarField E = rhoE/rho;
+-    scalarField mu = E/(2.0*(1.0 + nu));
+-    scalarField lambda = nu*E/((1.0 + nu)*(1.0 - 2.0*nu));
++    scalarField E(rhoE/rho);
++    scalarField mu(E/(2.0*(1.0 + nu)));
++    scalarField lambda(nu*E/((1.0 + nu)*(1.0 - 2.0*nu)));
+ 
+     Switch planeStress(mechanicalProperties.lookup("planeStress"));
+ 
+diff --git a/applications/utilities/mesh/generation/blockMesh/Make/options b/applications/utilities/mesh/generation/blockMesh/Make/options
+index 2e07c47..f07fdc3 100644
+--- a/applications/utilities/mesh/generation/blockMesh/Make/options
++++ b/applications/utilities/mesh/generation/blockMesh/Make/options
+@@ -6,4 +6,5 @@ EXE_INC = \
+ EXE_LIBS = \
+     -lblockMesh \
+     -lmeshTools \
++    -lfiniteVolume \
+     -ldynamicMesh
+diff --git a/applications/utilities/mesh/generation/extrude2DMesh/Make/options b/applications/utilities/mesh/generation/extrude2DMesh/Make/options
+index ef62d4a..4acbc2c 100644
+--- a/applications/utilities/mesh/generation/extrude2DMesh/Make/options
++++ b/applications/utilities/mesh/generation/extrude2DMesh/Make/options
+@@ -1,5 +1,4 @@
+ EXE_INC = \
+-    /* -DFULLDEBUG -g -O0 */ \
+     -I$(LIB_SRC)/meshTools/lnInclude \
+     -I$(LIB_SRC)/dynamicMesh/lnInclude \
+     -I$(LIB_SRC)/finiteVolume/lnInclude
+diff --git a/applications/utilities/mesh/generation/snappyHexMesh/Make/options b/applications/utilities/mesh/generation/snappyHexMesh/Make/options
+index b7fd6d3..ce0ea6a 100644
+--- a/applications/utilities/mesh/generation/snappyHexMesh/Make/options
++++ b/applications/utilities/mesh/generation/snappyHexMesh/Make/options
+@@ -1,5 +1,4 @@
+ EXE_INC = \
+-    /* -g -DFULLDEBUG -O0 */ \
+     -I$(LIB_SRC)/parallel/decompose/decompositionMethods/lnInclude \
+     -I$(LIB_SRC)/mesh/autoMesh/lnInclude \
+     -I$(LIB_SRC)/meshTools/lnInclude \
+diff --git a/applications/utilities/miscellaneous/foamDebugSwitches/Make/options b/applications/utilities/miscellaneous/foamDebugSwitches/Make/options
+index ca4f079..efe8125 100644
+--- a/applications/utilities/miscellaneous/foamDebugSwitches/Make/options
++++ b/applications/utilities/miscellaneous/foamDebugSwitches/Make/options
+@@ -42,10 +42,8 @@ EXE_LIBS = \
+     -lmeshTools \
+     -lmolecularMeasurements \
+     -lmolecule \
+-/*    -lmultiphaseInterFoam  */ \
+     -lODE \
+     -lOpenFOAM \
+-/*    -lphaseModel  */ \
+     -lpotential \
+     -lradiationModels \
+     -lrandomProcesses \
+diff --git a/applications/utilities/postProcessing/dataConversion/foamToEnsight/Make/options b/applications/utilities/postProcessing/dataConversion/foamToEnsight/Make/options
+index 5d00838..0a407ef 100644
+--- a/applications/utilities/postProcessing/dataConversion/foamToEnsight/Make/options
++++ b/applications/utilities/postProcessing/dataConversion/foamToEnsight/Make/options
+@@ -1,5 +1,4 @@
+ EXE_INC = \
+-    /* -DFULLDEBUG -g -O0 */ \
+     -I$(LIB_SRC)/finiteVolume/lnInclude \
+     -I$(LIB_SRC)/meshTools/lnInclude \
+     -I$(LIB_SRC)/lagrangian/basic/lnInclude
+diff --git a/applications/utilities/postProcessing/miscellaneous/execFlowFunctionObjects/Make/options b/applications/utilities/postProcessing/miscellaneous/execFlowFunctionObjects/Make/options
+index 66477ec..d9895cf 100644
+--- a/applications/utilities/postProcessing/miscellaneous/execFlowFunctionObjects/Make/options
++++ b/applications/utilities/postProcessing/miscellaneous/execFlowFunctionObjects/Make/options
+@@ -9,10 +9,12 @@ EXE_INC = \
+ EXE_LIBS = \
+     $(FOAM_LIBBIN)/postCalc.o \
+     -lincompressibleTransportModels \
++    -lincompressibleTurbulenceModel \
+     -lincompressibleRASModels \
+     -lincompressibleLESModels \
+     -lbasicThermophysicalModels \
+     -lspecie \
++    -lcompressibleTurbulenceModel \
+     -lcompressibleRASModels \
+     -lcompressibleLESModels \
+     -lfiniteVolume \
+diff --git a/applications/utilities/postProcessing/turbulence/R/Make/options b/applications/utilities/postProcessing/turbulence/R/Make/options
+index a136b16..8ea239a 100644
+--- a/applications/utilities/postProcessing/turbulence/R/Make/options
++++ b/applications/utilities/postProcessing/turbulence/R/Make/options
+@@ -8,6 +8,7 @@ EXE_INC = \
+ EXE_LIBS = \
+     $(FOAM_LIBBIN)/postCalc.o \
+     -lincompressibleRASModels \
++    -lincompressibleTurbulenceModel \
+     -lincompressibleTransportModels \
+     -lfiniteVolume \
+     -lgenericPatchFields
+diff --git a/applications/utilities/postProcessing/turbulence/createTurbulenceFields/Make/options b/applications/utilities/postProcessing/turbulence/createTurbulenceFields/Make/options
+index 8862565..7e73772 100644
+--- a/applications/utilities/postProcessing/turbulence/createTurbulenceFields/Make/options
++++ b/applications/utilities/postProcessing/turbulence/createTurbulenceFields/Make/options
+@@ -5,6 +5,7 @@ EXE_INC = \
+     -I$(LIB_SRC)/finiteVolume/lnInclude
+ 
+ EXE_LIBS = \
++    -lincompressibleTurbulenceModel \
+     -lincompressibleRASModels \
+     -lincompressibleTransportModels \
+     -lfiniteVolume \
+diff --git a/applications/utilities/postProcessing/velocityField/Pe/Make/options b/applications/utilities/postProcessing/velocityField/Pe/Make/options
+index 7675f43..6c0ec67 100644
+--- a/applications/utilities/postProcessing/velocityField/Pe/Make/options
++++ b/applications/utilities/postProcessing/velocityField/Pe/Make/options
+@@ -11,10 +11,12 @@ EXE_INC = \
+ EXE_LIBS = \
+     $(FOAM_LIBBIN)/postCalc.o \
+     -lincompressibleTransportModels \
++    -lincompressibleTurbulenceModel \
+     -lincompressibleRASModels \
+     -lincompressibleLESModels \
+     -lbasicThermophysicalModels \
+     -lspecie \
++    -lcompressibleTurbulenceModel \
+     -lcompressibleRASModels \
+     -lcompressibleLESModels \
+     -lfiniteVolume \
+diff --git a/applications/utilities/postProcessing/wall/wallHeatFlux/Make/options b/applications/utilities/postProcessing/wall/wallHeatFlux/Make/options
+index 4d244f5..9898a76 100644
+--- a/applications/utilities/postProcessing/wall/wallHeatFlux/Make/options
++++ b/applications/utilities/postProcessing/wall/wallHeatFlux/Make/options
+@@ -8,6 +8,7 @@ EXE_INC = \
+ 
+ EXE_LIBS = \
+     -lcompressibleRASModels \
++    -lcompressibleTurbulenceModel \
+     -lreactionThermophysicalModels \
+     -lfiniteVolume \
+     -lgenericPatchFields \
+diff --git a/applications/utilities/postProcessing/wall/wallShearStress/Make/options b/applications/utilities/postProcessing/wall/wallShearStress/Make/options
+index b386fa4..bafbecb 100644
+--- a/applications/utilities/postProcessing/wall/wallShearStress/Make/options
++++ b/applications/utilities/postProcessing/wall/wallShearStress/Make/options
+@@ -6,9 +6,11 @@ EXE_INC = \
+ 
+ EXE_LIBS = \
+     -lincompressibleTransportModels \
++    -lincompressibleTurbulenceModel \
+     -lincompressibleRASModels \
+     -lbasicThermophysicalModels \
+     -lspecie \
++    -lcompressibleTurbulenceModel \
+     -lcompressibleRASModels \
+     -lfiniteVolume \
+     -lgenericPatchFields
+diff --git a/applications/utilities/postProcessing/wall/yPlusLES/Make/options b/applications/utilities/postProcessing/wall/yPlusLES/Make/options
+index d744684..15ad79f 100644
+--- a/applications/utilities/postProcessing/wall/yPlusLES/Make/options
++++ b/applications/utilities/postProcessing/wall/yPlusLES/Make/options
+@@ -8,6 +8,7 @@ EXE_INC = \
+ 
+ EXE_LIBS = \
+     -lincompressibleLESModels \
++    -lincompressibleTurbulenceModel \
+     -lincompressibleTransportModels \
+     -lfiniteVolume \
+     -lgenericPatchFields
+diff --git a/applications/utilities/postProcessing/wall/yPlusRAS/Make/options b/applications/utilities/postProcessing/wall/yPlusRAS/Make/options
+index 888f9e4..9983658 100644
+--- a/applications/utilities/postProcessing/wall/yPlusRAS/Make/options
++++ b/applications/utilities/postProcessing/wall/yPlusRAS/Make/options
+@@ -9,9 +9,11 @@ EXE_INC = \
+ 
+ EXE_LIBS = \
+     -lincompressibleTransportModels \
++    -lincompressibleTurbulenceModel \
+     -lincompressibleRASModels \
+     -lbasicThermophysicalModels \
+     -lspecie \
++    -lcompressibleTurbulenceModel \
+     -lcompressibleRASModels \
+     -lfiniteVolume \
+     -lgenericPatchFields \
+diff --git a/applications/utilities/preProcessing/applyBoundaryLayer/Make/options b/applications/utilities/preProcessing/applyBoundaryLayer/Make/options
+index 31f1dd4..86f8b61 100644
+--- a/applications/utilities/preProcessing/applyBoundaryLayer/Make/options
++++ b/applications/utilities/preProcessing/applyBoundaryLayer/Make/options
+@@ -8,6 +8,7 @@ EXE_INC = \
+ 
+ EXE_LIBS = \
+     -lfiniteVolume \
++    -lincompressibleTurbulenceModel \
+     -lincompressibleRASModels \
+     -lincompressibleTransportModels \
+     -lgenericPatchFields \
+diff --git a/applications/utilities/surface/surfaceFeatureExtract/surfaceFeatureExtract.C b/applications/utilities/surface/surfaceFeatureExtract/surfaceFeatureExtract.C
+index 412c2a9..f9c2f73 100644
+--- a/applications/utilities/surface/surfaceFeatureExtract/surfaceFeatureExtract.C
++++ b/applications/utilities/surface/surfaceFeatureExtract/surfaceFeatureExtract.C
+@@ -632,8 +632,8 @@ int main(int argc, char *argv[])
+ 
+     // Info<< "span " << span << endl;
+ 
+-    pointField start = searchSurf.faceCentres() - span*normals;
+-    pointField end = searchSurf.faceCentres() + span*normals;
++    const pointField& start = searchSurf.faceCentres() - span*normals;
++    const pointField& end = searchSurf.faceCentres() + span*normals;
+     const pointField& faceCentres = searchSurf.faceCentres();
+ 
+     List<List<pointIndexHit> > allHitInfo;
+diff --git a/bin/addr2line4Mac.py b/bin/addr2line4Mac.py
+new file mode 100755
+index 0000000..7a97c15
+--- /dev/null
++++ b/bin/addr2line4Mac.py
+@@ -0,0 +1,30 @@
++#! /usr/bin/python
++
++import sys
++filename=sys.argv[1]
++address=sys.argv[2]
++import re
++
++import subprocess
++
++p = subprocess.Popen("gdb -batch -x /dev/stdin",
++                     shell=True,
++                     bufsize=0,
++                     stdin=subprocess.PIPE,
++                     stdout=subprocess.PIPE,
++                     close_fds=True)
++
++(child_stdin, child_stdout) = (p.stdin, p.stdout)
++child_stdin.write("set sharedlibrary preload-libraries no\n")
++child_stdin.write("file "+filename+"\n")
++child_stdin.write("info line *"+address+"\n")
++result=child_stdout.readline()
++
++answer="??:0"
++
++match=re.compile('Line (.+) of "(.+)" starts at').match(result)
++if match:
++    answer=match.group(2)+":"+match.group(1)
++print answer,
++
++sys.exit(255)
+diff --git a/etc/bashrc b/etc/bashrc
+index 7968dff..c2ca71a 100644
+--- a/etc/bashrc
++++ b/etc/bashrc
+@@ -58,12 +58,11 @@ foamInstall=$HOME/$WM_PROJECT
+ : ${FOAM_INST_DIR:=$foamInstall}; export FOAM_INST_DIR
+ 
+ #- Compiler location:
+-#    foamCompiler= system | ThirdParty (OpenFOAM)
++#    foamCompiler= system
+ foamCompiler=system
+ 
+ #- Compiler:
+-#    WM_COMPILER = Gcc | Gcc43 | Gcc44 | Gcc45 | Gcc46 | Clang | Icc (Intel icc)
+-export WM_COMPILER=Gcc
++export WM_COMPILER=Clang
+ unset WM_COMPILER_ARCH WM_COMPILER_LIB_ARCH
+ 
+ #- Architecture:
+@@ -79,8 +78,7 @@ export WM_PRECISION_OPTION=DP
+ export WM_COMPILE_OPTION=Opt
+ 
+ #- MPI implementation:
+-#    WM_MPLIB = SYSTEMOPENMPI | OPENMPI | MPICH | MPICH-GM | HPMPI
+-#               | GAMMA | MPI | QSMPI
++# The only implementation, installed with Homebrew
+ export WM_MPLIB=OPENMPI
+ 
+ #- Operating System:
+@@ -199,6 +197,11 @@ cleaned=`$foamClean "$LD_LIBRARY_PATH" "$foamOldDirs"` \
+ 
+ #- Clean MANPATH
+ cleaned=`$foamClean "$MANPATH" "$foamOldDirs"` && MANPATH="$cleaned"
++if [[ `uname -s` == "Darwin" ]]
++then
++    cleaned=`$foamClean "$DYLD_LIBRARY_PATH" "$foamOldDirs"` \
++        && DYLD_LIBRARY_PATH="$cleaned"
++fi
+ 
+ export PATH LD_LIBRARY_PATH MANPATH
+ 
+@@ -223,10 +226,13 @@ cleaned=`$foamClean "$PATH"` && PATH="$cleaned"
+ #- Clean LD_LIBRARY_PATH
+ cleaned=`$foamClean "$LD_LIBRARY_PATH"` && LD_LIBRARY_PATH="$cleaned"
+ 
++#- Clean DYLD_LIBRARY_PATH
++cleaned=`$foamClean "$DYLD_LIBRARY_PATH"` && DYLD_LIBRARY_PATH="$cleaned"
++
+ #- Clean MANPATH (trailing ':' to find system pages)
+ cleaned=`$foamClean "$MANPATH"`: && MANPATH="$cleaned"
+ 
+-export PATH LD_LIBRARY_PATH MANPATH
++export PATH LD_LIBRARY_PATH MANPATH DYLD_LIBRARY_PATH
+ 
+ #- Clean LD_PRELOAD
+ if [ -n "$LD_PRELOAD" ]
+diff --git a/etc/config/paraview.sh b/etc/config/paraview.sh
+index a432e62..dfb742c 100644
+--- a/etc/config/paraview.sh
++++ b/etc/config/paraview.sh
+@@ -2,7 +2,7 @@
+ # =========                 |
+ # \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+ #  \\    /   O peration     |
+-#   \\  /    A nd           | Copyright (C) 2011 OpenFOAM Foundation
++#   \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+ #    \\/     M anipulation  |
+ #------------------------------------------------------------------------------
+ # License
+@@ -94,10 +94,31 @@ export ParaView_DIR=$WM_THIRD_PARTY_DIR/platforms/$WM_ARCH$WM_COMPILER/paraview-
+ # set paths if binaries or source are present
+ if [ -r $ParaView_DIR -o -r $paraviewInstDir ]
+ then
++    export ParaView_INCLUDE_DIR=$ParaView_DIR/include/paraview-$ParaView_MAJOR
++    if [ ! -d $ParaView_INCLUDE_DIR -a -d $ParaView_DIR/include/paraview ]
++    then
++        export ParaView_INCLUDE_DIR=$ParaView_DIR/include/paraview
++    fi
++
++    ParaView_LIB_DIR=$ParaView_DIR/lib/paraview-$ParaView_MAJOR
++    if [ ! -d $ParaView_LIB_DIR -a -d $ParaView_DIR/lib/paraview ]
++    then
++        ParaView_LIB_DIR=$ParaView_DIR/lib/paraview
++    fi
++
+     export PATH=$ParaView_DIR/bin:$PATH
+-    export LD_LIBRARY_PATH=$ParaView_DIR/lib/paraview-$ParaView_MAJOR:$LD_LIBRARY_PATH
++    export LD_LIBRARY_PATH=$ParaView_LIB_DIR:$LD_LIBRARY_PATH
+     export PV_PLUGIN_PATH=$FOAM_LIBBIN/paraview-$ParaView_MAJOR
+ 
++    if [ "$FOAM_VERBOSE" -a "$PS1" ]
++    then
++        echo "Using paraview"
++        echo "    ParaView_DIR         : $ParaView_DIR"
++        echo "    ParaView_LIB_DIR     : $ParaView_LIB_DIR"
++        echo "    ParaView_INCLUDE_DIR : $ParaView_INCLUDE_DIR"
++        echo "    PV_PLUGIN_PATH       : $PV_PLUGIN_PATH"
++    fi
++
+     # add in python libraries if required
+     paraviewPython=$ParaView_DIR/Utilities/VTKPythonWrapping
+     if [ -r $paraviewPython ]
+@@ -113,6 +134,22 @@ else
+     unset PV_PLUGIN_PATH
+ fi
+ 
++if [ $WM_ARCH_BASE=="darwin" ]
++then
++    : ${PARAVIEW_APP_DIR:="/Applications/paraview.app"}; export PARAVIEW_APP_DIR
++    if [ -d $PARAVIEW_APP_DIR -a ! -r $ParaView_DIR ]
++    then
++        echo "Using paraview in directory $PARAVIEW_APP_DIR"
++        unset ParaView_VERSION ParaView_MAJOR ParaView_DIR
++
++        paraview () {
++            $PARAVIEW_APP_DIR/Contents/MacOS/paraview "$@"
++        }
++
++        export -f paraview
++    fi
++fi
++
+ unset _foamParaviewEval
+ unset cleaned cmake paraviewInstDir paraviewPython
+ 
+diff --git a/etc/config/scotch.sh b/etc/config/scotch.sh
+index df1dce8..0fafd36 100644
+--- a/etc/config/scotch.sh
++++ b/etc/config/scotch.sh
+@@ -2,7 +2,7 @@
+ # =========                 |
+ # \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+ #  \\    /   O peration     |
+-#   \\  /    A nd           | Copyright (C) 2011 OpenFOAM Foundation
++#   \\  /    A nd           | Copyright (C) 2011-2012 OpenFOAM Foundation
+ #    \\/     M anipulation  |
+ #------------------------------------------------------------------------------
+ # License
+@@ -33,7 +33,7 @@
+ #     during the wmake process
+ #------------------------------------------------------------------------------
+ 
+-export SCOTCH_VERSION=scotch_5.1.11
+-export SCOTCH_ARCH_PATH=$WM_THIRD_PARTY_DIR/platforms/$WM_ARCH$WM_COMPILER/$SCOTCH_VERSION
++export SCOTCH_VERSION=$(brew ls --versions scotch | awk '{print $2}')
++export SCOTCH_ARCH_PATH=$(brew --prefix scotch)
+ 
+ # -----------------------------------------------------------------------------
+diff --git a/etc/config/settings.sh b/etc/config/settings.sh
+index eb1dbe2..e3ad167 100644
+--- a/etc/config/settings.sh
++++ b/etc/config/settings.sh
+@@ -46,6 +46,10 @@ _foamAddLib()
+     while [ $# -ge 1 ]
+     do
+         export LD_LIBRARY_PATH=$1:$LD_LIBRARY_PATH
++	if [ "$WM_ARCH_BASE" == "darwin" ]
++	then
++	    export DYLD_LIBRARY_PATH=$1:$DYLD_LIBRARY_PATH
++	fi
+         shift
+     done
+ }
+@@ -65,18 +69,17 @@ _foamAddMan()
+ export WM_ARCH=`uname -s`
+ 
+ case "$WM_ARCH" in
+-Linux)
+-    WM_ARCH=linux
+-
+-    # compiler specifics
+-    case `uname -m` in
+-    i686)
+-        ;;
+-
+-    x86_64)
+-        case "$WM_ARCH_OPTION" in
++Darwin)
++    export WM_ARCH_BASE=darwin
++    case `uname -p` in
++    powerpc)
++	export WM_ARCH=darwinPpc
++	;;
++    i386)
++	export WM_ARCH=darwinIntel
++        case $WM_ARCH_OPTION in
+         32)
+-            export WM_COMPILER_ARCH=64
++            export WM_COMPILER_LIB_ARCH=32
+             export WM_CC='gcc'
+             export WM_CXX='g++'
+             export WM_CFLAGS='-m32 -fPIC'
+@@ -84,7 +87,7 @@ Linux)
+             export WM_LDFLAGS='-m32'
+             ;;
+         64)
+-            WM_ARCH=linux64
++            WM_ARCH=darwinIntel64
+             export WM_COMPILER_LIB_ARCH=64
+             export WM_CC='gcc'
+             export WM_CXX='g++'
+@@ -93,54 +96,21 @@ Linux)
+             export WM_LDFLAGS='-m64'
+             ;;
+         *)
+-            echo "Unknown WM_ARCH_OPTION '$WM_ARCH_OPTION', should be 32 or 64"
++            echo Unknown WM_ARCH_OPTION $WM_ARCH_OPTION, should be 32 or 64
+             ;;
+         esac
+-        ;;
+-
+-    ia64)
+-        WM_ARCH=linuxIA64
+-        export WM_COMPILER=I64
+-        ;;
+-
+-    mips64)
+-        WM_ARCH=SiCortex64
+-        WM_MPLIB=MPI
+-        export WM_COMPILER_LIB_ARCH=64
+-        export WM_CC='gcc'
+-        export WM_CXX='g++'
+-        export WM_CFLAGS='-mabi=64 -fPIC'
+-        export WM_CXXFLAGS='-mabi=64 -fPIC'
+-        export WM_LDFLAGS='-mabi=64 -G0'
+-        ;;
+-
+-    ppc64)
+-        WM_ARCH=linuxPPC64
+-        export WM_COMPILER_LIB_ARCH=64
+-        export WM_CC='gcc'
+-        export WM_CXX='g++'
+-        export WM_CFLAGS='-m64 -fPIC'
+-        export WM_CXXFLAGS='-m64 -fPIC'
+-        export WM_LDFLAGS='-m64'
+-        ;;
+-
++	;;
+     *)
+-        echo Unknown processor type `uname -m` for Linux
+-        ;;
++        echo "Unknown architecture "`uname -p` "for Darwin"
+     esac
+-    ;;
+ 
+-SunOS)
+-    WM_ARCH=SunOS64
+-    WM_MPLIB=FJMPI
+-    export WM_COMPILER_LIB_ARCH=64
+-    export WM_CC='gcc'
+-    export WM_CXX='g++'
+-    export WM_CFLAGS='-mabi=64 -fPIC'
+-    export WM_CXXFLAGS='-mabi=64 -fPIC'
+-    export WM_LDFLAGS='-mabi=64 -G0'
++    #    export WM_COMPILER=
++    #    export WM_MPLIB=OPENMPI
++
++    MACOSX_DEPLOYMENT_TARGET=`sw_vers -productVersion`
+     ;;
+ 
++
+ *)    # an unsupported operating system
+     cat <<USAGE
+ 
+@@ -220,116 +190,6 @@ then
+ fi
+ 
+ case "${foamCompiler}" in
+-OpenFOAM | ThirdParty)
+-    case "$WM_COMPILER" in
+-    Gcc | Gcc++0x | Gcc46 | Gcc46++0x)
+-        gcc_version=gcc-4.6.1
+-        gmp_version=gmp-5.0.2
+-        mpfr_version=mpfr-3.0.1
+-        mpc_version=mpc-0.9
+-        gmpPACKAGE=gmp-5.0.2
+-        ;;
+-    Gcc47 | Gcc47++0x)
+-        gcc_version=gcc-4.7.0
+-        gmp_version=gmp-5.0.2
+-        mpfr_version=mpfr-3.0.1
+-        mpc_version=mpc-0.9
+-        gmpPACKAGE=gmp-5.0.2
+-        ;;
+-    Gcc45 | Gcc45++0x)
+-        gcc_version=gcc-4.5.2
+-        gmp_version=gmp-5.0.1
+-        mpfr_version=mpfr-2.4.2
+-        mpc_version=mpc-0.8.1
+-        ;;
+-    Gcc44 | Gcc44++0x)
+-        gcc_version=gcc-4.4.3
+-        gmp_version=gmp-5.0.1
+-        mpfr_version=mpfr-2.4.2
+-        ;;
+-    Gcc43)
+-        gcc_version=gcc-4.3.3
+-        gmp_version=gmp-4.2.4
+-        mpfr_version=mpfr-2.4.1
+-        ;;
+-    Clang)
+-        # using clang - not gcc
+-        export WM_CC='clang'
+-        export WM_CXX='clang++'
+-        #clang_version=llvm-2.9
+-        clang_version=llvm-svn
+-        ;;
+-    *)
+-        echo
+-        echo "Warning in $WM_PROJECT_DIR/etc/config/settings.sh:"
+-        echo "    Unknown OpenFOAM compiler type '$WM_COMPILER'"
+-        echo "    Please check your settings"
+-        echo
+-        ;;
+-    esac
+-
+-    # optional configuration tweaks:
+-    _foamSource `$WM_PROJECT_DIR/bin/foamEtcFile config/compiler.sh`
+-
+-    if [ -n "$gcc_version" ]
+-    then
+-        gccDir=$WM_THIRD_PARTY_DIR/platforms/$WM_ARCH$WM_COMPILER_ARCH/$gcc_version
+-        gmpDir=$WM_THIRD_PARTY_DIR/platforms/$WM_ARCH$WM_COMPILER_ARCH/$gmp_version
+-        mpfrDir=$WM_THIRD_PARTY_DIR/platforms/$WM_ARCH$WM_COMPILER_ARCH/$mpfr_version
+-        mpcDir=$WM_THIRD_PARTY_DIR/platforms/$WM_ARCH$WM_COMPILER_ARCH/$mpc_version
+-
+-        # Check that the compiler directory can be found
+-        [ -d "$gccDir" ] || {
+-            echo
+-            echo "Warning in $WM_PROJECT_DIR/etc/config/settings.sh:"
+-            echo "    Cannot find $gccDir installation."
+-            echo "    Please install this compiler version or if you wish to use the system compiler,"
+-            echo "    change the 'foamCompiler' setting to 'system'"
+-            echo
+-        }
+-
+-        _foamAddMan     $gccDir/man
+-        _foamAddPath    $gccDir/bin
+-
+-        # add compiler libraries to run-time environment
+-        _foamAddLib     $gccDir/lib$WM_COMPILER_LIB_ARCH
+-
+-        # add gmp/mpfr libraries to run-time environment
+-        _foamAddLib     $gmpDir/lib
+-        _foamAddLib     $mpfrDir/lib
+-
+-        # add mpc libraries (not need for older gcc) to run-time environment
+-        if [ -n "$mpc_version" ]
+-        then
+-            _foamAddLib     $mpcDir/lib
+-        fi
+-
+-        # used by boost/CGAL:
+-        export MPFR_ARCH_PATH=$mpfrDir
+-        export GMP_ARCH_PATH=$gmpDir
+-    fi
+-    unset gcc_version gccDir
+-    unset gmp_version gmpDir  mpfr_version mpfrDir  mpc_version mpcDir
+-
+-    if [ -n "$clang_version" ]
+-    then
+-        clangDir=$WM_THIRD_PARTY_DIR/platforms/$WM_ARCH$WM_COMPILER_ARCH/$clang_version
+-
+-        # Check that the compiler directory can be found
+-        [ -d "$clangDir" ] || {
+-            echo
+-            echo "Warning in $WM_PROJECT_DIR/etc/config/settings.sh:"
+-            echo "    Cannot find $clangDir installation."
+-            echo "    Please install this compiler version or if you wish to use the system compiler,"
+-            echo "    change the 'foamCompiler' setting to 'system'"
+-            echo
+-        }
+-
+-        _foamAddMan     $clangDir/share/man
+-        _foamAddPath    $clangDir/bin
+-    fi
+-    unset clang_version clangDir
+-    ;;
+ system)
+     # okay, use system compiler
+     ;;
+@@ -340,27 +200,27 @@ system)
+ esac
+ 
+ 
+-#
+-# add c++0x flags for external programs
+-#
+-if [ -n "$WM_CXXFLAGS" ]
+-then
+-    case "$WM_COMPILER" in
+-    Gcc*++0x)
+-        WM_CXXFLAGS="$WM_CXXFLAGS -std=c++0x"
+-        ;;
+-    esac
+-fi
+-
+-
+ # boost and CGAL
+ # ~~~~~~~~~~~~~~
+ 
+-boost_version=boost_1_45_0
+-cgal_version=CGAL-3.8
++boost_version=$(brew ls --versions boost | awk '{print $2}')
++cgal_version=$(brew ls --versions cgal | awk '{print $2}')
+ 
+-export BOOST_ARCH_PATH=$WM_THIRD_PARTY_DIR/platforms/$WM_ARCH$WM_COMPILER/$boost_version
+-export CGAL_ARCH_PATH=$WM_THIRD_PARTY_DIR/platforms/$WM_ARCH$WM_COMPILER/$cgal_version
++if [ "$boost_version" != "" ]; then
++    export BOOST_ARCH_PATH=$(brew --prefix boost)
++else
++    export BOOST_ARCH_PATH=
++fi
++
++if [ "$cgal_version" != "" ]; then
++    export CGAL_ARCH_PATH=$(brew --prefix cgal)
++    export MPFR_ARCH_PATH=$(brew --prefix mpfr)
++    export GMP_ARCH_PATH=$(brew --prefix gmp)
++else
++    export CGAL_ARCH_PATH=
++    export MPFR_ARCH_PATH=
++    export GMP_ARCH_PATH=
++fi
+ 
+ # enabled if CGAL is available
+ if [ "$FOAM_VERBOSE" -a "$PS1" ]
+@@ -375,6 +235,10 @@ then
+     if [ -d "$BOOST_ARCH_PATH" ]
+     then
+         _foamAddLib $BOOST_ARCH_PATH/lib
++        WM_BOOST_MT=
++        if [ -f "$BOOST_ARCH_PATH/lib/libboost_thread-mt.dylib" ]; then
++            WM_BOOST_MT="-mt"
++        fi
+     else
+         unset BOOST_ARCH_PATH
+     fi
+@@ -385,199 +249,23 @@ fi
+ 
+ unset boost_version cgal_version
+ 
+-
+ # Communications library
+ # ~~~~~~~~~~~~~~~~~~~~~~
+ 
+ unset MPI_ARCH_PATH MPI_HOME FOAM_MPI_LIBBIN
+ 
+-case "$WM_MPLIB" in
+-SYSTEMOPENMPI)
+-    # Use the system installed openmpi, get library directory via mpicc
+-    export FOAM_MPI=openmpi-system
+-
+-    # Set compilation flags here instead of in wmake/rules/../mplibSYSTEMOPENMPI
+-    export PINC="`mpicc --showme:compile`"
+-    export PLIBS="`mpicc --showme:link`"
+-    libDir=`echo "$PLIBS" | sed -e 's/.*-L\([^ ]*\).*/\1/'`
+-
+-    # Bit of a hack: strip off 'lib' and hope this is the path to openmpi
+-    # include files and libraries.
+-    export MPI_ARCH_PATH="${libDir%/*}"
+-
+-    if [ "$FOAM_VERBOSE" -a "$PS1" ]
+-    then
+-        echo "Using system installed MPI:"
+-        echo "    compile flags : $PINC"
+-        echo "    link flags    : $PLIBS"
+-        echo "    libmpi dir    : $libDir"
+-    fi
+-
+-    _foamAddLib     $libDir
+-    unset libDir
+-    ;;
+-
+-OPENMPI)
+-    export FOAM_MPI=openmpi-1.5.3
+-    # optional configuration tweaks:
+-    _foamSource `$WM_PROJECT_DIR/bin/foamEtcFile config/openmpi.sh`
+-
+-    export MPI_ARCH_PATH=$WM_THIRD_PARTY_DIR/platforms/$WM_ARCH$WM_COMPILER/$FOAM_MPI
+-
+-    # Tell OpenMPI where to find its install directory
+-    export OPAL_PREFIX=$MPI_ARCH_PATH
+-
+-    _foamAddPath    $MPI_ARCH_PATH/bin
+-
+-    # 64-bit on OpenSuSE 12.1 uses lib64 others use lib
+-    _foamAddLib     $MPI_ARCH_PATH/lib$WM_COMPILER_LIB_ARCH
+-    _foamAddLib     $MPI_ARCH_PATH/lib
+-
+-    _foamAddMan     $MPI_ARCH_PATH/man
+-    ;;
+-
+-MPICH)
+-    export FOAM_MPI=mpich2-1.1.1p1
+-    export MPI_HOME=$WM_THIRD_PARTY_DIR/$FOAM_MPI
+-    export MPI_ARCH_PATH=$WM_THIRD_PARTY_DIR/platforms/$WM_ARCH$WM_COMPILER/$FOAM_MPI
+-
+-    _foamAddPath    $MPI_ARCH_PATH/bin
+-
+-    # 64-bit on OpenSuSE 12.1 uses lib64 others use lib
+-    _foamAddLib     $MPI_ARCH_PATH/lib$WM_COMPILER_LIB_ARCH
+-    _foamAddLib     $MPI_ARCH_PATH/lib
+-
+-    _foamAddMan     $MPI_ARCH_PATH/share/man
+-    ;;
++export FOAM_MPI=openmpi-system
++
++libDir=$(brew --prefix open-mpi)
++
++# Bit of a hack: strip off 'lib' and hope this is the path to openmpi
++# include files and libraries.
++export MPI_ARCH_PATH="$libDir"
++
++_foamAddLib     "$libDir/lib"
++unset libDir
+ 
+-MPICH-GM)
+-    export FOAM_MPI=mpich-gm
+-    export MPI_ARCH_PATH=/opt/mpi
+-    export MPICH_PATH=$MPI_ARCH_PATH
+-    export GM_LIB_PATH=/opt/gm/lib64
+-
+-    _foamAddPath    $MPI_ARCH_PATH/bin
+-
+-    # 64-bit on OpenSuSE 12.1 uses lib64 others use lib
+-    _foamAddLib     $MPI_ARCH_PATH/lib$WM_COMPILER_LIB_ARCH
+-    _foamAddLib     $MPI_ARCH_PATH/lib
+-
+-    _foamAddLib     $GM_LIB_PATH
+-    ;;
+-
+-HPMPI)
+-    export FOAM_MPI=hpmpi
+-    export MPI_HOME=/opt/hpmpi
+-    export MPI_ARCH_PATH=$MPI_HOME
+-
+-    _foamAddPath $MPI_ARCH_PATH/bin
+-
+-    case `uname -m` in
+-    i686)
+-        _foamAddLib $MPI_ARCH_PATH/lib/linux_ia32
+-        ;;
+-
+-    x86_64)
+-        _foamAddLib $MPI_ARCH_PATH/lib/linux_amd64
+-        ;;
+-    ia64)
+-        _foamAddLib $MPI_ARCH_PATH/lib/linux_ia64
+-        ;;
+-    *)
+-        echo Unknown processor type `uname -m` for Linux
+-        ;;
+-    esac
+-    ;;
+-
+-GAMMA)
+-    export FOAM_MPI=gamma
+-    export MPI_ARCH_PATH=/usr
+-    ;;
+-
+-MPI)
+-    export FOAM_MPI=mpi
+-    export MPI_ARCH_PATH=/opt/mpi
+-    ;;
+-
+-FJMPI)
+-    export FOAM_MPI=fjmpi
+-    export MPI_ARCH_PATH=/opt/FJSVmpi2
+-
+-    _foamAddPath    $MPI_ARCH_PATH/bin
+-    _foamAddLib     $MPI_ARCH_PATH/lib/sparcv9
+-    _foamAddLib     /opt/FSUNf90/lib/sparcv9
+-    _foamAddLib     /opt/FJSVpnidt/lib
+-    ;;
+-
+-QSMPI)
+-    export FOAM_MPI=qsmpi
+-    export MPI_ARCH_PATH=/usr/lib/mpi
+-
+-    _foamAddPath    $MPI_ARCH_PATH/bin
+-    _foamAddLib     $MPI_ARCH_PATH/lib
+-    ;;
+-
+-SGIMPI)
+-    lastCharID=$(( ${#MPI_ROOT} - 1 ))
+-    if [ "${MPI_ROOT:$lastCharID:1}" == '/' ]
+-    then
+-        MPI_ROOT=${MPI_ROOT:0:$lastCharID}
+-    fi
+-
+-    export FOAM_MPI=${MPI_ROOT##*/}
+-    export MPI_ARCH_PATH=$MPI_ROOT
+-
+-    if [ ! -d "$MPI_ROOT" -o -z "$MPI_ARCH_PATH" ]
+-    then
+-        echo "Warning in $WM_PROJECT_DIR/etc/config/settings.sh:" 1>&2
+-        echo "    MPI_ROOT not a valid mpt installation directory or ending in a '/'." 1>&2
+-        echo "    Please set MPI_ROOT to the mpt installation directory." 1>&2
+-        echo "    MPI_ROOT currently set to '$MPI_ROOT'" 1>&2
+-    fi
+-
+-    if [ "$FOAM_VERBOSE" -a "$PS1" ]
+-    then
+-        echo "Using SGI MPT:"
+-        echo "    MPI_ROOT : $MPI_ROOT"
+-        echo "    FOAM_MPI : $FOAM_MPI"
+-    fi
+-
+-    _foamAddPath    $MPI_ARCH_PATH/bin
+-    _foamAddLib     $MPI_ARCH_PATH/lib
+-    ;;
+-
+-INTELMPI)
+-    lastCharID=$(( ${#MPI_ROOT} - 1 ))
+-    if [ "${MPI_ROOT:$lastCharID:1}" == '/' ]
+-    then
+-        MPI_ROOT=${MPI_ROOT:0:$lastCharID}
+-    fi
+-
+-    export FOAM_MPI=${MPI_ROOT##*/}
+-    export MPI_ARCH_PATH=$MPI_ROOT
+-
+-    if [ ! -d "$MPI_ROOT" -o -z "$MPI_ARCH_PATH" ]
+-    then
+-        echo "Warning in $WM_PROJECT_DIR/etc/config/settings.sh:" 1>&2
+-        echo "    MPI_ROOT not a valid mpt installation directory or ending in a '/'." 1>&2
+-        echo "    Please set MPI_ROOT to the mpt installation directory." 1>&2
+-        echo "    MPI_ROOT currently set to '$MPI_ROOT'" 1>&2
+-    fi
+-
+-    if [ "$FOAM_VERBOSE" -a "$PS1" ]
+-    then
+-        echo "Using INTEL MPI:"
+-        echo "    MPI_ROOT : $MPI_ROOT"
+-        echo "    FOAM_MPI : $FOAM_MPI"
+-    fi
+-
+-    _foamAddPath    $MPI_ARCH_PATH/bin64
+-    _foamAddLib     $MPI_ARCH_PATH/lib64
+-    ;;
+-*)
+-    export FOAM_MPI=dummy
+-    ;;
+-esac
++_foamAddLib $FOAM_LIBBIN/$FOAM_MPI
+ 
+ # add (non-dummy) MPI implementation
+ # dummy MPI already added to LD_LIBRARY_PATH and has no external libraries
+@@ -586,7 +274,11 @@ then
+     _foamAddLib $FOAM_LIBBIN/$FOAM_MPI:$FOAM_EXT_LIBBIN/$FOAM_MPI
+ fi
+ 
++# Scotch library
++# ~~~~~~~~~~~~~~
+ 
++export SCOTCH_VERSION=$(brew ls --versions scotch | awk '{print $2}')
++export SCOTCH_ARCH_PATH=$(brew --prefix scotch)
+ 
+ # Set the minimum MPI buffer size (used by all platforms except SGI MPI)
+ # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+@@ -598,6 +290,12 @@ then
+ fi
+ export MPI_BUFFER_SIZE
+ 
++# Setting limit of the number of open files
++uln=$(ulimit -n)
++if [ "$uln" -lt "1024" ]; then
++    ulimit -n 1024
++fi
++unset uln
+ 
+ # cleanup environment:
+ # ~~~~~~~~~~~~~~~~~~~~
+diff --git a/src/OSspecific/POSIX/POSIX.C b/src/OSspecific/POSIX/POSIX.C
+index 3429031..33cbd1a 100644
+--- a/src/OSspecific/POSIX/POSIX.C
++++ b/src/OSspecific/POSIX/POSIX.C
+@@ -53,7 +53,10 @@ Description
+ #include <sys/socket.h>
+ #include <netdb.h>
+ #include <dlfcn.h>
++#ifndef darwin
+ #include <link.h>
++#else
++#endif
+ 
+ #include <netinet/in.h>
+ 
+@@ -1170,6 +1173,14 @@ void* Foam::dlOpen(const fileName& lib, const bool check)
+     }
+     void* handle = ::dlopen(lib.c_str(), RTLD_LAZY|RTLD_GLOBAL);
+ 
++#ifdef darwin
++    if(!handle && lib.ext()=="so") {
++        fileName lName=lib.lessExt()+".dylib";
++        handle =
++            dlopen(lName.c_str(), RTLD_LAZY|RTLD_GLOBAL);
++    }
++#endif
++
+     if (!handle && check)
+     {
+         WarningIn("dlOpen(const fileName&, const bool)")
+@@ -1263,9 +1274,15 @@ static int collectLibsCallback
+     void *data
+ )
+ {
++#ifdef darwin
++    WarningIn("collectLibsCallback")
++        << "Not yet implemented for Mac OS X"
++            << Foam::endl;
++#else
+     Foam::DynamicList<Foam::fileName>* ptr =
+         reinterpret_cast<Foam::DynamicList<Foam::fileName>*>(data);
+     ptr->append(info->dlpi_name);
++#endif
+     return 0;
+ }
+ 
+@@ -1273,7 +1290,13 @@ static int collectLibsCallback
+ Foam::fileNameList Foam::dlLoaded()
+ {
+     DynamicList<fileName> libs;
++#ifdef darwin
++    WarningIn("dlLoaded")
++        << "Not yet implemented for Mac OS X"
++            << endl;
++#else
+     dl_iterate_phdr(collectLibsCallback, &libs);
++#endif
+     if (POSIX::debug)
+     {
+         std::cout
+diff --git a/src/OSspecific/POSIX/clockTime/clockTime.H b/src/OSspecific/POSIX/clockTime/clockTime.H
+index 8708ba9..e4de1fa 100644
+--- a/src/OSspecific/POSIX/clockTime/clockTime.H
++++ b/src/OSspecific/POSIX/clockTime/clockTime.H
+@@ -37,6 +37,9 @@ SourceFiles
+ #define clockTime_H
+ 
+ #include <sys/types.h>
++#ifdef darwin
++#include <sys/time.h>
++#endif
+ 
+ // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+ 
+diff --git a/src/OSspecific/POSIX/fileStat.C b/src/OSspecific/POSIX/fileStat.C
+index bf04835..625f9b6 100644
+--- a/src/OSspecific/POSIX/fileStat.C
++++ b/src/OSspecific/POSIX/fileStat.C
+@@ -29,7 +29,9 @@ License
+ 
+ #include <signal.h>
+ #include <unistd.h>
++#ifndef darwin
+ #include <sys/sysmacros.h>
++#endif
+ 
+ // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
+ 
+diff --git a/src/OSspecific/POSIX/printStack.C b/src/OSspecific/POSIX/printStack.C
+index df31b35..74c6b2e 100644
+--- a/src/OSspecific/POSIX/printStack.C
++++ b/src/OSspecific/POSIX/printStack.C
+@@ -31,8 +31,11 @@ License
+ #include "readHexLabel.H"
+ 
+ #include <cxxabi.h>
++#ifndef darwin
+ #include <execinfo.h>
++#endif
+ #include <dlfcn.h>
++#include <string.h>
+ 
+ // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+ 
+@@ -53,11 +56,22 @@ string pOpen(const string &cmd, label line=0)
+         for (label cnt = 0; cnt <= line; cnt++)
+         {
+             char buffer[MAX];
++
+             char* s = fgets(buffer, MAX-1, cmdPipe);
+ 
+             if (s == NULL)
+             {
++#ifdef darwin
++                // workaround for the Python-Script
++                for(int i=0;i<MAX;i++) {
++                    if(buffer[i]=='\n') {
++                        buffer[i]='\0';
++                    }
++                }
++                return buffer;
++#else
+                 return "";
++#endif
+             }
+ 
+             if (cnt == line)
+@@ -86,7 +100,11 @@ void printSourceFileAndLine
+ {
+     word myAddress = address;
+ 
++#ifndef darwin
+     if (filename.ext() == "so")
++#else
++    if (filename.ext() == "dylib")
++#endif
+     {
+         // Convert offset into .so into offset into executable.
+ 
+@@ -97,7 +115,7 @@ void printSourceFileAndLine
+ 
+         dladdr(addr, &info);
+ 
+-        unsigned long offset = ulong(info.dli_fbase);
++        unsigned long offset = (unsigned long)(info.dli_fbase);
+ 
+         IStringStream addressStr(address.substr(2));
+         label addressValue = readHexLabel(addressStr);
+@@ -113,7 +131,11 @@ void printSourceFileAndLine
+     {
+         string line = pOpen
+         (
++#ifndef darwin
+             "addr2line -f --demangle=auto --exe "
++#else
++            "addr2line4Mac.py "
++#endif
+           + filename
+           + " "
+           + myAddress,
+@@ -151,7 +173,11 @@ void getSymbolForRaw
+     {
+         string fcnt = pOpen
+         (
++#ifndef darwin
+             "addr2line -f --demangle=auto --exe "
++#else
++            "addr2line4Mac.py "
++#endif
+           + filename
+           + " "
+           + address
+@@ -166,6 +192,102 @@ void getSymbolForRaw
+     os  << "Uninterpreted: " << raw.c_str();
+ }
+ 
++#ifdef darwin
++
++// Trying to emulate the original backtrace and backtrace_symbol from the glibc
++// After an idea published by Rush Manbert at http://lists.apple.com/archives/xcode-users/2006/Apr/msg00528.html
++
++template<int level>
++void *getStackAddress()
++{
++    const unsigned int stackLevel=level;
++    return (
++        __builtin_frame_address(level)
++        ? __builtin_return_address(stackLevel)
++        : (void *)0
++    );
++};
++
++#define GET_STACK_ADDRESS(lvl)              \
++    case lvl: {return getStackAddress<lvl>(); break; }
++
++// please don't laugh. For some reason this is necessary (the compiler won't accept it otherwise)
++void *getStackAddress(int level)
++{
++    switch(level) {
++        GET_STACK_ADDRESS(0);
++        GET_STACK_ADDRESS(1);
++        GET_STACK_ADDRESS(2);
++        GET_STACK_ADDRESS(3);
++        GET_STACK_ADDRESS(4);
++        GET_STACK_ADDRESS(5);
++        GET_STACK_ADDRESS(6);
++        GET_STACK_ADDRESS(7);
++        GET_STACK_ADDRESS(8);
++        GET_STACK_ADDRESS(9);
++        GET_STACK_ADDRESS(10);
++        GET_STACK_ADDRESS(11);
++        GET_STACK_ADDRESS(12);
++        GET_STACK_ADDRESS(13);
++        GET_STACK_ADDRESS(14);
++        GET_STACK_ADDRESS(15);
++        GET_STACK_ADDRESS(16);
++        GET_STACK_ADDRESS(17);
++        GET_STACK_ADDRESS(18);
++        GET_STACK_ADDRESS(19);
++        GET_STACK_ADDRESS(20);
++        GET_STACK_ADDRESS(21);
++        default:
++            return (void *)0;
++            break;
++    }
++}
++
++unsigned backtrace(void **bt, unsigned maxAddrs)
++{
++    unsigned valid=0;
++    bool ok=true;
++
++    for(int level=0;level<maxAddrs;level++) {
++        if(ok) {
++            bt[level]=getStackAddress(level);
++
++            if(bt[level]!=(void *)0) {
++                valid=level;
++            } else {
++                ok=false;
++            }
++        } else {
++            bt[level]=(void *)0;
++        }
++    }
++
++    return valid;
++}
++
++// This function is a potential memory leak. But I don't care because the program is terminating anyway
++char **backtrace_symbols(void **bt,unsigned nr)
++{
++    char **strings=(char **)malloc(sizeof(char *)*nr);
++
++    for(unsigned i=0;i<nr;i++) {
++        Dl_info info;
++        int result=dladdr(bt[i],&info);
++
++        char tmp[1000];
++#ifdef darwinIntel64
++        sprintf(tmp,"%s(%s+%p) [%p]",info.dli_fname,info.dli_sname,(void *)((unsigned long)bt[i]-(unsigned long)info.dli_saddr),bt[i]);
++#else
++        sprintf(tmp,"%s(%s+%p) [%p]",info.dli_fname,info.dli_sname,(void *)((unsigned int)bt[i]-(unsigned int)info.dli_saddr),bt[i]);
++#endif
++        strings[i]=(char *)malloc(strlen(tmp)+1);
++        strcpy(strings[i],tmp);
++    }
++
++    return strings;
++}
++
++#endif
+ 
+ void error::printStack(Ostream& os)
+ {
+diff --git a/src/OSspecific/POSIX/signals/sigFpe.C b/src/OSspecific/POSIX/signals/sigFpe.C
+index a275fd7..614351f 100644
+--- a/src/OSspecific/POSIX/signals/sigFpe.C
++++ b/src/OSspecific/POSIX/signals/sigFpe.C
+@@ -42,6 +42,11 @@ License
+ 
+ #   include <sigfpe.h>
+ 
++#elif defined(__APPLE__)
++
++// #   include <fenv.h>
++#include <xmmintrin.h>
++
+ #endif
+ 
+ #include <stdint.h>
+@@ -94,7 +99,7 @@ void* Foam::sigFpe::nanMallocHook_(size_t size, const void *caller)
+ #endif
+ 
+ 
+-#ifdef LINUX_GNUC
++#if defined(LINUX_GNUC) || defined(__APPLE__)
+ 
+ void Foam::sigFpe::sigHandler(int)
+ {
+@@ -227,6 +232,28 @@ void Foam::sigFpe::set(const bool verbose)
+             NULL
+         );
+ 
++#       elif defined(__APPLE__)
++
++        struct sigaction newAction;
++        newAction.sa_handler = sigHandler;
++        newAction.sa_flags = SA_NODEFER;
++        sigemptyset(&newAction.sa_mask);
++        if (sigaction(SIGFPE, &newAction, &oldAction_) < 0)
++        {
++            FatalErrorIn
++            (
++                "Foam::sigFpe::set()"
++            )   << "Cannot set SIGFPE trapping"
++                << abort(FatalError);
++        }
++        _MM_SET_EXCEPTION_MASK(_MM_GET_EXCEPTION_MASK() & ~_MM_MASK_INVALID);
++        _MM_SET_EXCEPTION_MASK(_MM_GET_EXCEPTION_MASK() & ~_MM_MASK_DIV_ZERO);
++
++        _mm_setcsr( _MM_MASK_MASK &~
++        (_MM_MASK_OVERFLOW|_MM_MASK_INVALID|_MM_MASK_DIV_ZERO) );
++
++        supported=true;
++
+ #       endif
+ 
+ 
+diff --git a/src/OSspecific/POSIX/signals/sigFpe.H b/src/OSspecific/POSIX/signals/sigFpe.H
+index b7fdec8..564c4f5 100644
+--- a/src/OSspecific/POSIX/signals/sigFpe.H
++++ b/src/OSspecific/POSIX/signals/sigFpe.H
+@@ -82,7 +82,7 @@ class sigFpe
+ 
+     // Static data members
+ 
+-#   ifdef LINUX_GNUC
++#   if defined(LINUX_GNUC) || defined(__APPLE__)
+ 
+         //- Handler for caught signals
+         static void sigHandler(int);
+diff --git a/src/OpenFOAM/db/dynamicLibrary/dynamicCode/dynamicCode.C b/src/OpenFOAM/db/dynamicLibrary/dynamicCode/dynamicCode.C
+index 2f97577..92fc585 100644
+--- a/src/OpenFOAM/db/dynamicLibrary/dynamicCode/dynamicCode.C
++++ b/src/OpenFOAM/db/dynamicLibrary/dynamicCode/dynamicCode.C
+@@ -50,6 +50,11 @@ const char* const Foam::dynamicCode::libTargetRoot =
+ 
+ const char* const Foam::dynamicCode::topDirName = "dynamicCode";
+ 
++#ifndef darwin
++const char* const Foam::dynamicCode::dynamicLibExtension = ".so";
++#else
++const char* const Foam::dynamicCode::dynamicLibExtension = ".dylib";
++#endif
+ 
+ // * * * * * * * * * * * * * Static Member Functions * * * * * * * * * * * * //
+ 
+@@ -334,7 +339,7 @@ Foam::fileName Foam::dynamicCode::codeRelPath() const
+ 
+ Foam::fileName Foam::dynamicCode::libRelPath() const
+ {
+-    return codeRelPath()/libSubDir_/"lib" + codeName_ + ".so";
++    return codeRelPath()/libSubDir_/"lib" + codeName_ + dynamicLibExtension;
+ }
+ 
+ 
+diff --git a/src/OpenFOAM/db/dynamicLibrary/dynamicCode/dynamicCode.H b/src/OpenFOAM/db/dynamicLibrary/dynamicCode/dynamicCode.H
+index 852ba6d..4dfddc2 100644
+--- a/src/OpenFOAM/db/dynamicLibrary/dynamicCode/dynamicCode.H
++++ b/src/OpenFOAM/db/dynamicLibrary/dynamicCode/dynamicCode.H
+@@ -109,7 +109,8 @@ protected:
+         //- Top-level directory name for copy/compiling
+         static const char* const topDirName;
+ 
+-
++        static const char* const dynamicLibExtension;
++
+     // Protected Member Functions
+ 
+         //- Copy lines while expanding variables
+@@ -221,7 +222,7 @@ public:
+         //  Corresponds to codeRoot()/libSubDir()/lib\<codeName\>.so
+         fileName libPath() const
+         {
+-            return codeRoot_/libSubDir_/"lib" + codeName_ + ".so";
++            return codeRoot_/libSubDir_/"lib" + codeName_ + dynamicLibExtension;
+         }
+ 
+         //- Path for specified code name relative to \$FOAM_CASE
+diff --git a/src/OpenFOAM/primitives/Scalar/doubleFloat.H b/src/OpenFOAM/primitives/Scalar/doubleFloat.H
+index 57373e0..bfb6691 100644
+--- a/src/OpenFOAM/primitives/Scalar/doubleFloat.H
++++ b/src/OpenFOAM/primitives/Scalar/doubleFloat.H
+@@ -31,6 +31,16 @@ License
+ 
+ #include <cmath>
+ 
++#ifndef DUMMY_SCALAR_FUNCTIONS
++#define DUMMY_SCALAR_FUNCTIONS
++inline float j0f(float x) { return float(j0(double(x)));}
++inline float j1f(float x) { return float(j1(double(x)));}
++inline float y0f(float x) { return float(y0(double(x)));}
++inline float y1f(float x) { return float(y1(double(x)));}
++inline float jnf(const int n, const float s) { return float(jn(n, double(s))); }
++inline float ynf(const int n, const float s) { return float(yn(n, double(s))); }
++#endif
++
+ // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+ 
+ namespace Foam
+diff --git a/src/conversion/ensight/part/ensightPart.C b/src/conversion/ensight/part/ensightPart.C
+index 3881e76..c8c9a3f 100644
+--- a/src/conversion/ensight/part/ensightPart.C
++++ b/src/conversion/ensight/part/ensightPart.C
+@@ -51,7 +51,7 @@ bool Foam::ensightPart::isFieldDefined(const List<scalar>& field) const
+         {
+             const label id = idList[i];
+ 
+-            if (id >= field.size() || isnan(field[id]))
++            if (id >= field.size() || std::isnan(field[id]))
+             {
+                 return false;
+             }
+diff --git a/src/conversion/ensight/part/ensightPartIO.C b/src/conversion/ensight/part/ensightPartIO.C
+index 7fe2e6e..d52beb2 100644
+--- a/src/conversion/ensight/part/ensightPartIO.C
++++ b/src/conversion/ensight/part/ensightPartIO.C
+@@ -63,7 +63,7 @@ void Foam::ensightPart::writeFieldList
+     {
+         forAll(idList, i)
+         {
+-            if (idList[i] >= field.size() || isnan(field[idList[i]]))
++            if (idList[i] >= field.size() || std::isnan(field[idList[i]]))
+             {
+                 os.writeUndef();
+             }
+@@ -80,7 +80,7 @@ void Foam::ensightPart::writeFieldList
+         // no idList => perNode
+         forAll(field, i)
+         {
+-            if (isnan(field[i]))
++            if (std::isnan(field[i]))
+             {
+                 os.writeUndef();
+             }
+diff --git a/src/dynamicMesh/fvMeshDistribute/fvMeshDistributeTemplates.C b/src/dynamicMesh/fvMeshDistribute/fvMeshDistributeTemplates.C
+index fa88841..4e26656 100644
+--- a/src/dynamicMesh/fvMeshDistribute/fvMeshDistributeTemplates.C
++++ b/src/dynamicMesh/fvMeshDistribute/fvMeshDistributeTemplates.C
+@@ -280,7 +280,7 @@ void Foam::fvMeshDistribute::sendFields
+         // Send all fieldNames. This has to be exactly the same set as is
+         // being received!
+         const GeoField& fld =
+-            subsetter.baseMesh().lookupObject<GeoField>(fieldNames[i]);
++            subsetter.baseMesh().objectRegistry::lookupObject<GeoField>(fieldNames[i]);
+ 
+         tmp<GeoField> tsubfld = subsetter.interpolate(fld);
+ 
+diff --git a/src/finiteVolume/fields/fvPatchFields/derived/cylindricalInletVelocity/cylindricalInletVelocityFvPatchVectorField.C b/src/finiteVolume/fields/fvPatchFields/derived/cylindricalInletVelocity/cylindricalInletVelocityFvPatchVectorField.C
+index 5f6b65a..5a98480 100644
+--- a/src/finiteVolume/fields/fvPatchFields/derived/cylindricalInletVelocity/cylindricalInletVelocityFvPatchVectorField.C
++++ b/src/finiteVolume/fields/fvPatchFields/derived/cylindricalInletVelocity/cylindricalInletVelocityFvPatchVectorField.C
+@@ -131,8 +131,8 @@ void Foam::cylindricalInletVelocityFvPatchVectorField::updateCoeffs()
+ 
+     vector hatAxis = axis_/mag(axis_);
+ 
+-    const vectorField r(patch().Cf() - centre_);
+-    const vectorField d = r - (hatAxis & r)*hatAxis;
++    const vectorField& r(patch().Cf() - centre_);
++    const vectorField& d = r - (hatAxis & r)*hatAxis;
+ 
+     tmp<vectorField> tangVel =
+         (rpm_*constant::mathematical::pi/30.0)*(hatAxis) ^ d;
+diff --git a/src/finiteVolume/finiteVolume/gradSchemes/extendedLeastSquaresGrad/extendedLeastSquaresVectors.C b/src/finiteVolume/finiteVolume/gradSchemes/extendedLeastSquaresGrad/extendedLeastSquaresVectors.C
+index ebec7bb..a752de3 100644
+--- a/src/finiteVolume/finiteVolume/gradSchemes/extendedLeastSquaresGrad/extendedLeastSquaresVectors.C
++++ b/src/finiteVolume/finiteVolume/gradSchemes/extendedLeastSquaresGrad/extendedLeastSquaresVectors.C
+@@ -138,7 +138,7 @@ void Foam::extendedLeastSquaresVectors::makeLeastSquaresVectors() const
+         const labelUList& faceCells = p.faceCells();
+ 
+         // Build the d-vectors
+-        vectorField pd = p.delta();
++        const vectorField& pd = p.delta();
+ 
+         forAll(pd, patchFaceI)
+         {
+@@ -252,7 +252,7 @@ void Foam::extendedLeastSquaresVectors::makeLeastSquaresVectors() const
+         const labelUList& faceCells = p.faceCells();
+ 
+         // Build the d-vectors
+-        vectorField pd = p.delta();
++        const vectorField& pd = p.delta();
+ 
+         forAll(p, patchFaceI)
+         {
+diff --git a/src/finiteVolume/finiteVolume/gradSchemes/fourthGrad/fourthGrad.C b/src/finiteVolume/finiteVolume/gradSchemes/fourthGrad/fourthGrad.C
+index ead1ed0..8405041 100644
+--- a/src/finiteVolume/finiteVolume/gradSchemes/fourthGrad/fourthGrad.C
++++ b/src/finiteVolume/finiteVolume/gradSchemes/fourthGrad/fourthGrad.C
+@@ -126,7 +126,7 @@ Foam::fv::fourthGrad<Type>::calcGrad
+             const labelUList& faceCells = p.faceCells();
+ 
+             // Build the d-vectors
+-            vectorField pd = p.delta();
++            const vectorField& pd = p.delta();
+ 
+             const Field<GradType> neighbourSecondfGrad
+             (
+diff --git a/src/finiteVolume/finiteVolume/gradSchemes/leastSquaresGrad/leastSquaresVectors.C b/src/finiteVolume/finiteVolume/gradSchemes/leastSquaresGrad/leastSquaresVectors.C
+index 86b4bc0..c23bd1d 100644
+--- a/src/finiteVolume/finiteVolume/gradSchemes/leastSquaresGrad/leastSquaresVectors.C
++++ b/src/finiteVolume/finiteVolume/gradSchemes/leastSquaresGrad/leastSquaresVectors.C
+@@ -132,7 +132,7 @@ void Foam::leastSquaresVectors::makeLeastSquaresVectors() const
+         const labelUList& faceCells = p.patch().faceCells();
+ 
+         // Build the d-vectors
+-        vectorField pd = p.delta();
++        const vectorField& pd = p.delta();
+ 
+         if (pw.coupled())
+         {
+@@ -185,7 +185,7 @@ void Foam::leastSquaresVectors::makeLeastSquaresVectors() const
+         const labelUList& faceCells = p.faceCells();
+ 
+         // Build the d-vectors
+-        vectorField pd = p.delta();
++        const vectorField& pd = p.delta();
+ 
+         if (pw.coupled())
+         {
+diff --git a/src/finiteVolume/interpolation/surfaceInterpolation/limitedSchemes/LimitedScheme/LimitedScheme.C b/src/finiteVolume/interpolation/surfaceInterpolation/limitedSchemes/LimitedScheme/LimitedScheme.C
+index a7ea3a3..3f55361 100644
+--- a/src/finiteVolume/interpolation/surfaceInterpolation/limitedSchemes/LimitedScheme/LimitedScheme.C
++++ b/src/finiteVolume/interpolation/surfaceInterpolation/limitedSchemes/LimitedScheme/LimitedScheme.C
+@@ -122,7 +122,8 @@ Foam::LimitedScheme<Type, Limiter, LimitFunc>::limiter
+             );
+ 
+             // Build the d-vectors
+-            vectorField pd = CDweights.boundaryField()[patchi].patch().delta();
++            const vectorField& pd =
++                CDweights.boundaryField()[patchi].patch().delta();
+ 
+             forAll(pLim, face)
+             {
+diff --git a/src/finiteVolume/interpolation/surfaceInterpolation/schemes/linearUpwind/linearUpwind.C b/src/finiteVolume/interpolation/surfaceInterpolation/schemes/linearUpwind/linearUpwind.C
+index b513c50..cc62c76 100644
+--- a/src/finiteVolume/interpolation/surfaceInterpolation/schemes/linearUpwind/linearUpwind.C
++++ b/src/finiteVolume/interpolation/surfaceInterpolation/schemes/linearUpwind/linearUpwind.C
+@@ -111,7 +111,7 @@ Foam::linearUpwind<Type>::correction
+             );
+ 
+             // Build the d-vectors
+-            vectorField pd = Cf.boundaryField()[patchi].patch().delta();
++            const vectorField& pd = Cf.boundaryField()[patchi].patch().delta();
+ 
+             forAll(pOwner, facei)
+             {
+diff --git a/src/finiteVolume/interpolation/surfaceInterpolation/schemes/skewCorrected/skewCorrectionVectors.C b/src/finiteVolume/interpolation/surfaceInterpolation/schemes/skewCorrected/skewCorrectionVectors.C
+index 9feff9a..913c9f4 100644
+--- a/src/finiteVolume/interpolation/surfaceInterpolation/schemes/skewCorrected/skewCorrectionVectors.C
++++ b/src/finiteVolume/interpolation/surfaceInterpolation/schemes/skewCorrected/skewCorrectionVectors.C
+@@ -111,7 +111,7 @@ void Foam::skewCorrectionVectors::makeSkewCorrectionVectors() const
+             const labelUList& faceCells = p.faceCells();
+             const vectorField& patchFaceCentres = Cf.boundaryField()[patchI];
+             const vectorField& patchSf = Sf.boundaryField()[patchI];
+-            const vectorField patchD = p.delta();
++            const vectorField& patchD = p.delta();
+ 
+             forAll(p, patchFaceI)
+             {
+diff --git a/src/finiteVolume/interpolation/surfaceInterpolation/surfaceInterpolation/surfaceInterpolation.C b/src/finiteVolume/interpolation/surfaceInterpolation/surfaceInterpolation/surfaceInterpolation.C
+index 165b8c4..b56cab8 100644
+--- a/src/finiteVolume/interpolation/surfaceInterpolation/surfaceInterpolation/surfaceInterpolation.C
++++ b/src/finiteVolume/interpolation/surfaceInterpolation/surfaceInterpolation/surfaceInterpolation.C
+@@ -294,7 +294,7 @@ void Foam::surfaceInterpolation::makeNonOrthDeltaCoeffs() const
+ 
+     forAll(nonOrthDeltaCoeffs.boundaryField(), patchi)
+     {
+-        vectorField delta = mesh_.boundary()[patchi].delta();
++        const vectorField& delta = mesh_.boundary()[patchi].delta();
+ 
+         nonOrthDeltaCoeffs.boundaryField()[patchi] =
+             1.0/max(mesh_.boundary()[patchi].nf() & delta, 0.05*mag(delta));
+diff --git a/src/parallel/decompose/ptscotchDecomp/Make/options b/src/parallel/decompose/ptscotchDecomp/Make/options
+index 1e34631..f72efb0 100644
+--- a/src/parallel/decompose/ptscotchDecomp/Make/options
++++ b/src/parallel/decompose/ptscotchDecomp/Make/options
+@@ -3,10 +3,12 @@ sinclude $(RULES)/mplib$(WM_MPLIB)
+ 
+ EXE_INC = \
+     $(PFLAGS) $(PINC) \
+-    -I$(SCOTCH_ROOT)/include \
+-    -I$(SCOTCH_ARCH_PATH)/include/$(FOAM_MPI) \
+-    -I/usr/include/scotch \
++    -I$(SCOTCH_ARCH_PATH)/include \
+     -I../decompositionMethods/lnInclude
+ 
++ifneq ($(WM_ARCH_BASE),darwin)
++RTLIB=-lrt
++endif
++
+ LIB_LIBS = \
+-    -L$(SCOTCH_ROOT)/lib -L$(FOAM_EXT_LIBBIN)/$(FOAM_MPI) -lptscotch -lptscotcherrexit -lrt
++    -L$(SCOTCH_ARCH_PATH)/lib -lptscotch -lptscotcherrexit $(RTLIB)
+diff --git a/src/parallel/decompose/scotchDecomp/Make/options b/src/parallel/decompose/scotchDecomp/Make/options
+index 3bb11fb..cb7520b 100644
+--- a/src/parallel/decompose/scotchDecomp/Make/options
++++ b/src/parallel/decompose/scotchDecomp/Make/options
+@@ -7,10 +7,12 @@ sinclude $(RULES)/mplib$(WM_MPLIB)
+ 
+ EXE_INC = \
+     $(PFLAGS) $(PINC) \
+-    -I$(SCOTCH_ROOT)/include \
+     -I$(SCOTCH_ARCH_PATH)/include \
+-    -I/usr/include/scotch \
+     -I../decompositionMethods/lnInclude
+ 
++ifneq ($(WM_ARCH_BASE),darwin)
++RTLIB=-lrt
++endif
++
+ LIB_LIBS = \
+-    -L$(SCOTCH_ROOT)/lib -L$(FOAM_EXT_LIBBIN) -lscotch -lscotcherrexit -lrt
++    -L$(SCOTCH_ARCH_PATH)/lib -lscotch -lscotcherrexit $(RTLIB)
+diff --git a/src/postProcessing/functionObjects/field/fieldValues/faceSource/faceSourceTemplates.C b/src/postProcessing/functionObjects/field/fieldValues/faceSource/faceSourceTemplates.C
+index 892593d..b44de48 100644
+--- a/src/postProcessing/functionObjects/field/fieldValues/faceSource/faceSourceTemplates.C
++++ b/src/postProcessing/functionObjects/field/fieldValues/faceSource/faceSourceTemplates.C
+@@ -153,14 +153,14 @@ Type Foam::fieldValues::faceSource::processSameTypeValues
+         }
+         case opAreaAverage:
+         {
+-            const scalarField magSf = mag(Sf);
++            const scalarField& magSf = mag(Sf);
+ 
+             result = sum(values*magSf)/sum(magSf);
+             break;
+         }
+         case opAreaIntegrate:
+         {
+-            const scalarField magSf = mag(Sf);
++            const scalarField& magSf = mag(Sf);
+ 
+             result = sum(values*magSf);
+             break;
+@@ -177,7 +177,7 @@ Type Foam::fieldValues::faceSource::processSameTypeValues
+         }
+         case opCoV:
+         {
+-            const scalarField magSf = mag(Sf);
++            const scalarField& magSf = mag(Sf);
+ 
+             Type meanValue = sum(values*magSf)/sum(magSf);
+ 
+diff --git a/wmake/Makefile b/wmake/Makefile
+index 96e1885..d17d8fe 100644
+--- a/wmake/Makefile
++++ b/wmake/Makefile
+@@ -91,7 +91,11 @@ EXE_DEP         = $(OBJECTS_DIR)/options
+ LIB             = libNULL
+ 
+ # Shared library extension
++ifeq ($(WM_ARCH_BASE),darwin)
++SO              = dylib
++else
+ SO              = so
++endif
+ 
+ # Project executable
+ EXE             = $(WM_PROJECT).out
+diff --git a/wmake/rules/SiCortex64Gcc/X b/wmake/rules/SiCortex64Gcc/X
+deleted file mode 100644
+index 5d1f9c5..0000000
+--- a/wmake/rules/SiCortex64Gcc/X
++++ /dev/null
+@@ -1,3 +0,0 @@
+-XFLAGS     =
+-XINC       = $(XFLAGS) -I/usr/X11R6/include
+-XLIBS      = -L/usr/X11R6/lib64 -lXext -lX11
+diff --git a/wmake/rules/SiCortex64Gcc/c b/wmake/rules/SiCortex64Gcc/c
+deleted file mode 100644
+index 02ea254..0000000
+--- a/wmake/rules/SiCortex64Gcc/c
++++ /dev/null
+@@ -1,17 +0,0 @@
+-.SUFFIXES: .c .h
+-
+-cWARN        = -Wall
+-
+-cc          = gcc -mabi=64
+-#cc          = scgcc -mabi=64
+-
+-include $(RULES)/c$(WM_COMPILE_OPTION)
+-
+-cFLAGS      = -G0 $(GFLAGS) $(cWARN) $(cOPT) $(cDBUG) $(LIB_HEADER_DIRS) -fPIC
+-
+-ctoo        = $(WM_SCHEDULER) $(cc) $(cFLAGS) -c $$SOURCE -o $@
+-
+-LINK_LIBS   = $(cDBUG)
+-
+-LINKLIBSO   = $(cc) -shared
+-LINKEXE     = $(cc) -Xlinker --add-needed -Xlinker -z -Xlinker nodefs
+diff --git a/wmake/rules/SiCortex64Gcc/c++ b/wmake/rules/SiCortex64Gcc/c++
+deleted file mode 100644
+index f6d7be5..0000000
+--- a/wmake/rules/SiCortex64Gcc/c++
++++ /dev/null
+@@ -1,22 +0,0 @@
+-.SUFFIXES: .C .cxx .cc .cpp
+-
+-c++WARN     = -Wall -Wextra -Wno-unused-parameter -Wold-style-cast
+-
+-CC          = g++ -mabi=64
+-#CC          = scg++ -mabi=64
+-
+-include $(RULES)/c++$(WM_COMPILE_OPTION)
+-
+-ptFLAGS     = -DNoRepository -ftemplate-depth-100
+-
+-c++FLAGS    = -G0 $(GFLAGS) $(c++WARN) $(c++OPT) $(c++DBUG) $(ptFLAGS) $(LIB_HEADER_DIRS) -fPIC
+-
+-Ctoo        = $(WM_SCHEDULER) $(CC) $(c++FLAGS) -c $$SOURCE -o $@
+-cxxtoo      = $(Ctoo)
+-cctoo       = $(Ctoo)
+-cpptoo      = $(Ctoo)
+-
+-LINK_LIBS   = $(c++DBUG)
+-
+-LINKLIBSO   = $(CC) $(c++FLAGS) -shared
+-LINKEXE     = $(CC) $(c++FLAGS) -Xlinker --add-needed
+diff --git a/wmake/rules/SiCortex64Gcc/c++Debug b/wmake/rules/SiCortex64Gcc/c++Debug
+deleted file mode 100644
+index 19bdb9c..0000000
+--- a/wmake/rules/SiCortex64Gcc/c++Debug
++++ /dev/null
+@@ -1,2 +0,0 @@
+-c++DBUG    = -ggdb3 -DFULLDEBUG
+-c++OPT      = -O0 -fdefault-inline
+diff --git a/wmake/rules/SiCortex64Gcc/c++Opt b/wmake/rules/SiCortex64Gcc/c++Opt
+deleted file mode 100644
+index e37b9ee..0000000
+--- a/wmake/rules/SiCortex64Gcc/c++Opt
++++ /dev/null
+@@ -1,4 +0,0 @@
+-c++DBUG     =
+-c++OPT      = -O3
+-#c++OPT      = -O3
+-# -ftree-vectorize -ftree-vectorizer-verbose=3
+diff --git a/wmake/rules/SiCortex64Gcc/c++Prof b/wmake/rules/SiCortex64Gcc/c++Prof
+deleted file mode 100644
+index 3bda4da..0000000
+--- a/wmake/rules/SiCortex64Gcc/c++Prof
++++ /dev/null
+@@ -1,2 +0,0 @@
+-c++DBUG    = -pg
+-c++OPT     = -O2
+diff --git a/wmake/rules/SiCortex64Gcc/cDebug b/wmake/rules/SiCortex64Gcc/cDebug
+deleted file mode 100644
+index 72b638f..0000000
+--- a/wmake/rules/SiCortex64Gcc/cDebug
++++ /dev/null
+@@ -1,2 +0,0 @@
+-cDBUG       = -ggdb -DFULLDEBUG
+-cOPT        = -O1 -fdefault-inline -finline-functions
+diff --git a/wmake/rules/SiCortex64Gcc/cOpt b/wmake/rules/SiCortex64Gcc/cOpt
+deleted file mode 100644
+index 1731870..0000000
+--- a/wmake/rules/SiCortex64Gcc/cOpt
++++ /dev/null
+@@ -1,2 +0,0 @@
+-cDBUG       =
+-cOPT        = -O3
+diff --git a/wmake/rules/SiCortex64Gcc/cProf b/wmake/rules/SiCortex64Gcc/cProf
+deleted file mode 100644
+index ca3ac9b..0000000
+--- a/wmake/rules/SiCortex64Gcc/cProf
++++ /dev/null
+@@ -1,2 +0,0 @@
+-cDBUG       = -pg
+-cOPT        = -O2
+diff --git a/wmake/rules/SiCortex64Gcc/general b/wmake/rules/SiCortex64Gcc/general
+deleted file mode 100644
+index c0c59a7..0000000
+--- a/wmake/rules/SiCortex64Gcc/general
++++ /dev/null
+@@ -1,10 +0,0 @@
+-CPP        = cpp -traditional-cpp $(GFLAGS)
+-LD         = ld -A64
+-
+-PROJECT_LIBS = -l$(WM_PROJECT) -ldl
+-
+-include $(GENERAL_RULES)/standard
+-
+-include $(RULES)/X
+-include $(RULES)/c
+-include $(RULES)/c++
+diff --git a/wmake/rules/SiCortex64Gcc/mplibMPI b/wmake/rules/SiCortex64Gcc/mplibMPI
+deleted file mode 100644
+index 1fb55dd..0000000
+--- a/wmake/rules/SiCortex64Gcc/mplibMPI
++++ /dev/null
+@@ -1,3 +0,0 @@
+-PFLAGS     = -DMPICH_SKIP_MPICXX
+-PINC       =
+-PLIBS      = -lscmpi
+diff --git a/wmake/rules/SunOS64Gcc/X b/wmake/rules/SunOS64Gcc/X
+deleted file mode 100644
+index 5d1f9c5..0000000
+--- a/wmake/rules/SunOS64Gcc/X
++++ /dev/null
+@@ -1,3 +0,0 @@
+-XFLAGS     =
+-XINC       = $(XFLAGS) -I/usr/X11R6/include
+-XLIBS      = -L/usr/X11R6/lib64 -lXext -lX11
+diff --git a/wmake/rules/SunOS64Gcc/c b/wmake/rules/SunOS64Gcc/c
+deleted file mode 100644
+index f4114be..0000000
+--- a/wmake/rules/SunOS64Gcc/c
++++ /dev/null
+@@ -1,16 +0,0 @@
+-.SUFFIXES: .c .h
+-
+-cWARN        = -Wall
+-
+-cc          = gcc -m64
+-
+-include $(RULES)/c$(WM_COMPILE_OPTION)
+-
+-cFLAGS      = $(GFLAGS) $(cWARN) $(cOPT) $(cDBUG) $(LIB_HEADER_DIRS) -fPIC
+-
+-ctoo        = $(WM_SCHEDULER) $(cc) $(cFLAGS) -c $$SOURCE -o $@
+-
+-LINK_LIBS   = $(cDBUG)
+-
+-LINKLIBSO   = $(cc) -shared
+-LINKEXE     = $(cc) -Xlinker --add-needed -Xlinker -z -Xlinker nodefs
+diff --git a/wmake/rules/SunOS64Gcc/c++ b/wmake/rules/SunOS64Gcc/c++
+deleted file mode 100644
+index 3ca193e..0000000
+--- a/wmake/rules/SunOS64Gcc/c++
++++ /dev/null
+@@ -1,21 +0,0 @@
+-.SUFFIXES: .C .cxx .cc .cpp
+-
+-c++WARN     = -Wall -Wextra -Wno-unused-parameter -Wold-style-cast
+-
+-CC          = g++ -m64
+-
+-include $(RULES)/c++$(WM_COMPILE_OPTION)
+-
+-ptFLAGS     = -DNoRepository -ftemplate-depth-100
+-
+-c++FLAGS    = $(GFLAGS) $(c++WARN) $(c++OPT) $(c++DBUG) $(ptFLAGS) $(LIB_HEADER_DIRS) -fPIC
+-
+-Ctoo        = $(WM_SCHEDULER) $(CC) $(c++FLAGS) -c $$SOURCE -o $@
+-cxxtoo      = $(Ctoo)
+-cctoo       = $(Ctoo)
+-cpptoo      = $(Ctoo)
+-
+-LINK_LIBS   = $(c++DBUG)
+-
+-LINKLIBSO   = $(CC) $(c++FLAGS) -shared
+-LINKEXE     = $(CC) $(c++FLAGS) -Xlinker --add-needed
+diff --git a/wmake/rules/SunOS64Gcc/c++Debug b/wmake/rules/SunOS64Gcc/c++Debug
+deleted file mode 100644
+index 19bdb9c..0000000
+--- a/wmake/rules/SunOS64Gcc/c++Debug
++++ /dev/null
+@@ -1,2 +0,0 @@
+-c++DBUG    = -ggdb3 -DFULLDEBUG
+-c++OPT      = -O0 -fdefault-inline
+diff --git a/wmake/rules/SunOS64Gcc/c++Opt b/wmake/rules/SunOS64Gcc/c++Opt
+deleted file mode 100644
+index 2aedabd..0000000
+--- a/wmake/rules/SunOS64Gcc/c++Opt
++++ /dev/null
+@@ -1,2 +0,0 @@
+-c++DBUG     =
+-c++OPT      = -O3
+diff --git a/wmake/rules/SunOS64Gcc/c++Prof b/wmake/rules/SunOS64Gcc/c++Prof
+deleted file mode 100644
+index 3bda4da..0000000
+--- a/wmake/rules/SunOS64Gcc/c++Prof
++++ /dev/null
+@@ -1,2 +0,0 @@
+-c++DBUG    = -pg
+-c++OPT     = -O2
+diff --git a/wmake/rules/SunOS64Gcc/cDebug b/wmake/rules/SunOS64Gcc/cDebug
+deleted file mode 100644
+index 72b638f..0000000
+--- a/wmake/rules/SunOS64Gcc/cDebug
++++ /dev/null
+@@ -1,2 +0,0 @@
+-cDBUG       = -ggdb -DFULLDEBUG
+-cOPT        = -O1 -fdefault-inline -finline-functions
+diff --git a/wmake/rules/SunOS64Gcc/cOpt b/wmake/rules/SunOS64Gcc/cOpt
+deleted file mode 100644
+index 1731870..0000000
+--- a/wmake/rules/SunOS64Gcc/cOpt
++++ /dev/null
+@@ -1,2 +0,0 @@
+-cDBUG       =
+-cOPT        = -O3
+diff --git a/wmake/rules/SunOS64Gcc/cProf b/wmake/rules/SunOS64Gcc/cProf
+deleted file mode 100644
+index ca3ac9b..0000000
+--- a/wmake/rules/SunOS64Gcc/cProf
++++ /dev/null
+@@ -1,2 +0,0 @@
+-cDBUG       = -pg
+-cOPT        = -O2
+diff --git a/wmake/rules/SunOS64Gcc/general b/wmake/rules/SunOS64Gcc/general
+deleted file mode 100644
+index 83b7ebf..0000000
+--- a/wmake/rules/SunOS64Gcc/general
++++ /dev/null
+@@ -1,10 +0,0 @@
+-CPP        = /lib/cpp
+-LD         = ld -64
+-
+-PROJECT_LIBS = -l$(WM_PROJECT) -lnsl -lsocket -L$(FOAM_LIBBIN)/dummy -lPstream
+-
+-include $(GENERAL_RULES)/standard
+-
+-include $(RULES)/X
+-include $(RULES)/c
+-include $(RULES)/c++
+diff --git a/wmake/rules/SunOS64Gcc/mplibFJMPI b/wmake/rules/SunOS64Gcc/mplibFJMPI
+deleted file mode 100644
+index 2d6c167..0000000
+--- a/wmake/rules/SunOS64Gcc/mplibFJMPI
++++ /dev/null
+@@ -1,3 +0,0 @@
+-PFLAGS     =
+-PINC       = -I$(MPI_ARCH_PATH)/include/sparcv9/mpi -DMPIPP_H
+-PLIBS      = -L$(MPI_ARCH_PATH)/lib/sparcv9 -lmpi_f -L/opt/FSUNf90/lib/sparcv9 -lfjgmp64 -L/opt/FJSVpnidt/lib -lfjidt -ljrm -lfj90i -lfj90f -lfj90fmt  -lelf
+diff --git a/wmake/rules/darwinIntel64Clang/c b/wmake/rules/darwinIntel64Clang/c
+new file mode 100644
+index 0000000..6f2dc07
+--- /dev/null
++++ b/wmake/rules/darwinIntel64Clang/c
+@@ -0,0 +1,16 @@
++.SUFFIXES: .c .h
++
++cWARN        = -Wall
++
++cc          = clang -m64
++
++include $(RULES)/c$(WM_COMPILE_OPTION)
++
++cFLAGS      = $(GFLAGS) $(cWARN) $(cOPT) $(cDBUG) $(LIB_HEADER_DIRS) -fPIC -Ddarwin
++
++ctoo        = $(WM_SCHEDULER) $(cc) $(cFLAGS) -c $$SOURCE -o $@
++
++LINK_LIBS   = $(cDBUG)
++
++LINKLIBSO   = $(cc) -shared -undefined suppress
++LINKEXE     = $(cc) -Xlinker -Xlinker -z -Xlinker nodefs
+diff --git a/wmake/rules/darwinIntel64Clang/c++ b/wmake/rules/darwinIntel64Clang/c++
+new file mode 100644
+index 0000000..3f030e1
+--- /dev/null
++++ b/wmake/rules/darwinIntel64Clang/c++
+@@ -0,0 +1,22 @@
++.SUFFIXES: .C .cxx .cc .cpp
++
++# -Woverloaded-virtual may produce spurious warnings, disable for now
++c++WARN     = -Wall -Wextra -Wno-unused-parameter -Wold-style-cast -Wnon-virtual-dtor -Wno-overloaded-virtual -Wno-unused-comparison -Wno-deprecated-register
++
++CC          = clang++ -m64
++
++include $(RULES)/c++$(WM_COMPILE_OPTION)
++
++ptFLAGS     = -DNoRepository -ftemplate-depth-100
++
++c++FLAGS    = $(GFLAGS) $(c++WARN) $(c++OPT) $(c++DBUG) $(ptFLAGS) $(LIB_HEADER_DIRS) -fPIC -D$(WM_ARCH_BASE) -std=c++11
++
++Ctoo        = $(WM_SCHEDULER) $(CC) $(c++FLAGS) -c $$SOURCE -o $@
++cxxtoo      = $(Ctoo)
++cctoo       = $(Ctoo)
++cpptoo      = $(Ctoo)
++
++LINK_LIBS   = $(c++DBUG)
++
++LINKLIBSO   = $(CC) $(c++FLAGS) -shared  -lpthread -dynamiclib -undefined dynamic_lookup
++LINKEXE     = $(CC) $(c++FLAGS) -Xlinker -lpthread -L$(FOAM_LIBBIN)/$(FOAM_MPI) -lPstream
+diff --git a/wmake/rules/darwinIntel64Clang/c++Debug b/wmake/rules/darwinIntel64Clang/c++Debug
+new file mode 100644
+index 0000000..1c63335
+--- /dev/null
++++ b/wmake/rules/darwinIntel64Clang/c++Debug
+@@ -0,0 +1,2 @@
++c++DBUG    = -g -DFULLDEBUG
++c++OPT      = -O0
+diff --git a/wmake/rules/darwinIntel64Clang/c++Opt b/wmake/rules/darwinIntel64Clang/c++Opt
+new file mode 100644
+index 0000000..3363be8
+--- /dev/null
++++ b/wmake/rules/darwinIntel64Clang/c++Opt
+@@ -0,0 +1,3 @@
++#c++DBUG     = -O0 -DFULLDEBUG -g
++c++DBUG     =
++c++OPT      = -O3
+diff --git a/wmake/rules/darwinIntel64Clang/c++Prof b/wmake/rules/darwinIntel64Clang/c++Prof
+new file mode 100644
+index 0000000..3bda4da
+--- /dev/null
++++ b/wmake/rules/darwinIntel64Clang/c++Prof
+@@ -0,0 +1,2 @@
++c++DBUG    = -pg
++c++OPT     = -O2
+diff --git a/wmake/rules/darwinIntel64Clang/cDebug b/wmake/rules/darwinIntel64Clang/cDebug
+new file mode 100644
+index 0000000..7b7adf1
+--- /dev/null
++++ b/wmake/rules/darwinIntel64Clang/cDebug
+@@ -0,0 +1,2 @@
++cDBUG       = -g -DFULLDEBUG
++cOPT        = -O0
+diff --git a/wmake/rules/darwinIntel64Clang/cOpt b/wmake/rules/darwinIntel64Clang/cOpt
+new file mode 100644
+index 0000000..1731870
+--- /dev/null
++++ b/wmake/rules/darwinIntel64Clang/cOpt
+@@ -0,0 +1,2 @@
++cDBUG       =
++cOPT        = -O3
+diff --git a/wmake/rules/darwinIntel64Clang/cProf b/wmake/rules/darwinIntel64Clang/cProf
+new file mode 100644
+index 0000000..ca3ac9b
+--- /dev/null
++++ b/wmake/rules/darwinIntel64Clang/cProf
+@@ -0,0 +1,2 @@
++cDBUG       = -pg
++cOPT        = -O2
+diff --git a/wmake/rules/darwinIntel64Clang/general b/wmake/rules/darwinIntel64Clang/general
+new file mode 100644
+index 0000000..243cb7d
+--- /dev/null
++++ b/wmake/rules/darwinIntel64Clang/general
+@@ -0,0 +1,8 @@
++CPP        = cpp -traditional-cpp $(GFLAGS)
++
++PROJECT_LIBS = -l$(WM_PROJECT) -ldl
++
++include $(GENERAL_RULES)/standard
++
++include $(RULES)/c
++include $(RULES)/c++
+diff --git a/wmake/rules/darwinIntel64Clang/mplibOPENMPI b/wmake/rules/darwinIntel64Clang/mplibOPENMPI
+new file mode 100644
+index 0000000..e3c2465
+--- /dev/null
++++ b/wmake/rules/darwinIntel64Clang/mplibOPENMPI
+@@ -0,0 +1,3 @@
++PFLAGS     = -DOMPI_SKIP_MPICXX
++PINC       = -I$(shell brew --prefix open-mpi)/include
++PLIBS      = -L$(shell brew --prefix open-mpi)/lib -lmpi
+diff --git a/wmake/rules/linux64Clang/c b/wmake/rules/linux64Clang/c
+deleted file mode 100644
+index 7d7d4f6..0000000
+--- a/wmake/rules/linux64Clang/c
++++ /dev/null
+@@ -1,16 +0,0 @@
+-.SUFFIXES: .c .h
+-
+-cWARN        = -Wall
+-
+-cc          = clang -m64
+-
+-include $(RULES)/c$(WM_COMPILE_OPTION)
+-
+-cFLAGS      = $(GFLAGS) $(cWARN) $(cOPT) $(cDBUG) $(LIB_HEADER_DIRS) -fPIC
+-
+-ctoo        = $(WM_SCHEDULER) $(cc) $(cFLAGS) -c $$SOURCE -o $@
+-
+-LINK_LIBS   = $(cDBUG)
+-
+-LINKLIBSO   = $(cc) -shared
+-LINKEXE     = $(cc) -Xlinker --add-needed -Xlinker -z -Xlinker nodefs
+diff --git a/wmake/rules/linux64Clang/c++ b/wmake/rules/linux64Clang/c++
+deleted file mode 100644
+index 0acf5ff..0000000
+--- a/wmake/rules/linux64Clang/c++
++++ /dev/null
+@@ -1,22 +0,0 @@
+-.SUFFIXES: .C .cxx .cc .cpp
+-
+-# -Woverloaded-virtual may produce spurious warnings, disable for now
+-c++WARN     = -Wall -Wextra -Wno-unused-parameter -Wold-style-cast -Wnon-virtual-dtor -Wno-overloaded-virtual
+-
+-CC          = clang++ -m64
+-
+-include $(RULES)/c++$(WM_COMPILE_OPTION)
+-
+-ptFLAGS     = -DNoRepository -ftemplate-depth-100
+-
+-c++FLAGS    = $(GFLAGS) $(c++WARN) $(c++OPT) $(c++DBUG) $(ptFLAGS) $(LIB_HEADER_DIRS) -fPIC
+-
+-Ctoo        = $(WM_SCHEDULER) $(CC) $(c++FLAGS) -c $$SOURCE -o $@
+-cxxtoo      = $(Ctoo)
+-cctoo       = $(Ctoo)
+-cpptoo      = $(Ctoo)
+-
+-LINK_LIBS   = $(c++DBUG)
+-
+-LINKLIBSO   = $(CC) $(c++FLAGS) -shared
+-LINKEXE     = $(CC) $(c++FLAGS) -Xlinker --add-needed
+diff --git a/wmake/rules/linux64Clang/c++Debug b/wmake/rules/linux64Clang/c++Debug
+deleted file mode 100644
+index 19bdb9c..0000000
+--- a/wmake/rules/linux64Clang/c++Debug
++++ /dev/null
+@@ -1,2 +0,0 @@
+-c++DBUG    = -ggdb3 -DFULLDEBUG
+-c++OPT      = -O0 -fdefault-inline
+diff --git a/wmake/rules/linux64Clang/c++Opt b/wmake/rules/linux64Clang/c++Opt
+deleted file mode 100644
+index 3363be8..0000000
+--- a/wmake/rules/linux64Clang/c++Opt
++++ /dev/null
+@@ -1,3 +0,0 @@
+-#c++DBUG     = -O0 -DFULLDEBUG -g
+-c++DBUG     =
+-c++OPT      = -O3
+diff --git a/wmake/rules/linux64Clang/c++Prof b/wmake/rules/linux64Clang/c++Prof
+deleted file mode 100644
+index 3bda4da..0000000
+--- a/wmake/rules/linux64Clang/c++Prof
++++ /dev/null
+@@ -1,2 +0,0 @@
+-c++DBUG    = -pg
+-c++OPT     = -O2
+diff --git a/wmake/rules/linux64Clang/cDebug b/wmake/rules/linux64Clang/cDebug
+deleted file mode 100644
+index 72b638f..0000000
+--- a/wmake/rules/linux64Clang/cDebug
++++ /dev/null
+@@ -1,2 +0,0 @@
+-cDBUG       = -ggdb -DFULLDEBUG
+-cOPT        = -O1 -fdefault-inline -finline-functions
+diff --git a/wmake/rules/linux64Clang/cOpt b/wmake/rules/linux64Clang/cOpt
+deleted file mode 100644
+index 1731870..0000000
+--- a/wmake/rules/linux64Clang/cOpt
++++ /dev/null
+@@ -1,2 +0,0 @@
+-cDBUG       =
+-cOPT        = -O3
+diff --git a/wmake/rules/linux64Clang/cProf b/wmake/rules/linux64Clang/cProf
+deleted file mode 100644
+index ca3ac9b..0000000
+--- a/wmake/rules/linux64Clang/cProf
++++ /dev/null
+@@ -1,2 +0,0 @@
+-cDBUG       = -pg
+-cOPT        = -O2
+diff --git a/wmake/rules/linux64Clang/general b/wmake/rules/linux64Clang/general
+deleted file mode 100644
+index 243cb7d..0000000
+--- a/wmake/rules/linux64Clang/general
++++ /dev/null
+@@ -1,8 +0,0 @@
+-CPP        = cpp -traditional-cpp $(GFLAGS)
+-
+-PROJECT_LIBS = -l$(WM_PROJECT) -ldl
+-
+-include $(GENERAL_RULES)/standard
+-
+-include $(RULES)/c
+-include $(RULES)/c++
+diff --git a/wmake/rules/linux64Clang/mplibHPMPI b/wmake/rules/linux64Clang/mplibHPMPI
+deleted file mode 100644
+index 574492a..0000000
+--- a/wmake/rules/linux64Clang/mplibHPMPI
++++ /dev/null
+@@ -1,3 +0,0 @@
+-PFLAGS     =
+-PINC       = -I$(MPI_ARCH_PATH)/include -D_MPICC_H
+-PLIBS      = -L$(MPI_ARCH_PATH)/lib/linux_amd64 -lmpi
+diff --git a/wmake/rules/linux64Clang/mplibINTELMPI b/wmake/rules/linux64Clang/mplibINTELMPI
+deleted file mode 100644
+index cf80ec2..0000000
+--- a/wmake/rules/linux64Clang/mplibINTELMPI
++++ /dev/null
+@@ -1,3 +0,0 @@
+-PFLAGS     = -DMPICH_SKIP_MPICXX
+-PINC       = -I$(MPI_ARCH_PATH)/include64
+-PLIBS      = -L$(MPI_ARCH_PATH)/lib64 -lmpi
+diff --git a/wmake/rules/linux64Gcc++0x/c b/wmake/rules/linux64Gcc++0x/c
+deleted file mode 100644
+index f4114be..0000000
+--- a/wmake/rules/linux64Gcc++0x/c
++++ /dev/null
+@@ -1,16 +0,0 @@
+-.SUFFIXES: .c .h
+-
+-cWARN        = -Wall
+-
+-cc          = gcc -m64
+-
+-include $(RULES)/c$(WM_COMPILE_OPTION)
+-
+-cFLAGS      = $(GFLAGS) $(cWARN) $(cOPT) $(cDBUG) $(LIB_HEADER_DIRS) -fPIC
+-
+-ctoo        = $(WM_SCHEDULER) $(cc) $(cFLAGS) -c $$SOURCE -o $@
+-
+-LINK_LIBS   = $(cDBUG)
+-
+-LINKLIBSO   = $(cc) -shared
+-LINKEXE     = $(cc) -Xlinker --add-needed -Xlinker -z -Xlinker nodefs
+diff --git a/wmake/rules/linux64Gcc++0x/c++ b/wmake/rules/linux64Gcc++0x/c++
+deleted file mode 100644
+index ff7cf48..0000000
+--- a/wmake/rules/linux64Gcc++0x/c++
++++ /dev/null
+@@ -1,21 +0,0 @@
+-.SUFFIXES: .C .cxx .cc .cpp
+-
+-c++WARN     = -Wall -Wextra -Wno-unused-parameter -Wold-style-cast -Wnon-virtual-dtor
+-
+-CC          = g++ -m64 -std=c++0x
+-
+-include $(RULES)/c++$(WM_COMPILE_OPTION)
+-
+-ptFLAGS     = -DNoRepository -ftemplate-depth-100
+-
+-c++FLAGS    = $(GFLAGS) $(c++WARN) $(c++OPT) $(c++DBUG) $(ptFLAGS) $(LIB_HEADER_DIRS) -fPIC
+-
+-Ctoo        = $(WM_SCHEDULER) $(CC) $(c++FLAGS) -c $$SOURCE -o $@
+-cxxtoo      = $(Ctoo)
+-cctoo       = $(Ctoo)
+-cpptoo      = $(Ctoo)
+-
+-LINK_LIBS   = $(c++DBUG)
+-
+-LINKLIBSO   = $(CC) $(c++FLAGS) -shared
+-LINKEXE     = $(CC) $(c++FLAGS) -Xlinker --add-needed
+diff --git a/wmake/rules/linux64Gcc++0x/c++Debug b/wmake/rules/linux64Gcc++0x/c++Debug
+deleted file mode 100644
+index 19bdb9c..0000000
+--- a/wmake/rules/linux64Gcc++0x/c++Debug
++++ /dev/null
+@@ -1,2 +0,0 @@
+-c++DBUG    = -ggdb3 -DFULLDEBUG
+-c++OPT      = -O0 -fdefault-inline
+diff --git a/wmake/rules/linux64Gcc++0x/c++Opt b/wmake/rules/linux64Gcc++0x/c++Opt
+deleted file mode 100644
+index 3363be8..0000000
+--- a/wmake/rules/linux64Gcc++0x/c++Opt
++++ /dev/null
+@@ -1,3 +0,0 @@
+-#c++DBUG     = -O0 -DFULLDEBUG -g
+-c++DBUG     =
+-c++OPT      = -O3
+diff --git a/wmake/rules/linux64Gcc++0x/c++Prof b/wmake/rules/linux64Gcc++0x/c++Prof
+deleted file mode 100644
+index 3bda4da..0000000
+--- a/wmake/rules/linux64Gcc++0x/c++Prof
++++ /dev/null
+@@ -1,2 +0,0 @@
+-c++DBUG    = -pg
+-c++OPT     = -O2
+diff --git a/wmake/rules/linux64Gcc++0x/cDebug b/wmake/rules/linux64Gcc++0x/cDebug
+deleted file mode 100644
+index 72b638f..0000000
+--- a/wmake/rules/linux64Gcc++0x/cDebug
++++ /dev/null
+@@ -1,2 +0,0 @@
+-cDBUG       = -ggdb -DFULLDEBUG
+-cOPT        = -O1 -fdefault-inline -finline-functions
+diff --git a/wmake/rules/linux64Gcc++0x/cOpt b/wmake/rules/linux64Gcc++0x/cOpt
+deleted file mode 100644
+index 1731870..0000000
+--- a/wmake/rules/linux64Gcc++0x/cOpt
++++ /dev/null
+@@ -1,2 +0,0 @@
+-cDBUG       =
+-cOPT        = -O3
+diff --git a/wmake/rules/linux64Gcc++0x/cProf b/wmake/rules/linux64Gcc++0x/cProf
+deleted file mode 100644
+index ca3ac9b..0000000
+--- a/wmake/rules/linux64Gcc++0x/cProf
++++ /dev/null
+@@ -1,2 +0,0 @@
+-cDBUG       = -pg
+-cOPT        = -O2
+diff --git a/wmake/rules/linux64Gcc++0x/general b/wmake/rules/linux64Gcc++0x/general
+deleted file mode 100644
+index 243cb7d..0000000
+--- a/wmake/rules/linux64Gcc++0x/general
++++ /dev/null
+@@ -1,8 +0,0 @@
+-CPP        = cpp -traditional-cpp $(GFLAGS)
+-
+-PROJECT_LIBS = -l$(WM_PROJECT) -ldl
+-
+-include $(GENERAL_RULES)/standard
+-
+-include $(RULES)/c
+-include $(RULES)/c++
+diff --git a/wmake/rules/linux64Gcc++0x/mplibHPMPI b/wmake/rules/linux64Gcc++0x/mplibHPMPI
+deleted file mode 100644
+index 574492a..0000000
+--- a/wmake/rules/linux64Gcc++0x/mplibHPMPI
++++ /dev/null
+@@ -1,3 +0,0 @@
+-PFLAGS     =
+-PINC       = -I$(MPI_ARCH_PATH)/include -D_MPICC_H
+-PLIBS      = -L$(MPI_ARCH_PATH)/lib/linux_amd64 -lmpi
+diff --git a/wmake/rules/linux64Gcc++0x/mplibINTELMPI b/wmake/rules/linux64Gcc++0x/mplibINTELMPI
+deleted file mode 100644
+index cf80ec2..0000000
+--- a/wmake/rules/linux64Gcc++0x/mplibINTELMPI
++++ /dev/null
+@@ -1,3 +0,0 @@
+-PFLAGS     = -DMPICH_SKIP_MPICXX
+-PINC       = -I$(MPI_ARCH_PATH)/include64
+-PLIBS      = -L$(MPI_ARCH_PATH)/lib64 -lmpi
+diff --git a/wmake/rules/linux64Gcc/c b/wmake/rules/linux64Gcc/c
+deleted file mode 100644
+index f4114be..0000000
+--- a/wmake/rules/linux64Gcc/c
++++ /dev/null
+@@ -1,16 +0,0 @@
+-.SUFFIXES: .c .h
+-
+-cWARN        = -Wall
+-
+-cc          = gcc -m64
+-
+-include $(RULES)/c$(WM_COMPILE_OPTION)
+-
+-cFLAGS      = $(GFLAGS) $(cWARN) $(cOPT) $(cDBUG) $(LIB_HEADER_DIRS) -fPIC
+-
+-ctoo        = $(WM_SCHEDULER) $(cc) $(cFLAGS) -c $$SOURCE -o $@
+-
+-LINK_LIBS   = $(cDBUG)
+-
+-LINKLIBSO   = $(cc) -shared
+-LINKEXE     = $(cc) -Xlinker --add-needed -Xlinker -z -Xlinker nodefs
+diff --git a/wmake/rules/linux64Gcc/c++ b/wmake/rules/linux64Gcc/c++
+deleted file mode 100644
+index 3dfb033..0000000
+--- a/wmake/rules/linux64Gcc/c++
++++ /dev/null
+@@ -1,21 +0,0 @@
+-.SUFFIXES: .C .cxx .cc .cpp
+-
+-c++WARN     = -Wall -Wextra -Wno-unused-parameter -Wold-style-cast -Wnon-virtual-dtor
+-
+-CC          = g++ -m64
+-
+-include $(RULES)/c++$(WM_COMPILE_OPTION)
+-
+-ptFLAGS     = -DNoRepository -ftemplate-depth-100
+-
+-c++FLAGS    = $(GFLAGS) $(c++WARN) $(c++OPT) $(c++DBUG) $(ptFLAGS) $(LIB_HEADER_DIRS) -fPIC
+-
+-Ctoo        = $(WM_SCHEDULER) $(CC) $(c++FLAGS) -c $$SOURCE -o $@
+-cxxtoo      = $(Ctoo)
+-cctoo       = $(Ctoo)
+-cpptoo      = $(Ctoo)
+-
+-LINK_LIBS   = $(c++DBUG)
+-
+-LINKLIBSO   = $(CC) $(c++FLAGS) -shared -Xlinker --add-needed -Xlinker --no-as-needed
+-LINKEXE     = $(CC) $(c++FLAGS) -Xlinker --add-needed -Xlinker --no-as-needed
+diff --git a/wmake/rules/linux64Gcc/c++Debug b/wmake/rules/linux64Gcc/c++Debug
+deleted file mode 100644
+index 19bdb9c..0000000
+--- a/wmake/rules/linux64Gcc/c++Debug
++++ /dev/null
+@@ -1,2 +0,0 @@
+-c++DBUG    = -ggdb3 -DFULLDEBUG
+-c++OPT      = -O0 -fdefault-inline
+diff --git a/wmake/rules/linux64Gcc/c++Opt b/wmake/rules/linux64Gcc/c++Opt
+deleted file mode 100644
+index 3363be8..0000000
+--- a/wmake/rules/linux64Gcc/c++Opt
++++ /dev/null
+@@ -1,3 +0,0 @@
+-#c++DBUG     = -O0 -DFULLDEBUG -g
+-c++DBUG     =
+-c++OPT      = -O3
+diff --git a/wmake/rules/linux64Gcc/c++Prof b/wmake/rules/linux64Gcc/c++Prof
+deleted file mode 100644
+index 3bda4da..0000000
+--- a/wmake/rules/linux64Gcc/c++Prof
++++ /dev/null
+@@ -1,2 +0,0 @@
+-c++DBUG    = -pg
+-c++OPT     = -O2
+diff --git a/wmake/rules/linux64Gcc/cDebug b/wmake/rules/linux64Gcc/cDebug
+deleted file mode 100644
+index 72b638f..0000000
+--- a/wmake/rules/linux64Gcc/cDebug
++++ /dev/null
+@@ -1,2 +0,0 @@
+-cDBUG       = -ggdb -DFULLDEBUG
+-cOPT        = -O1 -fdefault-inline -finline-functions
+diff --git a/wmake/rules/linux64Gcc/cOpt b/wmake/rules/linux64Gcc/cOpt
+deleted file mode 100644
+index 1731870..0000000
+--- a/wmake/rules/linux64Gcc/cOpt
++++ /dev/null
+@@ -1,2 +0,0 @@
+-cDBUG       =
+-cOPT        = -O3
+diff --git a/wmake/rules/linux64Gcc/cProf b/wmake/rules/linux64Gcc/cProf
+deleted file mode 100644
+index ca3ac9b..0000000
+--- a/wmake/rules/linux64Gcc/cProf
++++ /dev/null
+@@ -1,2 +0,0 @@
+-cDBUG       = -pg
+-cOPT        = -O2
+diff --git a/wmake/rules/linux64Gcc/general b/wmake/rules/linux64Gcc/general
+deleted file mode 100644
+index 243cb7d..0000000
+--- a/wmake/rules/linux64Gcc/general
++++ /dev/null
+@@ -1,8 +0,0 @@
+-CPP        = cpp -traditional-cpp $(GFLAGS)
+-
+-PROJECT_LIBS = -l$(WM_PROJECT) -ldl
+-
+-include $(GENERAL_RULES)/standard
+-
+-include $(RULES)/c
+-include $(RULES)/c++
+diff --git a/wmake/rules/linux64Gcc/mplibHPMPI b/wmake/rules/linux64Gcc/mplibHPMPI
+deleted file mode 100644
+index 574492a..0000000
+--- a/wmake/rules/linux64Gcc/mplibHPMPI
++++ /dev/null
+@@ -1,3 +0,0 @@
+-PFLAGS     =
+-PINC       = -I$(MPI_ARCH_PATH)/include -D_MPICC_H
+-PLIBS      = -L$(MPI_ARCH_PATH)/lib/linux_amd64 -lmpi
+diff --git a/wmake/rules/linux64Gcc/mplibINTELMPI b/wmake/rules/linux64Gcc/mplibINTELMPI
+deleted file mode 100644
+index cf80ec2..0000000
+--- a/wmake/rules/linux64Gcc/mplibINTELMPI
++++ /dev/null
+@@ -1,3 +0,0 @@
+-PFLAGS     = -DMPICH_SKIP_MPICXX
+-PINC       = -I$(MPI_ARCH_PATH)/include64
+-PLIBS      = -L$(MPI_ARCH_PATH)/lib64 -lmpi
+diff --git a/wmake/rules/linux64Gcc43/c b/wmake/rules/linux64Gcc43/c
+deleted file mode 100644
+index f4114be..0000000
+--- a/wmake/rules/linux64Gcc43/c
++++ /dev/null
+@@ -1,16 +0,0 @@
+-.SUFFIXES: .c .h
+-
+-cWARN        = -Wall
+-
+-cc          = gcc -m64
+-
+-include $(RULES)/c$(WM_COMPILE_OPTION)
+-
+-cFLAGS      = $(GFLAGS) $(cWARN) $(cOPT) $(cDBUG) $(LIB_HEADER_DIRS) -fPIC
+-
+-ctoo        = $(WM_SCHEDULER) $(cc) $(cFLAGS) -c $$SOURCE -o $@
+-
+-LINK_LIBS   = $(cDBUG)
+-
+-LINKLIBSO   = $(cc) -shared
+-LINKEXE     = $(cc) -Xlinker --add-needed -Xlinker -z -Xlinker nodefs
+diff --git a/wmake/rules/linux64Gcc43/c++ b/wmake/rules/linux64Gcc43/c++
+deleted file mode 100644
+index 3ca193e..0000000
+--- a/wmake/rules/linux64Gcc43/c++
++++ /dev/null
+@@ -1,21 +0,0 @@
+-.SUFFIXES: .C .cxx .cc .cpp
+-
+-c++WARN     = -Wall -Wextra -Wno-unused-parameter -Wold-style-cast
+-
+-CC          = g++ -m64
+-
+-include $(RULES)/c++$(WM_COMPILE_OPTION)
+-
+-ptFLAGS     = -DNoRepository -ftemplate-depth-100
+-
+-c++FLAGS    = $(GFLAGS) $(c++WARN) $(c++OPT) $(c++DBUG) $(ptFLAGS) $(LIB_HEADER_DIRS) -fPIC
+-
+-Ctoo        = $(WM_SCHEDULER) $(CC) $(c++FLAGS) -c $$SOURCE -o $@
+-cxxtoo      = $(Ctoo)
+-cctoo       = $(Ctoo)
+-cpptoo      = $(Ctoo)
+-
+-LINK_LIBS   = $(c++DBUG)
+-
+-LINKLIBSO   = $(CC) $(c++FLAGS) -shared
+-LINKEXE     = $(CC) $(c++FLAGS) -Xlinker --add-needed
+diff --git a/wmake/rules/linux64Gcc43/c++Debug b/wmake/rules/linux64Gcc43/c++Debug
+deleted file mode 100644
+index 19bdb9c..0000000
+--- a/wmake/rules/linux64Gcc43/c++Debug
++++ /dev/null
+@@ -1,2 +0,0 @@
+-c++DBUG    = -ggdb3 -DFULLDEBUG
+-c++OPT      = -O0 -fdefault-inline
+diff --git a/wmake/rules/linux64Gcc43/c++Opt b/wmake/rules/linux64Gcc43/c++Opt
+deleted file mode 100644
+index 3446f7f..0000000
+--- a/wmake/rules/linux64Gcc43/c++Opt
++++ /dev/null
+@@ -1,4 +0,0 @@
+-c++DBUG     =
+-c++OPT      = -O3
+-#c++OPT      = -march=nocona -O3
+-# -ftree-vectorize -ftree-vectorizer-verbose=3
+diff --git a/wmake/rules/linux64Gcc43/c++Prof b/wmake/rules/linux64Gcc43/c++Prof
+deleted file mode 100644
+index 3bda4da..0000000
+--- a/wmake/rules/linux64Gcc43/c++Prof
++++ /dev/null
+@@ -1,2 +0,0 @@
+-c++DBUG    = -pg
+-c++OPT     = -O2
+diff --git a/wmake/rules/linux64Gcc43/cDebug b/wmake/rules/linux64Gcc43/cDebug
+deleted file mode 100644
+index 72b638f..0000000
+--- a/wmake/rules/linux64Gcc43/cDebug
++++ /dev/null
+@@ -1,2 +0,0 @@
+-cDBUG       = -ggdb -DFULLDEBUG
+-cOPT        = -O1 -fdefault-inline -finline-functions
+diff --git a/wmake/rules/linux64Gcc43/cOpt b/wmake/rules/linux64Gcc43/cOpt
+deleted file mode 100644
+index 1731870..0000000
+--- a/wmake/rules/linux64Gcc43/cOpt
++++ /dev/null
+@@ -1,2 +0,0 @@
+-cDBUG       =
+-cOPT        = -O3
+diff --git a/wmake/rules/linux64Gcc43/cProf b/wmake/rules/linux64Gcc43/cProf
+deleted file mode 100644
+index ca3ac9b..0000000
+--- a/wmake/rules/linux64Gcc43/cProf
++++ /dev/null
+@@ -1,2 +0,0 @@
+-cDBUG       = -pg
+-cOPT        = -O2
+diff --git a/wmake/rules/linux64Gcc43/general b/wmake/rules/linux64Gcc43/general
+deleted file mode 100644
+index 243cb7d..0000000
+--- a/wmake/rules/linux64Gcc43/general
++++ /dev/null
+@@ -1,8 +0,0 @@
+-CPP        = cpp -traditional-cpp $(GFLAGS)
+-
+-PROJECT_LIBS = -l$(WM_PROJECT) -ldl
+-
+-include $(GENERAL_RULES)/standard
+-
+-include $(RULES)/c
+-include $(RULES)/c++
+diff --git a/wmake/rules/linux64Gcc43/mplibHPMPI b/wmake/rules/linux64Gcc43/mplibHPMPI
+deleted file mode 100644
+index 574492a..0000000
+--- a/wmake/rules/linux64Gcc43/mplibHPMPI
++++ /dev/null
+@@ -1,3 +0,0 @@
+-PFLAGS     =
+-PINC       = -I$(MPI_ARCH_PATH)/include -D_MPICC_H
+-PLIBS      = -L$(MPI_ARCH_PATH)/lib/linux_amd64 -lmpi
+diff --git a/wmake/rules/linux64Gcc43/mplibINTELMPI b/wmake/rules/linux64Gcc43/mplibINTELMPI
+deleted file mode 100644
+index cf80ec2..0000000
+--- a/wmake/rules/linux64Gcc43/mplibINTELMPI
++++ /dev/null
+@@ -1,3 +0,0 @@
+-PFLAGS     = -DMPICH_SKIP_MPICXX
+-PINC       = -I$(MPI_ARCH_PATH)/include64
+-PLIBS      = -L$(MPI_ARCH_PATH)/lib64 -lmpi
+diff --git a/wmake/rules/linux64Gcc44/c b/wmake/rules/linux64Gcc44/c
+deleted file mode 100644
+index f4114be..0000000
+--- a/wmake/rules/linux64Gcc44/c
++++ /dev/null
+@@ -1,16 +0,0 @@
+-.SUFFIXES: .c .h
+-
+-cWARN        = -Wall
+-
+-cc          = gcc -m64
+-
+-include $(RULES)/c$(WM_COMPILE_OPTION)
+-
+-cFLAGS      = $(GFLAGS) $(cWARN) $(cOPT) $(cDBUG) $(LIB_HEADER_DIRS) -fPIC
+-
+-ctoo        = $(WM_SCHEDULER) $(cc) $(cFLAGS) -c $$SOURCE -o $@
+-
+-LINK_LIBS   = $(cDBUG)
+-
+-LINKLIBSO   = $(cc) -shared
+-LINKEXE     = $(cc) -Xlinker --add-needed -Xlinker -z -Xlinker nodefs
+diff --git a/wmake/rules/linux64Gcc44/c++ b/wmake/rules/linux64Gcc44/c++
+deleted file mode 100644
+index 3ca193e..0000000
+--- a/wmake/rules/linux64Gcc44/c++
++++ /dev/null
+@@ -1,21 +0,0 @@
+-.SUFFIXES: .C .cxx .cc .cpp
+-
+-c++WARN     = -Wall -Wextra -Wno-unused-parameter -Wold-style-cast
+-
+-CC          = g++ -m64
+-
+-include $(RULES)/c++$(WM_COMPILE_OPTION)
+-
+-ptFLAGS     = -DNoRepository -ftemplate-depth-100
+-
+-c++FLAGS    = $(GFLAGS) $(c++WARN) $(c++OPT) $(c++DBUG) $(ptFLAGS) $(LIB_HEADER_DIRS) -fPIC
+-
+-Ctoo        = $(WM_SCHEDULER) $(CC) $(c++FLAGS) -c $$SOURCE -o $@
+-cxxtoo      = $(Ctoo)
+-cctoo       = $(Ctoo)
+-cpptoo      = $(Ctoo)
+-
+-LINK_LIBS   = $(c++DBUG)
+-
+-LINKLIBSO   = $(CC) $(c++FLAGS) -shared
+-LINKEXE     = $(CC) $(c++FLAGS) -Xlinker --add-needed
+diff --git a/wmake/rules/linux64Gcc44/c++Debug b/wmake/rules/linux64Gcc44/c++Debug
+deleted file mode 100644
+index 19bdb9c..0000000
+--- a/wmake/rules/linux64Gcc44/c++Debug
++++ /dev/null
+@@ -1,2 +0,0 @@
+-c++DBUG    = -ggdb3 -DFULLDEBUG
+-c++OPT      = -O0 -fdefault-inline
+diff --git a/wmake/rules/linux64Gcc44/c++Opt b/wmake/rules/linux64Gcc44/c++Opt
+deleted file mode 100644
+index 3446f7f..0000000
+--- a/wmake/rules/linux64Gcc44/c++Opt
++++ /dev/null
+@@ -1,4 +0,0 @@
+-c++DBUG     =
+-c++OPT      = -O3
+-#c++OPT      = -march=nocona -O3
+-# -ftree-vectorize -ftree-vectorizer-verbose=3
+diff --git a/wmake/rules/linux64Gcc44/c++Prof b/wmake/rules/linux64Gcc44/c++Prof
+deleted file mode 100644
+index 3bda4da..0000000
+--- a/wmake/rules/linux64Gcc44/c++Prof
++++ /dev/null
+@@ -1,2 +0,0 @@
+-c++DBUG    = -pg
+-c++OPT     = -O2
+diff --git a/wmake/rules/linux64Gcc44/cDebug b/wmake/rules/linux64Gcc44/cDebug
+deleted file mode 100644
+index 72b638f..0000000
+--- a/wmake/rules/linux64Gcc44/cDebug
++++ /dev/null
+@@ -1,2 +0,0 @@
+-cDBUG       = -ggdb -DFULLDEBUG
+-cOPT        = -O1 -fdefault-inline -finline-functions
+diff --git a/wmake/rules/linux64Gcc44/cOpt b/wmake/rules/linux64Gcc44/cOpt
+deleted file mode 100644
+index 1731870..0000000
+--- a/wmake/rules/linux64Gcc44/cOpt
++++ /dev/null
+@@ -1,2 +0,0 @@
+-cDBUG       =
+-cOPT        = -O3
+diff --git a/wmake/rules/linux64Gcc44/cProf b/wmake/rules/linux64Gcc44/cProf
+deleted file mode 100644
+index ca3ac9b..0000000
+--- a/wmake/rules/linux64Gcc44/cProf
++++ /dev/null
+@@ -1,2 +0,0 @@
+-cDBUG       = -pg
+-cOPT        = -O2
+diff --git a/wmake/rules/linux64Gcc44/general b/wmake/rules/linux64Gcc44/general
+deleted file mode 100644
+index 243cb7d..0000000
+--- a/wmake/rules/linux64Gcc44/general
++++ /dev/null
+@@ -1,8 +0,0 @@
+-CPP        = cpp -traditional-cpp $(GFLAGS)
+-
+-PROJECT_LIBS = -l$(WM_PROJECT) -ldl
+-
+-include $(GENERAL_RULES)/standard
+-
+-include $(RULES)/c
+-include $(RULES)/c++
+diff --git a/wmake/rules/linux64Gcc44/mplibHPMPI b/wmake/rules/linux64Gcc44/mplibHPMPI
+deleted file mode 100644
+index 574492a..0000000
+--- a/wmake/rules/linux64Gcc44/mplibHPMPI
++++ /dev/null
+@@ -1,3 +0,0 @@
+-PFLAGS     =
+-PINC       = -I$(MPI_ARCH_PATH)/include -D_MPICC_H
+-PLIBS      = -L$(MPI_ARCH_PATH)/lib/linux_amd64 -lmpi
+diff --git a/wmake/rules/linux64Gcc44/mplibINTELMPI b/wmake/rules/linux64Gcc44/mplibINTELMPI
+deleted file mode 100644
+index cf80ec2..0000000
+--- a/wmake/rules/linux64Gcc44/mplibINTELMPI
++++ /dev/null
+@@ -1,3 +0,0 @@
+-PFLAGS     = -DMPICH_SKIP_MPICXX
+-PINC       = -I$(MPI_ARCH_PATH)/include64
+-PLIBS      = -L$(MPI_ARCH_PATH)/lib64 -lmpi
+diff --git a/wmake/rules/linux64Gcc45/c b/wmake/rules/linux64Gcc45/c
+deleted file mode 100644
+index f4114be..0000000
+--- a/wmake/rules/linux64Gcc45/c
++++ /dev/null
+@@ -1,16 +0,0 @@
+-.SUFFIXES: .c .h
+-
+-cWARN        = -Wall
+-
+-cc          = gcc -m64
+-
+-include $(RULES)/c$(WM_COMPILE_OPTION)
+-
+-cFLAGS      = $(GFLAGS) $(cWARN) $(cOPT) $(cDBUG) $(LIB_HEADER_DIRS) -fPIC
+-
+-ctoo        = $(WM_SCHEDULER) $(cc) $(cFLAGS) -c $$SOURCE -o $@
+-
+-LINK_LIBS   = $(cDBUG)
+-
+-LINKLIBSO   = $(cc) -shared
+-LINKEXE     = $(cc) -Xlinker --add-needed -Xlinker -z -Xlinker nodefs
+diff --git a/wmake/rules/linux64Gcc45/c++ b/wmake/rules/linux64Gcc45/c++
+deleted file mode 100644
+index 98b25ed..0000000
+--- a/wmake/rules/linux64Gcc45/c++
++++ /dev/null
+@@ -1,21 +0,0 @@
+-.SUFFIXES: .C .cxx .cc .cpp
+-
+-c++WARN     = -Wall -Wextra -Wno-unused-parameter -Wold-style-cast
+-
+-CC          = g++ -m64
+-
+-include $(RULES)/c++$(WM_COMPILE_OPTION)
+-
+-ptFLAGS     = -DNoRepository -ftemplate-depth-100
+-
+-c++FLAGS    = $(GFLAGS) $(c++WARN) $(c++OPT) $(c++DBUG) $(ptFLAGS) $(LIB_HEADER_DIRS) -fPIC
+-
+-Ctoo        = $(WM_SCHEDULER) $(CC) $(c++FLAGS) -c $$SOURCE -o $@
+-cxxtoo      = $(Ctoo)
+-cctoo       = $(Ctoo)
+-cpptoo      = $(Ctoo)
+-
+-LINK_LIBS   = $(c++DBUG)
+-
+-LINKLIBSO   = $(CC) $(c++FLAGS) -shared -Xlinker --add-needed -Xlinker --no-as-needed
+-LINKEXE     = $(CC) $(c++FLAGS) -Xlinker --add-needed -Xlinker --no-as-needed
+diff --git a/wmake/rules/linux64Gcc45/c++Debug b/wmake/rules/linux64Gcc45/c++Debug
+deleted file mode 100644
+index 19bdb9c..0000000
+--- a/wmake/rules/linux64Gcc45/c++Debug
++++ /dev/null
+@@ -1,2 +0,0 @@
+-c++DBUG    = -ggdb3 -DFULLDEBUG
+-c++OPT      = -O0 -fdefault-inline
+diff --git a/wmake/rules/linux64Gcc45/c++Opt b/wmake/rules/linux64Gcc45/c++Opt
+deleted file mode 100644
+index 3446f7f..0000000
+--- a/wmake/rules/linux64Gcc45/c++Opt
++++ /dev/null
+@@ -1,4 +0,0 @@
+-c++DBUG     =
+-c++OPT      = -O3
+-#c++OPT      = -march=nocona -O3
+-# -ftree-vectorize -ftree-vectorizer-verbose=3
+diff --git a/wmake/rules/linux64Gcc45/c++Prof b/wmake/rules/linux64Gcc45/c++Prof
+deleted file mode 100644
+index 3bda4da..0000000
+--- a/wmake/rules/linux64Gcc45/c++Prof
++++ /dev/null
+@@ -1,2 +0,0 @@
+-c++DBUG    = -pg
+-c++OPT     = -O2
+diff --git a/wmake/rules/linux64Gcc45/cDebug b/wmake/rules/linux64Gcc45/cDebug
+deleted file mode 100644
+index 72b638f..0000000
+--- a/wmake/rules/linux64Gcc45/cDebug
++++ /dev/null
+@@ -1,2 +0,0 @@
+-cDBUG       = -ggdb -DFULLDEBUG
+-cOPT        = -O1 -fdefault-inline -finline-functions
+diff --git a/wmake/rules/linux64Gcc45/cOpt b/wmake/rules/linux64Gcc45/cOpt
+deleted file mode 100644
+index 1731870..0000000
+--- a/wmake/rules/linux64Gcc45/cOpt
++++ /dev/null
+@@ -1,2 +0,0 @@
+-cDBUG       =
+-cOPT        = -O3
+diff --git a/wmake/rules/linux64Gcc45/cProf b/wmake/rules/linux64Gcc45/cProf
+deleted file mode 100644
+index ca3ac9b..0000000
+--- a/wmake/rules/linux64Gcc45/cProf
++++ /dev/null
+@@ -1,2 +0,0 @@
+-cDBUG       = -pg
+-cOPT        = -O2
+diff --git a/wmake/rules/linux64Gcc45/general b/wmake/rules/linux64Gcc45/general
+deleted file mode 100644
+index 4a42b11..0000000
+--- a/wmake/rules/linux64Gcc45/general
++++ /dev/null
+@@ -1,8 +0,0 @@
+-CPP        = cpp -traditional-cpp
+-
+-PROJECT_LIBS = -l$(WM_PROJECT) -ldl
+-
+-include $(GENERAL_RULES)/standard
+-
+-include $(RULES)/c
+-include $(RULES)/c++
+diff --git a/wmake/rules/linux64Gcc45/mplibHPMPI b/wmake/rules/linux64Gcc45/mplibHPMPI
+deleted file mode 100644
+index 574492a..0000000
+--- a/wmake/rules/linux64Gcc45/mplibHPMPI
++++ /dev/null
+@@ -1,3 +0,0 @@
+-PFLAGS     =
+-PINC       = -I$(MPI_ARCH_PATH)/include -D_MPICC_H
+-PLIBS      = -L$(MPI_ARCH_PATH)/lib/linux_amd64 -lmpi
+diff --git a/wmake/rules/linux64Gcc45/mplibINTELMPI b/wmake/rules/linux64Gcc45/mplibINTELMPI
+deleted file mode 100644
+index cf80ec2..0000000
+--- a/wmake/rules/linux64Gcc45/mplibINTELMPI
++++ /dev/null
+@@ -1,3 +0,0 @@
+-PFLAGS     = -DMPICH_SKIP_MPICXX
+-PINC       = -I$(MPI_ARCH_PATH)/include64
+-PLIBS      = -L$(MPI_ARCH_PATH)/lib64 -lmpi
+diff --git a/wmake/rules/linux64Gcc46/c b/wmake/rules/linux64Gcc46/c
+deleted file mode 100644
+index f4114be..0000000
+--- a/wmake/rules/linux64Gcc46/c
++++ /dev/null
+@@ -1,16 +0,0 @@
+-.SUFFIXES: .c .h
+-
+-cWARN        = -Wall
+-
+-cc          = gcc -m64
+-
+-include $(RULES)/c$(WM_COMPILE_OPTION)
+-
+-cFLAGS      = $(GFLAGS) $(cWARN) $(cOPT) $(cDBUG) $(LIB_HEADER_DIRS) -fPIC
+-
+-ctoo        = $(WM_SCHEDULER) $(cc) $(cFLAGS) -c $$SOURCE -o $@
+-
+-LINK_LIBS   = $(cDBUG)
+-
+-LINKLIBSO   = $(cc) -shared
+-LINKEXE     = $(cc) -Xlinker --add-needed -Xlinker -z -Xlinker nodefs
+diff --git a/wmake/rules/linux64Gcc46/c++ b/wmake/rules/linux64Gcc46/c++
+deleted file mode 100644
+index 98b25ed..0000000
+--- a/wmake/rules/linux64Gcc46/c++
++++ /dev/null
+@@ -1,21 +0,0 @@
+-.SUFFIXES: .C .cxx .cc .cpp
+-
+-c++WARN     = -Wall -Wextra -Wno-unused-parameter -Wold-style-cast
+-
+-CC          = g++ -m64
+-
+-include $(RULES)/c++$(WM_COMPILE_OPTION)
+-
+-ptFLAGS     = -DNoRepository -ftemplate-depth-100
+-
+-c++FLAGS    = $(GFLAGS) $(c++WARN) $(c++OPT) $(c++DBUG) $(ptFLAGS) $(LIB_HEADER_DIRS) -fPIC
+-
+-Ctoo        = $(WM_SCHEDULER) $(CC) $(c++FLAGS) -c $$SOURCE -o $@
+-cxxtoo      = $(Ctoo)
+-cctoo       = $(Ctoo)
+-cpptoo      = $(Ctoo)
+-
+-LINK_LIBS   = $(c++DBUG)
+-
+-LINKLIBSO   = $(CC) $(c++FLAGS) -shared -Xlinker --add-needed -Xlinker --no-as-needed
+-LINKEXE     = $(CC) $(c++FLAGS) -Xlinker --add-needed -Xlinker --no-as-needed
+diff --git a/wmake/rules/linux64Gcc46/c++Debug b/wmake/rules/linux64Gcc46/c++Debug
+deleted file mode 100644
+index 19bdb9c..0000000
+--- a/wmake/rules/linux64Gcc46/c++Debug
++++ /dev/null
+@@ -1,2 +0,0 @@
+-c++DBUG    = -ggdb3 -DFULLDEBUG
+-c++OPT      = -O0 -fdefault-inline
+diff --git a/wmake/rules/linux64Gcc46/c++Opt b/wmake/rules/linux64Gcc46/c++Opt
+deleted file mode 100644
+index 3446f7f..0000000
+--- a/wmake/rules/linux64Gcc46/c++Opt
++++ /dev/null
+@@ -1,4 +0,0 @@
+-c++DBUG     =
+-c++OPT      = -O3
+-#c++OPT      = -march=nocona -O3
+-# -ftree-vectorize -ftree-vectorizer-verbose=3
+diff --git a/wmake/rules/linux64Gcc46/c++Prof b/wmake/rules/linux64Gcc46/c++Prof
+deleted file mode 100644
+index 3bda4da..0000000
+--- a/wmake/rules/linux64Gcc46/c++Prof
++++ /dev/null
+@@ -1,2 +0,0 @@
+-c++DBUG    = -pg
+-c++OPT     = -O2
+diff --git a/wmake/rules/linux64Gcc46/cDebug b/wmake/rules/linux64Gcc46/cDebug
+deleted file mode 100644
+index 72b638f..0000000
+--- a/wmake/rules/linux64Gcc46/cDebug
++++ /dev/null
+@@ -1,2 +0,0 @@
+-cDBUG       = -ggdb -DFULLDEBUG
+-cOPT        = -O1 -fdefault-inline -finline-functions
+diff --git a/wmake/rules/linux64Gcc46/cOpt b/wmake/rules/linux64Gcc46/cOpt
+deleted file mode 100644
+index 1731870..0000000
+--- a/wmake/rules/linux64Gcc46/cOpt
++++ /dev/null
+@@ -1,2 +0,0 @@
+-cDBUG       =
+-cOPT        = -O3
+diff --git a/wmake/rules/linux64Gcc46/cProf b/wmake/rules/linux64Gcc46/cProf
+deleted file mode 100644
+index ca3ac9b..0000000
+--- a/wmake/rules/linux64Gcc46/cProf
++++ /dev/null
+@@ -1,2 +0,0 @@
+-cDBUG       = -pg
+-cOPT        = -O2
+diff --git a/wmake/rules/linux64Gcc46/general b/wmake/rules/linux64Gcc46/general
+deleted file mode 100644
+index 4a42b11..0000000
+--- a/wmake/rules/linux64Gcc46/general
++++ /dev/null
+@@ -1,8 +0,0 @@
+-CPP        = cpp -traditional-cpp
+-
+-PROJECT_LIBS = -l$(WM_PROJECT) -ldl
+-
+-include $(GENERAL_RULES)/standard
+-
+-include $(RULES)/c
+-include $(RULES)/c++
+diff --git a/wmake/rules/linux64Gcc46/mplibHPMPI b/wmake/rules/linux64Gcc46/mplibHPMPI
+deleted file mode 100644
+index 574492a..0000000
+--- a/wmake/rules/linux64Gcc46/mplibHPMPI
++++ /dev/null
+@@ -1,3 +0,0 @@
+-PFLAGS     =
+-PINC       = -I$(MPI_ARCH_PATH)/include -D_MPICC_H
+-PLIBS      = -L$(MPI_ARCH_PATH)/lib/linux_amd64 -lmpi
+diff --git a/wmake/rules/linux64Gcc46/mplibINTELMPI b/wmake/rules/linux64Gcc46/mplibINTELMPI
+deleted file mode 100644
+index cf80ec2..0000000
+--- a/wmake/rules/linux64Gcc46/mplibINTELMPI
++++ /dev/null
+@@ -1,3 +0,0 @@
+-PFLAGS     = -DMPICH_SKIP_MPICXX
+-PINC       = -I$(MPI_ARCH_PATH)/include64
+-PLIBS      = -L$(MPI_ARCH_PATH)/lib64 -lmpi
+diff --git a/wmake/rules/linux64Gcc47/c b/wmake/rules/linux64Gcc47/c
+deleted file mode 100644
+index f4114be..0000000
+--- a/wmake/rules/linux64Gcc47/c
++++ /dev/null
+@@ -1,16 +0,0 @@
+-.SUFFIXES: .c .h
+-
+-cWARN        = -Wall
+-
+-cc          = gcc -m64
+-
+-include $(RULES)/c$(WM_COMPILE_OPTION)
+-
+-cFLAGS      = $(GFLAGS) $(cWARN) $(cOPT) $(cDBUG) $(LIB_HEADER_DIRS) -fPIC
+-
+-ctoo        = $(WM_SCHEDULER) $(cc) $(cFLAGS) -c $$SOURCE -o $@
+-
+-LINK_LIBS   = $(cDBUG)
+-
+-LINKLIBSO   = $(cc) -shared
+-LINKEXE     = $(cc) -Xlinker --add-needed -Xlinker -z -Xlinker nodefs
+diff --git a/wmake/rules/linux64Gcc47/c++ b/wmake/rules/linux64Gcc47/c++
+deleted file mode 100644
+index 98b25ed..0000000
+--- a/wmake/rules/linux64Gcc47/c++
++++ /dev/null
+@@ -1,21 +0,0 @@
+-.SUFFIXES: .C .cxx .cc .cpp
+-
+-c++WARN     = -Wall -Wextra -Wno-unused-parameter -Wold-style-cast
+-
+-CC          = g++ -m64
+-
+-include $(RULES)/c++$(WM_COMPILE_OPTION)
+-
+-ptFLAGS     = -DNoRepository -ftemplate-depth-100
+-
+-c++FLAGS    = $(GFLAGS) $(c++WARN) $(c++OPT) $(c++DBUG) $(ptFLAGS) $(LIB_HEADER_DIRS) -fPIC
+-
+-Ctoo        = $(WM_SCHEDULER) $(CC) $(c++FLAGS) -c $$SOURCE -o $@
+-cxxtoo      = $(Ctoo)
+-cctoo       = $(Ctoo)
+-cpptoo      = $(Ctoo)
+-
+-LINK_LIBS   = $(c++DBUG)
+-
+-LINKLIBSO   = $(CC) $(c++FLAGS) -shared -Xlinker --add-needed -Xlinker --no-as-needed
+-LINKEXE     = $(CC) $(c++FLAGS) -Xlinker --add-needed -Xlinker --no-as-needed
+diff --git a/wmake/rules/linux64Gcc47/c++Debug b/wmake/rules/linux64Gcc47/c++Debug
+deleted file mode 100644
+index 19bdb9c..0000000
+--- a/wmake/rules/linux64Gcc47/c++Debug
++++ /dev/null
+@@ -1,2 +0,0 @@
+-c++DBUG    = -ggdb3 -DFULLDEBUG
+-c++OPT      = -O0 -fdefault-inline
+diff --git a/wmake/rules/linux64Gcc47/c++Opt b/wmake/rules/linux64Gcc47/c++Opt
+deleted file mode 100644
+index 3446f7f..0000000
+--- a/wmake/rules/linux64Gcc47/c++Opt
++++ /dev/null
+@@ -1,4 +0,0 @@
+-c++DBUG     =
+-c++OPT      = -O3
+-#c++OPT      = -march=nocona -O3
+-# -ftree-vectorize -ftree-vectorizer-verbose=3
+diff --git a/wmake/rules/linux64Gcc47/c++Prof b/wmake/rules/linux64Gcc47/c++Prof
+deleted file mode 100644
+index 3bda4da..0000000
+--- a/wmake/rules/linux64Gcc47/c++Prof
++++ /dev/null
+@@ -1,2 +0,0 @@
+-c++DBUG    = -pg
+-c++OPT     = -O2
+diff --git a/wmake/rules/linux64Gcc47/cDebug b/wmake/rules/linux64Gcc47/cDebug
+deleted file mode 100644
+index 72b638f..0000000
+--- a/wmake/rules/linux64Gcc47/cDebug
++++ /dev/null
+@@ -1,2 +0,0 @@
+-cDBUG       = -ggdb -DFULLDEBUG
+-cOPT        = -O1 -fdefault-inline -finline-functions
+diff --git a/wmake/rules/linux64Gcc47/cOpt b/wmake/rules/linux64Gcc47/cOpt
+deleted file mode 100644
+index 1731870..0000000
+--- a/wmake/rules/linux64Gcc47/cOpt
++++ /dev/null
+@@ -1,2 +0,0 @@
+-cDBUG       =
+-cOPT        = -O3
+diff --git a/wmake/rules/linux64Gcc47/cProf b/wmake/rules/linux64Gcc47/cProf
+deleted file mode 100644
+index ca3ac9b..0000000
+--- a/wmake/rules/linux64Gcc47/cProf
++++ /dev/null
+@@ -1,2 +0,0 @@
+-cDBUG       = -pg
+-cOPT        = -O2
+diff --git a/wmake/rules/linux64Gcc47/general b/wmake/rules/linux64Gcc47/general
+deleted file mode 100644
+index 4a42b11..0000000
+--- a/wmake/rules/linux64Gcc47/general
++++ /dev/null
+@@ -1,8 +0,0 @@
+-CPP        = cpp -traditional-cpp
+-
+-PROJECT_LIBS = -l$(WM_PROJECT) -ldl
+-
+-include $(GENERAL_RULES)/standard
+-
+-include $(RULES)/c
+-include $(RULES)/c++
+diff --git a/wmake/rules/linux64Gcc47/mplibHPMPI b/wmake/rules/linux64Gcc47/mplibHPMPI
+deleted file mode 100644
+index 574492a..0000000
+--- a/wmake/rules/linux64Gcc47/mplibHPMPI
++++ /dev/null
+@@ -1,3 +0,0 @@
+-PFLAGS     =
+-PINC       = -I$(MPI_ARCH_PATH)/include -D_MPICC_H
+-PLIBS      = -L$(MPI_ARCH_PATH)/lib/linux_amd64 -lmpi
+diff --git a/wmake/rules/linux64Gcc47/mplibINTELMPI b/wmake/rules/linux64Gcc47/mplibINTELMPI
+deleted file mode 100644
+index cf80ec2..0000000
+--- a/wmake/rules/linux64Gcc47/mplibINTELMPI
++++ /dev/null
+@@ -1,3 +0,0 @@
+-PFLAGS     = -DMPICH_SKIP_MPICXX
+-PINC       = -I$(MPI_ARCH_PATH)/include64
+-PLIBS      = -L$(MPI_ARCH_PATH)/lib64 -lmpi
+diff --git a/wmake/rules/linux64Icc/c b/wmake/rules/linux64Icc/c
+deleted file mode 100644
+index 08ea0f8..0000000
+--- a/wmake/rules/linux64Icc/c
++++ /dev/null
+@@ -1,16 +0,0 @@
+-.SUFFIXES: .c .h
+-
+-cWARN        =
+-
+-cc          = icc
+-
+-include $(RULES)/c$(WM_COMPILE_OPTION)
+-
+-cFLAGS      = $(GFLAGS) $(cWARN) $(cOPT) $(cDBUG) $(LIB_HEADER_DIRS) -fPIC
+-
+-ctoo        = $(WM_SCHEDULER) $(cc) $(cFLAGS) -c $$SOURCE -o $@
+-
+-LINK_LIBS   = $(cDBUG) -L$(IA32ROOT)/lib
+-
+-LINKLIBSO   = $(cc) $(cFLAGS) -shared
+-LINKEXE     = $(cc) $(cFLAGS)
+diff --git a/wmake/rules/linux64Icc/c++ b/wmake/rules/linux64Icc/c++
+deleted file mode 100644
+index 5ad41fd..0000000
+--- a/wmake/rules/linux64Icc/c++
++++ /dev/null
+@@ -1,21 +0,0 @@
+-.SUFFIXES: .C .cxx .cc .cpp
+-
+-c++WARN     = -wd327,654,819,1125,1476,1505,1572
+-
+-CC          = icpc -std=c++0x
+-
+-include $(RULES)/c++$(WM_COMPILE_OPTION)
+-
+-ptFLAGS     = -DNoRepository
+-
+-c++FLAGS    = $(GFLAGS) $(c++WARN) $(c++OPT) $(c++DBUG) $(ptFLAGS) $(LIB_HEADER_DIRS) -fPIC
+-
+-Ctoo        = $(WM_SCHEDULER) $(CC) $(c++FLAGS) -c $$SOURCE -o $@
+-cxxtoo      = $(Ctoo)
+-cctoo       = $(Ctoo)
+-cpptoo      = $(Ctoo)
+-
+-LINK_LIBS   = $(c++DBUG) -L$(IA64ROOT)/lib
+-
+-LINKLIBSO   = $(CC) $(c++FLAGS) -shared
+-LINKEXE     = $(CC) $(c++FLAGS)
+diff --git a/wmake/rules/linux64Icc/c++Debug b/wmake/rules/linux64Icc/c++Debug
+deleted file mode 100644
+index 0aec1fb..0000000
+--- a/wmake/rules/linux64Icc/c++Debug
++++ /dev/null
+@@ -1,2 +0,0 @@
+-c++DBUG    = -g -DFULLDEBUG -O0
+-c++OPT     =
+diff --git a/wmake/rules/linux64Icc/c++Opt b/wmake/rules/linux64Icc/c++Opt
+deleted file mode 100644
+index 66638ff..0000000
+--- a/wmake/rules/linux64Icc/c++Opt
++++ /dev/null
+@@ -1,2 +0,0 @@
+-c++DBUG     =
+-c++OPT      = -xSSE3 -O2 -no-prec-div
+diff --git a/wmake/rules/linux64Icc/c++Prof b/wmake/rules/linux64Icc/c++Prof
+deleted file mode 100644
+index 3bda4da..0000000
+--- a/wmake/rules/linux64Icc/c++Prof
++++ /dev/null
+@@ -1,2 +0,0 @@
+-c++DBUG    = -pg
+-c++OPT     = -O2
+diff --git a/wmake/rules/linux64Icc/cDebug b/wmake/rules/linux64Icc/cDebug
+deleted file mode 100644
+index 73dce0d..0000000
+--- a/wmake/rules/linux64Icc/cDebug
++++ /dev/null
+@@ -1,2 +0,0 @@
+-cDBUG       = -g -DFULLDEBUG -O0
+-cOPT        =
+diff --git a/wmake/rules/linux64Icc/cOpt b/wmake/rules/linux64Icc/cOpt
+deleted file mode 100644
+index b534913..0000000
+--- a/wmake/rules/linux64Icc/cOpt
++++ /dev/null
+@@ -1,2 +0,0 @@
+-cDBUG       =
+-cOPT        = -O3 -no-prec-div
+diff --git a/wmake/rules/linux64Icc/cProf b/wmake/rules/linux64Icc/cProf
+deleted file mode 100644
+index ca3ac9b..0000000
+--- a/wmake/rules/linux64Icc/cProf
++++ /dev/null
+@@ -1,2 +0,0 @@
+-cDBUG       = -pg
+-cOPT        = -O2
+diff --git a/wmake/rules/linux64Icc/general b/wmake/rules/linux64Icc/general
+deleted file mode 100644
+index 45c285f..0000000
+--- a/wmake/rules/linux64Icc/general
++++ /dev/null
+@@ -1,8 +0,0 @@
+-CPP        = /lib/cpp -traditional-cpp $(GFLAGS)
+-
+-PROJECT_LIBS = -l$(WM_PROJECT) -ldl
+-
+-include $(GENERAL_RULES)/standard
+-
+-include $(RULES)/c
+-include $(RULES)/c++
+diff --git a/wmake/rules/linux64Icc/mplibHPMPI b/wmake/rules/linux64Icc/mplibHPMPI
+deleted file mode 100644
+index 574492a..0000000
+--- a/wmake/rules/linux64Icc/mplibHPMPI
++++ /dev/null
+@@ -1,3 +0,0 @@
+-PFLAGS     =
+-PINC       = -I$(MPI_ARCH_PATH)/include -D_MPICC_H
+-PLIBS      = -L$(MPI_ARCH_PATH)/lib/linux_amd64 -lmpi
+diff --git a/wmake/rules/linux64Icc/mplibINTELMPI b/wmake/rules/linux64Icc/mplibINTELMPI
+deleted file mode 100644
+index cf80ec2..0000000
+--- a/wmake/rules/linux64Icc/mplibINTELMPI
++++ /dev/null
+@@ -1,3 +0,0 @@
+-PFLAGS     = -DMPICH_SKIP_MPICXX
+-PINC       = -I$(MPI_ARCH_PATH)/include64
+-PLIBS      = -L$(MPI_ARCH_PATH)/lib64 -lmpi
+diff --git a/wmake/rules/linuxClang/c b/wmake/rules/linuxClang/c
+deleted file mode 100644
+index 99b3238..0000000
+--- a/wmake/rules/linuxClang/c
++++ /dev/null
+@@ -1,16 +0,0 @@
+-.SUFFIXES: .c .h
+-
+-cWARN        = -Wall
+-
+-cc          = clang -m32
+-
+-include $(RULES)/c$(WM_COMPILE_OPTION)
+-
+-cFLAGS      = $(GFLAGS) $(cWARN) $(cOPT) $(cDBUG) $(LIB_HEADER_DIRS) -fPIC
+-
+-ctoo        = $(WM_SCHEDULER) $(cc) $(cFLAGS) -c $$SOURCE -o $@
+-
+-LINK_LIBS   = $(cDBUG)
+-
+-LINKLIBSO   = $(cc) -shared
+-LINKEXE     = $(cc) -Xlinker --add-needed -Xlinker -z -Xlinker nodefs
+diff --git a/wmake/rules/linuxClang/c++ b/wmake/rules/linuxClang/c++
+deleted file mode 100644
+index 5623184..0000000
+--- a/wmake/rules/linuxClang/c++
++++ /dev/null
+@@ -1,22 +0,0 @@
+-.SUFFIXES: .C .cxx .cc .cpp
+-
+-# -Woverloaded-virtual may produce spurious warnings, disable for now
+-c++WARN     = -Wall -Wextra -Wno-unused-parameter -Wold-style-cast -Wnon-virtual-dtor -Wno-overloaded-virtual
+-
+-CC          = clang++ -m32
+-
+-include $(RULES)/c++$(WM_COMPILE_OPTION)
+-
+-ptFLAGS     = -DNoRepository -ftemplate-depth-100
+-
+-c++FLAGS    = $(GFLAGS) $(c++WARN) $(c++OPT) $(c++DBUG) $(ptFLAGS) $(LIB_HEADER_DIRS) -fPIC
+-
+-Ctoo        = $(WM_SCHEDULER) $(CC) $(c++FLAGS) -c $$SOURCE -o $@
+-cxxtoo      = $(Ctoo)
+-cctoo       = $(Ctoo)
+-cpptoo      = $(Ctoo)
+-
+-LINK_LIBS   = $(c++DBUG)
+-
+-LINKLIBSO   = $(CC) $(c++FLAGS) -shared
+-LINKEXE     = $(CC) $(c++FLAGS) -Xlinker --add-needed
+diff --git a/wmake/rules/linuxClang/c++Debug b/wmake/rules/linuxClang/c++Debug
+deleted file mode 100644
+index 19bdb9c..0000000
+--- a/wmake/rules/linuxClang/c++Debug
++++ /dev/null
+@@ -1,2 +0,0 @@
+-c++DBUG    = -ggdb3 -DFULLDEBUG
+-c++OPT      = -O0 -fdefault-inline
+diff --git a/wmake/rules/linuxClang/c++Opt b/wmake/rules/linuxClang/c++Opt
+deleted file mode 100644
+index 2aedabd..0000000
+--- a/wmake/rules/linuxClang/c++Opt
++++ /dev/null
+@@ -1,2 +0,0 @@
+-c++DBUG     =
+-c++OPT      = -O3
+diff --git a/wmake/rules/linuxClang/c++Prof b/wmake/rules/linuxClang/c++Prof
+deleted file mode 100644
+index 3bda4da..0000000
+--- a/wmake/rules/linuxClang/c++Prof
++++ /dev/null
+@@ -1,2 +0,0 @@
+-c++DBUG    = -pg
+-c++OPT     = -O2
+diff --git a/wmake/rules/linuxClang/cDebug b/wmake/rules/linuxClang/cDebug
+deleted file mode 100644
+index 72b638f..0000000
+--- a/wmake/rules/linuxClang/cDebug
++++ /dev/null
+@@ -1,2 +0,0 @@
+-cDBUG       = -ggdb -DFULLDEBUG
+-cOPT        = -O1 -fdefault-inline -finline-functions
+diff --git a/wmake/rules/linuxClang/cOpt b/wmake/rules/linuxClang/cOpt
+deleted file mode 100644
+index 1731870..0000000
+--- a/wmake/rules/linuxClang/cOpt
++++ /dev/null
+@@ -1,2 +0,0 @@
+-cDBUG       =
+-cOPT        = -O3
+diff --git a/wmake/rules/linuxClang/cProf b/wmake/rules/linuxClang/cProf
+deleted file mode 100644
+index ca3ac9b..0000000
+--- a/wmake/rules/linuxClang/cProf
++++ /dev/null
+@@ -1,2 +0,0 @@
+-cDBUG       = -pg
+-cOPT        = -O2
+diff --git a/wmake/rules/linuxClang/general b/wmake/rules/linuxClang/general
+deleted file mode 100644
+index fa1eb5b..0000000
+--- a/wmake/rules/linuxClang/general
++++ /dev/null
+@@ -1,9 +0,0 @@
+-CPP        = cpp -traditional-cpp $(GFLAGS)
+-LD         = ld -melf_i386
+-
+-PROJECT_LIBS = -l$(WM_PROJECT) -ldl
+-
+-include $(GENERAL_RULES)/standard
+-
+-include $(RULES)/c
+-include $(RULES)/c++
+diff --git a/wmake/rules/linuxClang/mplibHPMPI b/wmake/rules/linuxClang/mplibHPMPI
+deleted file mode 100644
+index 8aff406..0000000
+--- a/wmake/rules/linuxClang/mplibHPMPI
++++ /dev/null
+@@ -1,3 +0,0 @@
+-PFLAGS     =
+-PINC       = -I$(MPI_ARCH_PATH)/include -D_MPICC_H
+-PLIBS      = -L$(MPI_ARCH_PATH)/lib/linux_ia32 -lmpi
+diff --git a/wmake/rules/linuxGcc/c b/wmake/rules/linuxGcc/c
+deleted file mode 100644
+index d914fcd..0000000
+--- a/wmake/rules/linuxGcc/c
++++ /dev/null
+@@ -1,16 +0,0 @@
+-.SUFFIXES: .c .h
+-
+-cWARN        = -Wall
+-
+-cc          = gcc -m32
+-
+-include $(RULES)/c$(WM_COMPILE_OPTION)
+-
+-cFLAGS      = $(GFLAGS) $(cWARN) $(cOPT) $(cDBUG) $(LIB_HEADER_DIRS) -fPIC
+-
+-ctoo        = $(WM_SCHEDULER) $(cc) $(cFLAGS) -c $$SOURCE -o $@
+-
+-LINK_LIBS   = $(cDBUG)
+-
+-LINKLIBSO   = $(cc) -shared
+-LINKEXE     = $(cc) -Xlinker --add-needed -Xlinker -z -Xlinker nodefs
+diff --git a/wmake/rules/linuxGcc/c++ b/wmake/rules/linuxGcc/c++
+deleted file mode 100644
+index 357f410..0000000
+--- a/wmake/rules/linuxGcc/c++
++++ /dev/null
+@@ -1,21 +0,0 @@
+-.SUFFIXES: .C .cxx .cc .cpp
+-
+-c++WARN     = -Wall -Wextra -Wno-unused-parameter -Wold-style-cast
+-
+-CC          = g++ -m32
+-
+-include $(RULES)/c++$(WM_COMPILE_OPTION)
+-
+-ptFLAGS     = -DNoRepository -ftemplate-depth-100
+-
+-c++FLAGS    = $(GFLAGS) $(c++WARN) $(c++OPT) $(c++DBUG) $(ptFLAGS) $(LIB_HEADER_DIRS) -fPIC
+-
+-Ctoo        = $(WM_SCHEDULER) $(CC) $(c++FLAGS) -c $$SOURCE -o $@
+-cxxtoo      = $(Ctoo)
+-cctoo       = $(Ctoo)
+-cpptoo      = $(Ctoo)
+-
+-LINK_LIBS   = $(c++DBUG)
+-
+-LINKLIBSO   = $(CC) $(c++FLAGS) -shared -Xlinker --add-needed -Xlinker --no-as-needed
+-LINKEXE     = $(CC) $(c++FLAGS) -Xlinker --add-needed -Xlinker --no-as-needed
+diff --git a/wmake/rules/linuxGcc/c++Debug b/wmake/rules/linuxGcc/c++Debug
+deleted file mode 100644
+index 19bdb9c..0000000
+--- a/wmake/rules/linuxGcc/c++Debug
++++ /dev/null
+@@ -1,2 +0,0 @@
+-c++DBUG    = -ggdb3 -DFULLDEBUG
+-c++OPT      = -O0 -fdefault-inline
+diff --git a/wmake/rules/linuxGcc/c++Opt b/wmake/rules/linuxGcc/c++Opt
+deleted file mode 100644
+index 2aedabd..0000000
+--- a/wmake/rules/linuxGcc/c++Opt
++++ /dev/null
+@@ -1,2 +0,0 @@
+-c++DBUG     =
+-c++OPT      = -O3
+diff --git a/wmake/rules/linuxGcc/c++Prof b/wmake/rules/linuxGcc/c++Prof
+deleted file mode 100644
+index 3bda4da..0000000
+--- a/wmake/rules/linuxGcc/c++Prof
++++ /dev/null
+@@ -1,2 +0,0 @@
+-c++DBUG    = -pg
+-c++OPT     = -O2
+diff --git a/wmake/rules/linuxGcc/cDebug b/wmake/rules/linuxGcc/cDebug
+deleted file mode 100644
+index 72b638f..0000000
+--- a/wmake/rules/linuxGcc/cDebug
++++ /dev/null
+@@ -1,2 +0,0 @@
+-cDBUG       = -ggdb -DFULLDEBUG
+-cOPT        = -O1 -fdefault-inline -finline-functions
+diff --git a/wmake/rules/linuxGcc/cOpt b/wmake/rules/linuxGcc/cOpt
+deleted file mode 100644
+index 1731870..0000000
+--- a/wmake/rules/linuxGcc/cOpt
++++ /dev/null
+@@ -1,2 +0,0 @@
+-cDBUG       =
+-cOPT        = -O3
+diff --git a/wmake/rules/linuxGcc/cProf b/wmake/rules/linuxGcc/cProf
+deleted file mode 100644
+index ca3ac9b..0000000
+--- a/wmake/rules/linuxGcc/cProf
++++ /dev/null
+@@ -1,2 +0,0 @@
+-cDBUG       = -pg
+-cOPT        = -O2
+diff --git a/wmake/rules/linuxGcc/general b/wmake/rules/linuxGcc/general
+deleted file mode 100644
+index fa1eb5b..0000000
+--- a/wmake/rules/linuxGcc/general
++++ /dev/null
+@@ -1,9 +0,0 @@
+-CPP        = cpp -traditional-cpp $(GFLAGS)
+-LD         = ld -melf_i386
+-
+-PROJECT_LIBS = -l$(WM_PROJECT) -ldl
+-
+-include $(GENERAL_RULES)/standard
+-
+-include $(RULES)/c
+-include $(RULES)/c++
+diff --git a/wmake/rules/linuxGcc/mplibHPMPI b/wmake/rules/linuxGcc/mplibHPMPI
+deleted file mode 100644
+index 8aff406..0000000
+--- a/wmake/rules/linuxGcc/mplibHPMPI
++++ /dev/null
+@@ -1,3 +0,0 @@
+-PFLAGS     =
+-PINC       = -I$(MPI_ARCH_PATH)/include -D_MPICC_H
+-PLIBS      = -L$(MPI_ARCH_PATH)/lib/linux_ia32 -lmpi
+diff --git a/wmake/rules/linuxGcc43/c b/wmake/rules/linuxGcc43/c
+deleted file mode 100644
+index d914fcd..0000000
+--- a/wmake/rules/linuxGcc43/c
++++ /dev/null
+@@ -1,16 +0,0 @@
+-.SUFFIXES: .c .h
+-
+-cWARN        = -Wall
+-
+-cc          = gcc -m32
+-
+-include $(RULES)/c$(WM_COMPILE_OPTION)
+-
+-cFLAGS      = $(GFLAGS) $(cWARN) $(cOPT) $(cDBUG) $(LIB_HEADER_DIRS) -fPIC
+-
+-ctoo        = $(WM_SCHEDULER) $(cc) $(cFLAGS) -c $$SOURCE -o $@
+-
+-LINK_LIBS   = $(cDBUG)
+-
+-LINKLIBSO   = $(cc) -shared
+-LINKEXE     = $(cc) -Xlinker --add-needed -Xlinker -z -Xlinker nodefs
+diff --git a/wmake/rules/linuxGcc43/c++ b/wmake/rules/linuxGcc43/c++
+deleted file mode 100644
+index e862181..0000000
+--- a/wmake/rules/linuxGcc43/c++
++++ /dev/null
+@@ -1,21 +0,0 @@
+-.SUFFIXES: .C .cxx .cc .cpp
+-
+-c++WARN     = -Wall -Wextra -Wno-unused-parameter -Wold-style-cast
+-
+-CC          = g++ -m32
+-
+-include $(RULES)/c++$(WM_COMPILE_OPTION)
+-
+-ptFLAGS     = -DNoRepository -ftemplate-depth-100
+-
+-c++FLAGS    = $(GFLAGS) $(c++WARN) $(c++OPT) $(c++DBUG) $(ptFLAGS) $(LIB_HEADER_DIRS) -fPIC
+-
+-Ctoo        = $(WM_SCHEDULER) $(CC) $(c++FLAGS) -c $$SOURCE -o $@
+-cxxtoo      = $(Ctoo)
+-cctoo       = $(Ctoo)
+-cpptoo      = $(Ctoo)
+-
+-LINK_LIBS   = $(c++DBUG)
+-
+-LINKLIBSO   = $(CC) $(c++FLAGS) -shared
+-LINKEXE     = $(CC) $(c++FLAGS) -Xlinker --add-needed
+diff --git a/wmake/rules/linuxGcc43/c++Debug b/wmake/rules/linuxGcc43/c++Debug
+deleted file mode 100644
+index 19bdb9c..0000000
+--- a/wmake/rules/linuxGcc43/c++Debug
++++ /dev/null
+@@ -1,2 +0,0 @@
+-c++DBUG    = -ggdb3 -DFULLDEBUG
+-c++OPT      = -O0 -fdefault-inline
+diff --git a/wmake/rules/linuxGcc43/c++Opt b/wmake/rules/linuxGcc43/c++Opt
+deleted file mode 100644
+index 2aedabd..0000000
+--- a/wmake/rules/linuxGcc43/c++Opt
++++ /dev/null
+@@ -1,2 +0,0 @@
+-c++DBUG     =
+-c++OPT      = -O3
+diff --git a/wmake/rules/linuxGcc43/c++Prof b/wmake/rules/linuxGcc43/c++Prof
+deleted file mode 100644
+index 3bda4da..0000000
+--- a/wmake/rules/linuxGcc43/c++Prof
++++ /dev/null
+@@ -1,2 +0,0 @@
+-c++DBUG    = -pg
+-c++OPT     = -O2
+diff --git a/wmake/rules/linuxGcc43/cDebug b/wmake/rules/linuxGcc43/cDebug
+deleted file mode 100644
+index 72b638f..0000000
+--- a/wmake/rules/linuxGcc43/cDebug
++++ /dev/null
+@@ -1,2 +0,0 @@
+-cDBUG       = -ggdb -DFULLDEBUG
+-cOPT        = -O1 -fdefault-inline -finline-functions
+diff --git a/wmake/rules/linuxGcc43/cOpt b/wmake/rules/linuxGcc43/cOpt
+deleted file mode 100644
+index 1731870..0000000
+--- a/wmake/rules/linuxGcc43/cOpt
++++ /dev/null
+@@ -1,2 +0,0 @@
+-cDBUG       =
+-cOPT        = -O3
+diff --git a/wmake/rules/linuxGcc43/cProf b/wmake/rules/linuxGcc43/cProf
+deleted file mode 100644
+index ca3ac9b..0000000
+--- a/wmake/rules/linuxGcc43/cProf
++++ /dev/null
+@@ -1,2 +0,0 @@
+-cDBUG       = -pg
+-cOPT        = -O2
+diff --git a/wmake/rules/linuxGcc43/general b/wmake/rules/linuxGcc43/general
+deleted file mode 100644
+index fa1eb5b..0000000
+--- a/wmake/rules/linuxGcc43/general
++++ /dev/null
+@@ -1,9 +0,0 @@
+-CPP        = cpp -traditional-cpp $(GFLAGS)
+-LD         = ld -melf_i386
+-
+-PROJECT_LIBS = -l$(WM_PROJECT) -ldl
+-
+-include $(GENERAL_RULES)/standard
+-
+-include $(RULES)/c
+-include $(RULES)/c++
+diff --git a/wmake/rules/linuxGcc43/mplibHPMPI b/wmake/rules/linuxGcc43/mplibHPMPI
+deleted file mode 100644
+index 8aff406..0000000
+--- a/wmake/rules/linuxGcc43/mplibHPMPI
++++ /dev/null
+@@ -1,3 +0,0 @@
+-PFLAGS     =
+-PINC       = -I$(MPI_ARCH_PATH)/include -D_MPICC_H
+-PLIBS      = -L$(MPI_ARCH_PATH)/lib/linux_ia32 -lmpi
+diff --git a/wmake/rules/linuxGcc44/c b/wmake/rules/linuxGcc44/c
+deleted file mode 100644
+index d914fcd..0000000
+--- a/wmake/rules/linuxGcc44/c
++++ /dev/null
+@@ -1,16 +0,0 @@
+-.SUFFIXES: .c .h
+-
+-cWARN        = -Wall
+-
+-cc          = gcc -m32
+-
+-include $(RULES)/c$(WM_COMPILE_OPTION)
+-
+-cFLAGS      = $(GFLAGS) $(cWARN) $(cOPT) $(cDBUG) $(LIB_HEADER_DIRS) -fPIC
+-
+-ctoo        = $(WM_SCHEDULER) $(cc) $(cFLAGS) -c $$SOURCE -o $@
+-
+-LINK_LIBS   = $(cDBUG)
+-
+-LINKLIBSO   = $(cc) -shared
+-LINKEXE     = $(cc) -Xlinker --add-needed -Xlinker -z -Xlinker nodefs
+diff --git a/wmake/rules/linuxGcc44/c++ b/wmake/rules/linuxGcc44/c++
+deleted file mode 100644
+index e862181..0000000
+--- a/wmake/rules/linuxGcc44/c++
++++ /dev/null
+@@ -1,21 +0,0 @@
+-.SUFFIXES: .C .cxx .cc .cpp
+-
+-c++WARN     = -Wall -Wextra -Wno-unused-parameter -Wold-style-cast
+-
+-CC          = g++ -m32
+-
+-include $(RULES)/c++$(WM_COMPILE_OPTION)
+-
+-ptFLAGS     = -DNoRepository -ftemplate-depth-100
+-
+-c++FLAGS    = $(GFLAGS) $(c++WARN) $(c++OPT) $(c++DBUG) $(ptFLAGS) $(LIB_HEADER_DIRS) -fPIC
+-
+-Ctoo        = $(WM_SCHEDULER) $(CC) $(c++FLAGS) -c $$SOURCE -o $@
+-cxxtoo      = $(Ctoo)
+-cctoo       = $(Ctoo)
+-cpptoo      = $(Ctoo)
+-
+-LINK_LIBS   = $(c++DBUG)
+-
+-LINKLIBSO   = $(CC) $(c++FLAGS) -shared
+-LINKEXE     = $(CC) $(c++FLAGS) -Xlinker --add-needed
+diff --git a/wmake/rules/linuxGcc44/c++Debug b/wmake/rules/linuxGcc44/c++Debug
+deleted file mode 100644
+index 19bdb9c..0000000
+--- a/wmake/rules/linuxGcc44/c++Debug
++++ /dev/null
+@@ -1,2 +0,0 @@
+-c++DBUG    = -ggdb3 -DFULLDEBUG
+-c++OPT      = -O0 -fdefault-inline
+diff --git a/wmake/rules/linuxGcc44/c++Opt b/wmake/rules/linuxGcc44/c++Opt
+deleted file mode 100644
+index 2aedabd..0000000
+--- a/wmake/rules/linuxGcc44/c++Opt
++++ /dev/null
+@@ -1,2 +0,0 @@
+-c++DBUG     =
+-c++OPT      = -O3
+diff --git a/wmake/rules/linuxGcc44/c++Prof b/wmake/rules/linuxGcc44/c++Prof
+deleted file mode 100644
+index 3bda4da..0000000
+--- a/wmake/rules/linuxGcc44/c++Prof
++++ /dev/null
+@@ -1,2 +0,0 @@
+-c++DBUG    = -pg
+-c++OPT     = -O2
+diff --git a/wmake/rules/linuxGcc44/cDebug b/wmake/rules/linuxGcc44/cDebug
+deleted file mode 100644
+index 72b638f..0000000
+--- a/wmake/rules/linuxGcc44/cDebug
++++ /dev/null
+@@ -1,2 +0,0 @@
+-cDBUG       = -ggdb -DFULLDEBUG
+-cOPT        = -O1 -fdefault-inline -finline-functions
+diff --git a/wmake/rules/linuxGcc44/cOpt b/wmake/rules/linuxGcc44/cOpt
+deleted file mode 100644
+index 1731870..0000000
+--- a/wmake/rules/linuxGcc44/cOpt
++++ /dev/null
+@@ -1,2 +0,0 @@
+-cDBUG       =
+-cOPT        = -O3
+diff --git a/wmake/rules/linuxGcc44/cProf b/wmake/rules/linuxGcc44/cProf
+deleted file mode 100644
+index ca3ac9b..0000000
+--- a/wmake/rules/linuxGcc44/cProf
++++ /dev/null
+@@ -1,2 +0,0 @@
+-cDBUG       = -pg
+-cOPT        = -O2
+diff --git a/wmake/rules/linuxGcc44/general b/wmake/rules/linuxGcc44/general
+deleted file mode 100644
+index fa1eb5b..0000000
+--- a/wmake/rules/linuxGcc44/general
++++ /dev/null
+@@ -1,9 +0,0 @@
+-CPP        = cpp -traditional-cpp $(GFLAGS)
+-LD         = ld -melf_i386
+-
+-PROJECT_LIBS = -l$(WM_PROJECT) -ldl
+-
+-include $(GENERAL_RULES)/standard
+-
+-include $(RULES)/c
+-include $(RULES)/c++
+diff --git a/wmake/rules/linuxGcc44/mplibHPMPI b/wmake/rules/linuxGcc44/mplibHPMPI
+deleted file mode 100644
+index 8aff406..0000000
+--- a/wmake/rules/linuxGcc44/mplibHPMPI
++++ /dev/null
+@@ -1,3 +0,0 @@
+-PFLAGS     =
+-PINC       = -I$(MPI_ARCH_PATH)/include -D_MPICC_H
+-PLIBS      = -L$(MPI_ARCH_PATH)/lib/linux_ia32 -lmpi
+diff --git a/wmake/rules/linuxGcc45/c b/wmake/rules/linuxGcc45/c
+deleted file mode 100644
+index d914fcd..0000000
+--- a/wmake/rules/linuxGcc45/c
++++ /dev/null
+@@ -1,16 +0,0 @@
+-.SUFFIXES: .c .h
+-
+-cWARN        = -Wall
+-
+-cc          = gcc -m32
+-
+-include $(RULES)/c$(WM_COMPILE_OPTION)
+-
+-cFLAGS      = $(GFLAGS) $(cWARN) $(cOPT) $(cDBUG) $(LIB_HEADER_DIRS) -fPIC
+-
+-ctoo        = $(WM_SCHEDULER) $(cc) $(cFLAGS) -c $$SOURCE -o $@
+-
+-LINK_LIBS   = $(cDBUG)
+-
+-LINKLIBSO   = $(cc) -shared
+-LINKEXE     = $(cc) -Xlinker --add-needed -Xlinker -z -Xlinker nodefs
+diff --git a/wmake/rules/linuxGcc45/c++ b/wmake/rules/linuxGcc45/c++
+deleted file mode 100644
+index 357f410..0000000
+--- a/wmake/rules/linuxGcc45/c++
++++ /dev/null
+@@ -1,21 +0,0 @@
+-.SUFFIXES: .C .cxx .cc .cpp
+-
+-c++WARN     = -Wall -Wextra -Wno-unused-parameter -Wold-style-cast
+-
+-CC          = g++ -m32
+-
+-include $(RULES)/c++$(WM_COMPILE_OPTION)
+-
+-ptFLAGS     = -DNoRepository -ftemplate-depth-100
+-
+-c++FLAGS    = $(GFLAGS) $(c++WARN) $(c++OPT) $(c++DBUG) $(ptFLAGS) $(LIB_HEADER_DIRS) -fPIC
+-
+-Ctoo        = $(WM_SCHEDULER) $(CC) $(c++FLAGS) -c $$SOURCE -o $@
+-cxxtoo      = $(Ctoo)
+-cctoo       = $(Ctoo)
+-cpptoo      = $(Ctoo)
+-
+-LINK_LIBS   = $(c++DBUG)
+-
+-LINKLIBSO   = $(CC) $(c++FLAGS) -shared -Xlinker --add-needed -Xlinker --no-as-needed
+-LINKEXE     = $(CC) $(c++FLAGS) -Xlinker --add-needed -Xlinker --no-as-needed
+diff --git a/wmake/rules/linuxGcc45/c++Debug b/wmake/rules/linuxGcc45/c++Debug
+deleted file mode 100644
+index 19bdb9c..0000000
+--- a/wmake/rules/linuxGcc45/c++Debug
++++ /dev/null
+@@ -1,2 +0,0 @@
+-c++DBUG    = -ggdb3 -DFULLDEBUG
+-c++OPT      = -O0 -fdefault-inline
+diff --git a/wmake/rules/linuxGcc45/c++Opt b/wmake/rules/linuxGcc45/c++Opt
+deleted file mode 100644
+index 2aedabd..0000000
+--- a/wmake/rules/linuxGcc45/c++Opt
++++ /dev/null
+@@ -1,2 +0,0 @@
+-c++DBUG     =
+-c++OPT      = -O3
+diff --git a/wmake/rules/linuxGcc45/c++Prof b/wmake/rules/linuxGcc45/c++Prof
+deleted file mode 100644
+index 3bda4da..0000000
+--- a/wmake/rules/linuxGcc45/c++Prof
++++ /dev/null
+@@ -1,2 +0,0 @@
+-c++DBUG    = -pg
+-c++OPT     = -O2
+diff --git a/wmake/rules/linuxGcc45/cDebug b/wmake/rules/linuxGcc45/cDebug
+deleted file mode 100644
+index 72b638f..0000000
+--- a/wmake/rules/linuxGcc45/cDebug
++++ /dev/null
+@@ -1,2 +0,0 @@
+-cDBUG       = -ggdb -DFULLDEBUG
+-cOPT        = -O1 -fdefault-inline -finline-functions
+diff --git a/wmake/rules/linuxGcc45/cOpt b/wmake/rules/linuxGcc45/cOpt
+deleted file mode 100644
+index 1731870..0000000
+--- a/wmake/rules/linuxGcc45/cOpt
++++ /dev/null
+@@ -1,2 +0,0 @@
+-cDBUG       =
+-cOPT        = -O3
+diff --git a/wmake/rules/linuxGcc45/cProf b/wmake/rules/linuxGcc45/cProf
+deleted file mode 100644
+index ca3ac9b..0000000
+--- a/wmake/rules/linuxGcc45/cProf
++++ /dev/null
+@@ -1,2 +0,0 @@
+-cDBUG       = -pg
+-cOPT        = -O2
+diff --git a/wmake/rules/linuxGcc45/general b/wmake/rules/linuxGcc45/general
+deleted file mode 100644
+index 4b051e6..0000000
+--- a/wmake/rules/linuxGcc45/general
++++ /dev/null
+@@ -1,9 +0,0 @@
+-CPP        = cpp -traditional-cpp
+-LD         = ld -melf_i386
+-
+-PROJECT_LIBS = -l$(WM_PROJECT) -ldl
+-
+-include $(GENERAL_RULES)/standard
+-
+-include $(RULES)/c
+-include $(RULES)/c++
+diff --git a/wmake/rules/linuxGcc45/mplibHPMPI b/wmake/rules/linuxGcc45/mplibHPMPI
+deleted file mode 100644
+index 8aff406..0000000
+--- a/wmake/rules/linuxGcc45/mplibHPMPI
++++ /dev/null
+@@ -1,3 +0,0 @@
+-PFLAGS     =
+-PINC       = -I$(MPI_ARCH_PATH)/include -D_MPICC_H
+-PLIBS      = -L$(MPI_ARCH_PATH)/lib/linux_ia32 -lmpi
+diff --git a/wmake/rules/linuxGcc46/c b/wmake/rules/linuxGcc46/c
+deleted file mode 100644
+index d914fcd..0000000
+--- a/wmake/rules/linuxGcc46/c
++++ /dev/null
+@@ -1,16 +0,0 @@
+-.SUFFIXES: .c .h
+-
+-cWARN        = -Wall
+-
+-cc          = gcc -m32
+-
+-include $(RULES)/c$(WM_COMPILE_OPTION)
+-
+-cFLAGS      = $(GFLAGS) $(cWARN) $(cOPT) $(cDBUG) $(LIB_HEADER_DIRS) -fPIC
+-
+-ctoo        = $(WM_SCHEDULER) $(cc) $(cFLAGS) -c $$SOURCE -o $@
+-
+-LINK_LIBS   = $(cDBUG)
+-
+-LINKLIBSO   = $(cc) -shared
+-LINKEXE     = $(cc) -Xlinker --add-needed -Xlinker -z -Xlinker nodefs
+diff --git a/wmake/rules/linuxGcc46/c++ b/wmake/rules/linuxGcc46/c++
+deleted file mode 100644
+index 357f410..0000000
+--- a/wmake/rules/linuxGcc46/c++
++++ /dev/null
+@@ -1,21 +0,0 @@
+-.SUFFIXES: .C .cxx .cc .cpp
+-
+-c++WARN     = -Wall -Wextra -Wno-unused-parameter -Wold-style-cast
+-
+-CC          = g++ -m32
+-
+-include $(RULES)/c++$(WM_COMPILE_OPTION)
+-
+-ptFLAGS     = -DNoRepository -ftemplate-depth-100
+-
+-c++FLAGS    = $(GFLAGS) $(c++WARN) $(c++OPT) $(c++DBUG) $(ptFLAGS) $(LIB_HEADER_DIRS) -fPIC
+-
+-Ctoo        = $(WM_SCHEDULER) $(CC) $(c++FLAGS) -c $$SOURCE -o $@
+-cxxtoo      = $(Ctoo)
+-cctoo       = $(Ctoo)
+-cpptoo      = $(Ctoo)
+-
+-LINK_LIBS   = $(c++DBUG)
+-
+-LINKLIBSO   = $(CC) $(c++FLAGS) -shared -Xlinker --add-needed -Xlinker --no-as-needed
+-LINKEXE     = $(CC) $(c++FLAGS) -Xlinker --add-needed -Xlinker --no-as-needed
+diff --git a/wmake/rules/linuxGcc46/c++Debug b/wmake/rules/linuxGcc46/c++Debug
+deleted file mode 100644
+index 19bdb9c..0000000
+--- a/wmake/rules/linuxGcc46/c++Debug
++++ /dev/null
+@@ -1,2 +0,0 @@
+-c++DBUG    = -ggdb3 -DFULLDEBUG
+-c++OPT      = -O0 -fdefault-inline
+diff --git a/wmake/rules/linuxGcc46/c++Opt b/wmake/rules/linuxGcc46/c++Opt
+deleted file mode 100644
+index 2aedabd..0000000
+--- a/wmake/rules/linuxGcc46/c++Opt
++++ /dev/null
+@@ -1,2 +0,0 @@
+-c++DBUG     =
+-c++OPT      = -O3
+diff --git a/wmake/rules/linuxGcc46/c++Prof b/wmake/rules/linuxGcc46/c++Prof
+deleted file mode 100644
+index 3bda4da..0000000
+--- a/wmake/rules/linuxGcc46/c++Prof
++++ /dev/null
+@@ -1,2 +0,0 @@
+-c++DBUG    = -pg
+-c++OPT     = -O2
+diff --git a/wmake/rules/linuxGcc46/cDebug b/wmake/rules/linuxGcc46/cDebug
+deleted file mode 100644
+index 72b638f..0000000
+--- a/wmake/rules/linuxGcc46/cDebug
++++ /dev/null
+@@ -1,2 +0,0 @@
+-cDBUG       = -ggdb -DFULLDEBUG
+-cOPT        = -O1 -fdefault-inline -finline-functions
+diff --git a/wmake/rules/linuxGcc46/cOpt b/wmake/rules/linuxGcc46/cOpt
+deleted file mode 100644
+index 1731870..0000000
+--- a/wmake/rules/linuxGcc46/cOpt
++++ /dev/null
+@@ -1,2 +0,0 @@
+-cDBUG       =
+-cOPT        = -O3
+diff --git a/wmake/rules/linuxGcc46/cProf b/wmake/rules/linuxGcc46/cProf
+deleted file mode 100644
+index ca3ac9b..0000000
+--- a/wmake/rules/linuxGcc46/cProf
++++ /dev/null
+@@ -1,2 +0,0 @@
+-cDBUG       = -pg
+-cOPT        = -O2
+diff --git a/wmake/rules/linuxGcc46/general b/wmake/rules/linuxGcc46/general
+deleted file mode 100644
+index 4b051e6..0000000
+--- a/wmake/rules/linuxGcc46/general
++++ /dev/null
+@@ -1,9 +0,0 @@
+-CPP        = cpp -traditional-cpp
+-LD         = ld -melf_i386
+-
+-PROJECT_LIBS = -l$(WM_PROJECT) -ldl
+-
+-include $(GENERAL_RULES)/standard
+-
+-include $(RULES)/c
+-include $(RULES)/c++
+diff --git a/wmake/rules/linuxGcc46/mplibHPMPI b/wmake/rules/linuxGcc46/mplibHPMPI
+deleted file mode 100644
+index 8aff406..0000000
+--- a/wmake/rules/linuxGcc46/mplibHPMPI
++++ /dev/null
+@@ -1,3 +0,0 @@
+-PFLAGS     =
+-PINC       = -I$(MPI_ARCH_PATH)/include -D_MPICC_H
+-PLIBS      = -L$(MPI_ARCH_PATH)/lib/linux_ia32 -lmpi
+diff --git a/wmake/rules/linuxGcc47/c b/wmake/rules/linuxGcc47/c
+deleted file mode 100644
+index d914fcd..0000000
+--- a/wmake/rules/linuxGcc47/c
++++ /dev/null
+@@ -1,16 +0,0 @@
+-.SUFFIXES: .c .h
+-
+-cWARN        = -Wall
+-
+-cc          = gcc -m32
+-
+-include $(RULES)/c$(WM_COMPILE_OPTION)
+-
+-cFLAGS      = $(GFLAGS) $(cWARN) $(cOPT) $(cDBUG) $(LIB_HEADER_DIRS) -fPIC
+-
+-ctoo        = $(WM_SCHEDULER) $(cc) $(cFLAGS) -c $$SOURCE -o $@
+-
+-LINK_LIBS   = $(cDBUG)
+-
+-LINKLIBSO   = $(cc) -shared
+-LINKEXE     = $(cc) -Xlinker --add-needed -Xlinker -z -Xlinker nodefs
+diff --git a/wmake/rules/linuxGcc47/c++ b/wmake/rules/linuxGcc47/c++
+deleted file mode 100644
+index 357f410..0000000
+--- a/wmake/rules/linuxGcc47/c++
++++ /dev/null
+@@ -1,21 +0,0 @@
+-.SUFFIXES: .C .cxx .cc .cpp
+-
+-c++WARN     = -Wall -Wextra -Wno-unused-parameter -Wold-style-cast
+-
+-CC          = g++ -m32
+-
+-include $(RULES)/c++$(WM_COMPILE_OPTION)
+-
+-ptFLAGS     = -DNoRepository -ftemplate-depth-100
+-
+-c++FLAGS    = $(GFLAGS) $(c++WARN) $(c++OPT) $(c++DBUG) $(ptFLAGS) $(LIB_HEADER_DIRS) -fPIC
+-
+-Ctoo        = $(WM_SCHEDULER) $(CC) $(c++FLAGS) -c $$SOURCE -o $@
+-cxxtoo      = $(Ctoo)
+-cctoo       = $(Ctoo)
+-cpptoo      = $(Ctoo)
+-
+-LINK_LIBS   = $(c++DBUG)
+-
+-LINKLIBSO   = $(CC) $(c++FLAGS) -shared -Xlinker --add-needed -Xlinker --no-as-needed
+-LINKEXE     = $(CC) $(c++FLAGS) -Xlinker --add-needed -Xlinker --no-as-needed
+diff --git a/wmake/rules/linuxGcc47/c++Debug b/wmake/rules/linuxGcc47/c++Debug
+deleted file mode 100644
+index 19bdb9c..0000000
+--- a/wmake/rules/linuxGcc47/c++Debug
++++ /dev/null
+@@ -1,2 +0,0 @@
+-c++DBUG    = -ggdb3 -DFULLDEBUG
+-c++OPT      = -O0 -fdefault-inline
+diff --git a/wmake/rules/linuxGcc47/c++Opt b/wmake/rules/linuxGcc47/c++Opt
+deleted file mode 100644
+index 2aedabd..0000000
+--- a/wmake/rules/linuxGcc47/c++Opt
++++ /dev/null
+@@ -1,2 +0,0 @@
+-c++DBUG     =
+-c++OPT      = -O3
+diff --git a/wmake/rules/linuxGcc47/c++Prof b/wmake/rules/linuxGcc47/c++Prof
+deleted file mode 100644
+index 3bda4da..0000000
+--- a/wmake/rules/linuxGcc47/c++Prof
++++ /dev/null
+@@ -1,2 +0,0 @@
+-c++DBUG    = -pg
+-c++OPT     = -O2
+diff --git a/wmake/rules/linuxGcc47/cDebug b/wmake/rules/linuxGcc47/cDebug
+deleted file mode 100644
+index 72b638f..0000000
+--- a/wmake/rules/linuxGcc47/cDebug
++++ /dev/null
+@@ -1,2 +0,0 @@
+-cDBUG       = -ggdb -DFULLDEBUG
+-cOPT        = -O1 -fdefault-inline -finline-functions
+diff --git a/wmake/rules/linuxGcc47/cOpt b/wmake/rules/linuxGcc47/cOpt
+deleted file mode 100644
+index 1731870..0000000
+--- a/wmake/rules/linuxGcc47/cOpt
++++ /dev/null
+@@ -1,2 +0,0 @@
+-cDBUG       =
+-cOPT        = -O3
+diff --git a/wmake/rules/linuxGcc47/cProf b/wmake/rules/linuxGcc47/cProf
+deleted file mode 100644
+index ca3ac9b..0000000
+--- a/wmake/rules/linuxGcc47/cProf
++++ /dev/null
+@@ -1,2 +0,0 @@
+-cDBUG       = -pg
+-cOPT        = -O2
+diff --git a/wmake/rules/linuxGcc47/general b/wmake/rules/linuxGcc47/general
+deleted file mode 100644
+index 4b051e6..0000000
+--- a/wmake/rules/linuxGcc47/general
++++ /dev/null
+@@ -1,9 +0,0 @@
+-CPP        = cpp -traditional-cpp
+-LD         = ld -melf_i386
+-
+-PROJECT_LIBS = -l$(WM_PROJECT) -ldl
+-
+-include $(GENERAL_RULES)/standard
+-
+-include $(RULES)/c
+-include $(RULES)/c++
+diff --git a/wmake/rules/linuxGcc47/mplibHPMPI b/wmake/rules/linuxGcc47/mplibHPMPI
+deleted file mode 100644
+index 8aff406..0000000
+--- a/wmake/rules/linuxGcc47/mplibHPMPI
++++ /dev/null
+@@ -1,3 +0,0 @@
+-PFLAGS     =
+-PINC       = -I$(MPI_ARCH_PATH)/include -D_MPICC_H
+-PLIBS      = -L$(MPI_ARCH_PATH)/lib/linux_ia32 -lmpi
+diff --git a/wmake/rules/linuxIA64Gcc/X b/wmake/rules/linuxIA64Gcc/X
+deleted file mode 100644
+index bed8bfe..0000000
+--- a/wmake/rules/linuxIA64Gcc/X
++++ /dev/null
+@@ -1,3 +0,0 @@
+-XFLAGS     =
+-XINC       = $(XFLAGS) -I/usr/X11R6/include
+-XLIBS      = -L/usr/X11R6/lib -lXext -lX11
+diff --git a/wmake/rules/linuxIA64Gcc/c b/wmake/rules/linuxIA64Gcc/c
+deleted file mode 100644
+index 5be3206..0000000
+--- a/wmake/rules/linuxIA64Gcc/c
++++ /dev/null
+@@ -1,16 +0,0 @@
+-.SUFFIXES: .c .h
+-
+-cWARN        = -Wall
+-
+-cc          = gcc
+-
+-include $(RULES)/c$(WM_COMPILE_OPTION)
+-
+-cFLAGS      = $(GFLAGS) $(cWARN) $(cOPT) $(cDBUG) $(LIB_HEADER_DIRS) -fPIC
+-
+-ctoo        = $(WM_SCHEDULER) $(cc) $(cFLAGS) -c $$SOURCE -o $@
+-
+-LINK_LIBS   = $(cDBUG)
+-
+-LINKLIBSO   = $(cc) -shared
+-LINKEXE     = $(cc) -Xlinker --add-needed -Xlinker -z -Xlinker nodefs
+diff --git a/wmake/rules/linuxIA64Gcc/c++ b/wmake/rules/linuxIA64Gcc/c++
+deleted file mode 100644
+index b258455..0000000
+--- a/wmake/rules/linuxIA64Gcc/c++
++++ /dev/null
+@@ -1,21 +0,0 @@
+-.SUFFIXES: .C .cxx .cc .cpp
+-
+-c++WARN     = -Wall -Wextra -Wno-unused-parameter -Wold-style-cast
+-
+-CC          = g++
+-
+-include $(RULES)/c++$(WM_COMPILE_OPTION)
+-
+-ptFLAGS     = -DNoRepository -ftemplate-depth-100
+-
+-c++FLAGS    = $(GFLAGS) $(c++WARN) $(c++OPT) $(c++DBUG) $(ptFLAGS) $(LIB_HEADER_DIRS) -fPIC
+-
+-Ctoo        = $(WM_SCHEDULER) $(CC) $(c++FLAGS) -c $$SOURCE -o $@
+-cxxtoo      = $(Ctoo)
+-cctoo       = $(Ctoo)
+-cpptoo      = $(Ctoo)
+-
+-LINK_LIBS   = $(c++DBUG)
+-
+-LINKLIBSO   = $(CC) $(c++FLAGS) -shared
+-LINKEXE     = $(CC) $(c++FLAGS) -Xlinker --add-needed
+diff --git a/wmake/rules/linuxIA64Gcc/c++Debug b/wmake/rules/linuxIA64Gcc/c++Debug
+deleted file mode 100644
+index 19bdb9c..0000000
+--- a/wmake/rules/linuxIA64Gcc/c++Debug
++++ /dev/null
+@@ -1,2 +0,0 @@
+-c++DBUG    = -ggdb3 -DFULLDEBUG
+-c++OPT      = -O0 -fdefault-inline
+diff --git a/wmake/rules/linuxIA64Gcc/c++Opt b/wmake/rules/linuxIA64Gcc/c++Opt
+deleted file mode 100644
+index 2aedabd..0000000
+--- a/wmake/rules/linuxIA64Gcc/c++Opt
++++ /dev/null
+@@ -1,2 +0,0 @@
+-c++DBUG     =
+-c++OPT      = -O3
+diff --git a/wmake/rules/linuxIA64Gcc/c++Prof b/wmake/rules/linuxIA64Gcc/c++Prof
+deleted file mode 100644
+index 3bda4da..0000000
+--- a/wmake/rules/linuxIA64Gcc/c++Prof
++++ /dev/null
+@@ -1,2 +0,0 @@
+-c++DBUG    = -pg
+-c++OPT     = -O2
+diff --git a/wmake/rules/linuxIA64Gcc/cDebug b/wmake/rules/linuxIA64Gcc/cDebug
+deleted file mode 100644
+index 72b638f..0000000
+--- a/wmake/rules/linuxIA64Gcc/cDebug
++++ /dev/null
+@@ -1,2 +0,0 @@
+-cDBUG       = -ggdb -DFULLDEBUG
+-cOPT        = -O1 -fdefault-inline -finline-functions
+diff --git a/wmake/rules/linuxIA64Gcc/cOpt b/wmake/rules/linuxIA64Gcc/cOpt
+deleted file mode 100644
+index 1731870..0000000
+--- a/wmake/rules/linuxIA64Gcc/cOpt
++++ /dev/null
+@@ -1,2 +0,0 @@
+-cDBUG       =
+-cOPT        = -O3
+diff --git a/wmake/rules/linuxIA64Gcc/cProf b/wmake/rules/linuxIA64Gcc/cProf
+deleted file mode 100644
+index ca3ac9b..0000000
+--- a/wmake/rules/linuxIA64Gcc/cProf
++++ /dev/null
+@@ -1,2 +0,0 @@
+-cDBUG       = -pg
+-cOPT        = -O2
+diff --git a/wmake/rules/linuxIA64Gcc/general b/wmake/rules/linuxIA64Gcc/general
+deleted file mode 100644
+index 480ea1b..0000000
+--- a/wmake/rules/linuxIA64Gcc/general
++++ /dev/null
+@@ -1,9 +0,0 @@
+-CPP        = cpp -traditional-cpp $(GFLAGS)
+-
+-PROJECT_LIBS = -l$(WM_PROJECT) -ldl
+-
+-include $(GENERAL_RULES)/standard
+-
+-include $(RULES)/X
+-include $(RULES)/c
+-include $(RULES)/c++
+diff --git a/wmake/rules/linuxIA64Gcc/mplibHPMPI b/wmake/rules/linuxIA64Gcc/mplibHPMPI
+deleted file mode 100644
+index 4e4e54c..0000000
+--- a/wmake/rules/linuxIA64Gcc/mplibHPMPI
++++ /dev/null
+@@ -1,3 +0,0 @@
+-PFLAGS     =
+-PINC       = -I$(MPI_ARCH_PATH)/include -D_MPICC_H
+-PLIBS      = -L$(MPI_ARCH_PATH)/lib/linux_ia64 -lmpi
+diff --git a/wmake/rules/linuxIA64Gcc/mplibMPI b/wmake/rules/linuxIA64Gcc/mplibMPI
+deleted file mode 100644
+index 186769c..0000000
+--- a/wmake/rules/linuxIA64Gcc/mplibMPI
++++ /dev/null
+@@ -1,3 +0,0 @@
+-PFLAGS     = -DSGIMPI -DMPI_NO_CPPBIND
+-PINC       =
+-PLIBS      = -lmpi
+diff --git a/wmake/rules/linuxIA64Icc/X b/wmake/rules/linuxIA64Icc/X
+deleted file mode 100644
+index bed8bfe..0000000
+--- a/wmake/rules/linuxIA64Icc/X
++++ /dev/null
+@@ -1,3 +0,0 @@
+-XFLAGS     =
+-XINC       = $(XFLAGS) -I/usr/X11R6/include
+-XLIBS      = -L/usr/X11R6/lib -lXext -lX11
+diff --git a/wmake/rules/linuxIA64Icc/c b/wmake/rules/linuxIA64Icc/c
+deleted file mode 100644
+index d05b148..0000000
+--- a/wmake/rules/linuxIA64Icc/c
++++ /dev/null
+@@ -1,16 +0,0 @@
+-.SUFFIXES: .c .h
+-
+-cWARN        =
+-
+-cc          = icc
+-
+-include $(RULES)/c$(WM_COMPILE_OPTION)
+-
+-cFLAGS      = $(GFLAGS) $(cWARN) $(cOPT) $(cDBUG) $(LIB_HEADER_DIRS) -fPIC
+-
+-ctoo        = $(WM_SCHEDULER) $(cc) $(cFLAGS) -c $$SOURCE -o $@
+-
+-LINK_LIBS   = $(cDBUG) -L$(IA32ROOT)/lib
+-
+-LINKLIBSO   = $(cc) -i_dynamic
+-LINKEXE     = $(cc) -Xlinker -z -Xlinker nodefs
+diff --git a/wmake/rules/linuxIA64Icc/c++ b/wmake/rules/linuxIA64Icc/c++
+deleted file mode 100644
+index 625cbd1..0000000
+--- a/wmake/rules/linuxIA64Icc/c++
++++ /dev/null
+@@ -1,21 +0,0 @@
+-.SUFFIXES: .C .cxx .cc .cpp
+-
+-c++WARN     = -wd327,654,819,1125,1476,1505,1572
+-
+-CC          = icpc
+-
+-include $(RULES)/c++$(WM_COMPILE_OPTION)
+-
+-ptFLAGS     = -DNoRepository
+-
+-c++FLAGS    = $(GFLAGS) $(c++WARN) $(c++OPT) $(c++DBUG) $(ptFLAGS) $(LIB_HEADER_DIRS) -fPIC
+-
+-Ctoo        = $(WM_SCHEDULER) $(CC) $(c++FLAGS) -c $$SOURCE -o $@
+-cxxtoo      = $(Ctoo)
+-cctoo       = $(Ctoo)
+-cpptoo      = $(Ctoo)
+-
+-LINK_LIBS   = $(c++DBUG) -L$(IA32ROOT)/lib
+-
+-LINKLIBSO   = $(CC) $(c++FLAGS) -shared
+-LINKEXE     = $(CC) $(c++FLAGS)
+diff --git a/wmake/rules/linuxIA64Icc/c++Debug b/wmake/rules/linuxIA64Icc/c++Debug
+deleted file mode 100644
+index 0aec1fb..0000000
+--- a/wmake/rules/linuxIA64Icc/c++Debug
++++ /dev/null
+@@ -1,2 +0,0 @@
+-c++DBUG    = -g -DFULLDEBUG -O0
+-c++OPT     =
+diff --git a/wmake/rules/linuxIA64Icc/c++Opt b/wmake/rules/linuxIA64Icc/c++Opt
+deleted file mode 100644
+index dd3d557..0000000
+--- a/wmake/rules/linuxIA64Icc/c++Opt
++++ /dev/null
+@@ -1,13 +0,0 @@
+-c++DBUG     =
+-
+-c++OPT      = \
+-    -DICC_IA64_PREFETCH \
+-    -ansi-alias \
+-    -O3 \
+-    -fp-speculationsafe \
+-    -ftz \
+-    -mP3OPT_ecg_swp_control=0x400000 \
+-    -fno-alias \
+-    -mtune=itanium2 \
+-    -fargument-noalias-global \
+-    -unroll0
+diff --git a/wmake/rules/linuxIA64Icc/c++Prof b/wmake/rules/linuxIA64Icc/c++Prof
+deleted file mode 100644
+index 9295c12..0000000
+--- a/wmake/rules/linuxIA64Icc/c++Prof
++++ /dev/null
+@@ -1,2 +0,0 @@
+-c++DBUG    = -prof_gen
+-c++OPT     = -O3
+diff --git a/wmake/rules/linuxIA64Icc/cDebug b/wmake/rules/linuxIA64Icc/cDebug
+deleted file mode 100644
+index 73dce0d..0000000
+--- a/wmake/rules/linuxIA64Icc/cDebug
++++ /dev/null
+@@ -1,2 +0,0 @@
+-cDBUG       = -g -DFULLDEBUG -O0
+-cOPT        =
+diff --git a/wmake/rules/linuxIA64Icc/cOpt b/wmake/rules/linuxIA64Icc/cOpt
+deleted file mode 100644
+index 1731870..0000000
+--- a/wmake/rules/linuxIA64Icc/cOpt
++++ /dev/null
+@@ -1,2 +0,0 @@
+-cDBUG       =
+-cOPT        = -O3
+diff --git a/wmake/rules/linuxIA64Icc/cProf b/wmake/rules/linuxIA64Icc/cProf
+deleted file mode 100644
+index ca3ac9b..0000000
+--- a/wmake/rules/linuxIA64Icc/cProf
++++ /dev/null
+@@ -1,2 +0,0 @@
+-cDBUG       = -pg
+-cOPT        = -O2
+diff --git a/wmake/rules/linuxIA64Icc/general b/wmake/rules/linuxIA64Icc/general
+deleted file mode 100644
+index 9dc446d..0000000
+--- a/wmake/rules/linuxIA64Icc/general
++++ /dev/null
+@@ -1,9 +0,0 @@
+-CPP        = /lib/cpp -traditional-cpp $(GFLAGS) -DICC_IA64_PREFETCH
+-
+-GLIBS      =
+-
+-include $(GENERAL_RULES)/standard
+-
+-include $(RULES)/X
+-include $(RULES)/c
+-include $(RULES)/c++
+diff --git a/wmake/rules/linuxIA64Icc/mplibHPMPI b/wmake/rules/linuxIA64Icc/mplibHPMPI
+deleted file mode 100644
+index 4e4e54c..0000000
+--- a/wmake/rules/linuxIA64Icc/mplibHPMPI
++++ /dev/null
+@@ -1,3 +0,0 @@
+-PFLAGS     =
+-PINC       = -I$(MPI_ARCH_PATH)/include -D_MPICC_H
+-PLIBS      = -L$(MPI_ARCH_PATH)/lib/linux_ia64 -lmpi
+diff --git a/wmake/rules/linuxIA64Icc/mplibIMPI b/wmake/rules/linuxIA64Icc/mplibIMPI
+deleted file mode 100644
+index 186769c..0000000
+--- a/wmake/rules/linuxIA64Icc/mplibIMPI
++++ /dev/null
+@@ -1,3 +0,0 @@
+-PFLAGS     = -DSGIMPI -DMPI_NO_CPPBIND
+-PINC       =
+-PLIBS      = -lmpi
+diff --git a/wmake/rules/linuxIA64Icc/mplibINTELMPI b/wmake/rules/linuxIA64Icc/mplibINTELMPI
+deleted file mode 100644
+index cf80ec2..0000000
+--- a/wmake/rules/linuxIA64Icc/mplibINTELMPI
++++ /dev/null
+@@ -1,3 +0,0 @@
+-PFLAGS     = -DMPICH_SKIP_MPICXX
+-PINC       = -I$(MPI_ARCH_PATH)/include64
+-PLIBS      = -L$(MPI_ARCH_PATH)/lib64 -lmpi
+diff --git a/wmake/rules/linuxIA64Icc/mplibMPI b/wmake/rules/linuxIA64Icc/mplibMPI
+deleted file mode 100644
+index 186769c..0000000
+--- a/wmake/rules/linuxIA64Icc/mplibMPI
++++ /dev/null
+@@ -1,3 +0,0 @@
+-PFLAGS     = -DSGIMPI -DMPI_NO_CPPBIND
+-PINC       =
+-PLIBS      = -lmpi
+diff --git a/wmake/rules/linuxIcc/c b/wmake/rules/linuxIcc/c
+deleted file mode 100644
+index 269eeab..0000000
+--- a/wmake/rules/linuxIcc/c
++++ /dev/null
+@@ -1,16 +0,0 @@
+-.SUFFIXES: .c .h
+-
+-cWARN        =
+-
+-cc          = icc -gcc-version=400
+-
+-include $(RULES)/c$(WM_COMPILE_OPTION)
+-
+-cFLAGS      = $(GFLAGS) $(cWARN) $(cOPT) $(cDBUG) $(LIB_HEADER_DIRS) -KPIC
+-
+-ctoo        = $(WM_SCHEDULER) $(cc) $(cFLAGS) -c $$SOURCE -o $@
+-
+-LINK_LIBS   = $(cDBUG) -L$(IA32ROOT)/lib
+-
+-LINKLIBSO   = $(cc) $(cFLAGS) -shared
+-LINKEXE     = $(cc) $(cFLAGS)
+diff --git a/wmake/rules/linuxIcc/c++ b/wmake/rules/linuxIcc/c++
+deleted file mode 100644
+index 409e289..0000000
+--- a/wmake/rules/linuxIcc/c++
++++ /dev/null
+@@ -1,23 +0,0 @@
+-.SUFFIXES: .C .cxx .cc .cpp
+-
+-c++WARN     = -wd327,654,819,1125,1476,1505,1572
+-
+-#CC          = icpc -gcc-version=400
+-CC          = icpc -std=c++0x
+-
+-include $(RULES)/c++$(WM_COMPILE_OPTION)
+-
+-ptFLAGS     = -DNoRepository
+-
+-c++FLAGS    = $(GFLAGS) $(c++WARN) $(c++OPT) $(c++DBUG) $(ptFLAGS) $(LIB_HEADER_DIRS) -KPIC
+-
+-Ctoo        = $(WM_SCHEDULER) $(CC) $(c++FLAGS) -c $$SOURCE -o $@
+-cxxtoo      = $(Ctoo)
+-cctoo       = $(Ctoo)
+-cpptoo      = $(Ctoo)
+-
+-#LINK_LIBS   = $(c++DBUG) -lstdc++
+-LINK_LIBS   = $(c++DBUG) -L$(IA32ROOT)/lib
+-
+-LINKLIBSO   = $(CC) $(c++FLAGS) -shared
+-LINKEXE     = $(CC) $(c++FLAGS)
+diff --git a/wmake/rules/linuxIcc/c++Debug b/wmake/rules/linuxIcc/c++Debug
+deleted file mode 100644
+index 0aec1fb..0000000
+--- a/wmake/rules/linuxIcc/c++Debug
++++ /dev/null
+@@ -1,2 +0,0 @@
+-c++DBUG    = -g -DFULLDEBUG -O0
+-c++OPT     =
+diff --git a/wmake/rules/linuxIcc/c++Opt b/wmake/rules/linuxIcc/c++Opt
+deleted file mode 100644
+index 66638ff..0000000
+--- a/wmake/rules/linuxIcc/c++Opt
++++ /dev/null
+@@ -1,2 +0,0 @@
+-c++DBUG     =
+-c++OPT      = -xSSE3 -O2 -no-prec-div
+diff --git a/wmake/rules/linuxIcc/c++Prof b/wmake/rules/linuxIcc/c++Prof
+deleted file mode 100644
+index 3bda4da..0000000
+--- a/wmake/rules/linuxIcc/c++Prof
++++ /dev/null
+@@ -1,2 +0,0 @@
+-c++DBUG    = -pg
+-c++OPT     = -O2
+diff --git a/wmake/rules/linuxIcc/cDebug b/wmake/rules/linuxIcc/cDebug
+deleted file mode 100644
+index 73dce0d..0000000
+--- a/wmake/rules/linuxIcc/cDebug
++++ /dev/null
+@@ -1,2 +0,0 @@
+-cDBUG       = -g -DFULLDEBUG -O0
+-cOPT        =
+diff --git a/wmake/rules/linuxIcc/cOpt b/wmake/rules/linuxIcc/cOpt
+deleted file mode 100644
+index b534913..0000000
+--- a/wmake/rules/linuxIcc/cOpt
++++ /dev/null
+@@ -1,2 +0,0 @@
+-cDBUG       =
+-cOPT        = -O3 -no-prec-div
+diff --git a/wmake/rules/linuxIcc/cProf b/wmake/rules/linuxIcc/cProf
+deleted file mode 100644
+index ca3ac9b..0000000
+--- a/wmake/rules/linuxIcc/cProf
++++ /dev/null
+@@ -1,2 +0,0 @@
+-cDBUG       = -pg
+-cOPT        = -O2
+diff --git a/wmake/rules/linuxIcc/general b/wmake/rules/linuxIcc/general
+deleted file mode 100644
+index 8a38ddf..0000000
+--- a/wmake/rules/linuxIcc/general
++++ /dev/null
+@@ -1,9 +0,0 @@
+-CPP        = /lib/cpp -traditional-cpp $(GFLAGS)
+-LD         = ld -melf_i386
+-
+-PROJECT_LIBS = -l$(WM_PROJECT) -ldl
+-
+-include $(GENERAL_RULES)/standard
+-
+-include $(RULES)/c
+-include $(RULES)/c++
+diff --git a/wmake/rules/linuxIcc/mplibHPMPI b/wmake/rules/linuxIcc/mplibHPMPI
+deleted file mode 100644
+index 8aff406..0000000
+--- a/wmake/rules/linuxIcc/mplibHPMPI
++++ /dev/null
+@@ -1,3 +0,0 @@
+-PFLAGS     =
+-PINC       = -I$(MPI_ARCH_PATH)/include -D_MPICC_H
+-PLIBS      = -L$(MPI_ARCH_PATH)/lib/linux_ia32 -lmpi
+diff --git a/wmake/rules/linuxPPC64Gcc/X b/wmake/rules/linuxPPC64Gcc/X
+deleted file mode 100644
+index 5d1f9c5..0000000
+--- a/wmake/rules/linuxPPC64Gcc/X
++++ /dev/null
+@@ -1,3 +0,0 @@
+-XFLAGS     =
+-XINC       = $(XFLAGS) -I/usr/X11R6/include
+-XLIBS      = -L/usr/X11R6/lib64 -lXext -lX11
+diff --git a/wmake/rules/linuxPPC64Gcc/c b/wmake/rules/linuxPPC64Gcc/c
+deleted file mode 100644
+index 1269da8..0000000
+--- a/wmake/rules/linuxPPC64Gcc/c
++++ /dev/null
+@@ -1,16 +0,0 @@
+-.SUFFIXES: .c .h
+-
+-cWARN        = -Wall
+-
+-cc          = gcc -m64 -mcpu=power5+
+-
+-include $(RULES)/c$(WM_COMPILE_OPTION)
+-
+-cFLAGS      = $(GFLAGS) $(cWARN) $(cOPT) $(cDBUG) $(LIB_HEADER_DIRS) -fPIC
+-
+-ctoo        = $(WM_SCHEDULER) $(cc) $(cFLAGS) -c $$SOURCE -o $@
+-
+-LINK_LIBS   = $(cDBUG)
+-
+-LINKLIBSO   = $(cc) -shared
+-LINKEXE     = $(cc) -Xlinker --add-needed -Xlinker -z -Xlinker nodefs
+diff --git a/wmake/rules/linuxPPC64Gcc/c++ b/wmake/rules/linuxPPC64Gcc/c++
+deleted file mode 100644
+index b8e735a..0000000
+--- a/wmake/rules/linuxPPC64Gcc/c++
++++ /dev/null
+@@ -1,21 +0,0 @@
+-.SUFFIXES: .C .cxx .cc .cpp
+-
+-c++WARN     = -Wall -Wextra -Wno-unused-parameter -Wold-style-cast
+-
+-CC          = g++ -m64 -mcpu=power5+
+-
+-include $(RULES)/c++$(WM_COMPILE_OPTION)
+-
+-ptFLAGS     = -DNoRepository -ftemplate-depth-100
+-
+-c++FLAGS    = $(GFLAGS) $(c++WARN) $(c++OPT) $(c++DBUG) $(ptFLAGS) $(LIB_HEADER_DIRS) -fPIC
+-
+-Ctoo        = $(WM_SCHEDULER) $(CC) $(c++FLAGS) -c $$SOURCE -o $@
+-cxxtoo      = $(Ctoo)
+-cctoo       = $(Ctoo)
+-cpptoo      = $(Ctoo)
+-
+-LINK_LIBS   = $(c++DBUG)
+-
+-LINKLIBSO   = $(CC) $(c++FLAGS) -shared
+-LINKEXE     = $(CC) $(c++FLAGS) -Xlinker --add-needed
+diff --git a/wmake/rules/linuxPPC64Gcc/c++Debug b/wmake/rules/linuxPPC64Gcc/c++Debug
+deleted file mode 100644
+index 19bdb9c..0000000
+--- a/wmake/rules/linuxPPC64Gcc/c++Debug
++++ /dev/null
+@@ -1,2 +0,0 @@
+-c++DBUG    = -ggdb3 -DFULLDEBUG
+-c++OPT      = -O0 -fdefault-inline
+diff --git a/wmake/rules/linuxPPC64Gcc/c++Opt b/wmake/rules/linuxPPC64Gcc/c++Opt
+deleted file mode 100644
+index 2aedabd..0000000
+--- a/wmake/rules/linuxPPC64Gcc/c++Opt
++++ /dev/null
+@@ -1,2 +0,0 @@
+-c++DBUG     =
+-c++OPT      = -O3
+diff --git a/wmake/rules/linuxPPC64Gcc/c++Prof b/wmake/rules/linuxPPC64Gcc/c++Prof
+deleted file mode 100644
+index 3bda4da..0000000
+--- a/wmake/rules/linuxPPC64Gcc/c++Prof
++++ /dev/null
+@@ -1,2 +0,0 @@
+-c++DBUG    = -pg
+-c++OPT     = -O2
+diff --git a/wmake/rules/linuxPPC64Gcc/cDebug b/wmake/rules/linuxPPC64Gcc/cDebug
+deleted file mode 100644
+index 72b638f..0000000
+--- a/wmake/rules/linuxPPC64Gcc/cDebug
++++ /dev/null
+@@ -1,2 +0,0 @@
+-cDBUG       = -ggdb -DFULLDEBUG
+-cOPT        = -O1 -fdefault-inline -finline-functions
+diff --git a/wmake/rules/linuxPPC64Gcc/cOpt b/wmake/rules/linuxPPC64Gcc/cOpt
+deleted file mode 100644
+index 1731870..0000000
+--- a/wmake/rules/linuxPPC64Gcc/cOpt
++++ /dev/null
+@@ -1,2 +0,0 @@
+-cDBUG       =
+-cOPT        = -O3
+diff --git a/wmake/rules/linuxPPC64Gcc/cProf b/wmake/rules/linuxPPC64Gcc/cProf
+deleted file mode 100644
+index ca3ac9b..0000000
+--- a/wmake/rules/linuxPPC64Gcc/cProf
++++ /dev/null
+@@ -1,2 +0,0 @@
+-cDBUG       = -pg
+-cOPT        = -O2
+diff --git a/wmake/rules/linuxPPC64Gcc/general b/wmake/rules/linuxPPC64Gcc/general
+deleted file mode 100644
+index fa717f9..0000000
+--- a/wmake/rules/linuxPPC64Gcc/general
++++ /dev/null
+@@ -1,10 +0,0 @@
+-CPP        = cpp -traditional-cpp $(GFLAGS)
+-LD         = ld -m elf64ppc
+-
+-PROJECT_LIBS = -l$(WM_PROJECT) -ldl
+-
+-include $(GENERAL_RULES)/standard
+-
+-include $(RULES)/X
+-include $(RULES)/c
+-include $(RULES)/c++
+diff --git a/wmake/rules/linuxPPC64Gcc/mplibHPMPI b/wmake/rules/linuxPPC64Gcc/mplibHPMPI
+deleted file mode 100644
+index 574492a..0000000
+--- a/wmake/rules/linuxPPC64Gcc/mplibHPMPI
++++ /dev/null
+@@ -1,3 +0,0 @@
+-PFLAGS     =
+-PINC       = -I$(MPI_ARCH_PATH)/include -D_MPICC_H
+-PLIBS      = -L$(MPI_ARCH_PATH)/lib/linux_amd64 -lmpi
+diff --git a/wmake/rules/solarisGcc/X b/wmake/rules/solarisGcc/X
+deleted file mode 100644
+index 2e585bf..0000000
+--- a/wmake/rules/solarisGcc/X
++++ /dev/null
+@@ -1,3 +0,0 @@
+-XFLAGS     =
+-XINC       = $(XFLAGS) -I/usr/openwin/include/X11
+-XLIBS      = -L/usr/openwin/lib -lXext -lX11
+diff --git a/wmake/rules/solarisGcc/c b/wmake/rules/solarisGcc/c
+deleted file mode 100644
+index 5be3206..0000000
+--- a/wmake/rules/solarisGcc/c
++++ /dev/null
+@@ -1,16 +0,0 @@
+-.SUFFIXES: .c .h
+-
+-cWARN        = -Wall
+-
+-cc          = gcc
+-
+-include $(RULES)/c$(WM_COMPILE_OPTION)
+-
+-cFLAGS      = $(GFLAGS) $(cWARN) $(cOPT) $(cDBUG) $(LIB_HEADER_DIRS) -fPIC
+-
+-ctoo        = $(WM_SCHEDULER) $(cc) $(cFLAGS) -c $$SOURCE -o $@
+-
+-LINK_LIBS   = $(cDBUG)
+-
+-LINKLIBSO   = $(cc) -shared
+-LINKEXE     = $(cc) -Xlinker --add-needed -Xlinker -z -Xlinker nodefs
+diff --git a/wmake/rules/solarisGcc/c++ b/wmake/rules/solarisGcc/c++
+deleted file mode 100644
+index 667b00c..0000000
+--- a/wmake/rules/solarisGcc/c++
++++ /dev/null
+@@ -1,21 +0,0 @@
+-.SUFFIXES: .C .cxx .cc .cpp
+-
+-c++WARN     = -Wall -Wextra -Wno-unused-parameter
+-
+-CC          = g++
+-
+-include $(RULES)/c++$(WM_COMPILE_OPTION)
+-
+-ptFLAGS     = -DNoRepository -ftemplate-depth-100
+-
+-c++FLAGS    = $(GFLAGS) $(c++WARN) $(c++OPT) $(c++DBUG) $(ptFLAGS) $(LIB_HEADER_DIRS) -fPIC
+-
+-Ctoo        = $(WM_SCHEDULER) $(CC) $(c++FLAGS) -c $$SOURCE -o $@
+-cxxtoo      = $(Ctoo)
+-cctoo       = $(Ctoo)
+-cpptoo      = $(Ctoo)
+-
+-LINK_LIBS   = $(c++DBUG)
+-
+-LINKLIBSO   = $(CC) $(c++FLAGS) -shared
+-LINKEXE     = $(CC) $(c++FLAGS) -Xlinker --add-needed
+diff --git a/wmake/rules/solarisGcc/c++Debug b/wmake/rules/solarisGcc/c++Debug
+deleted file mode 100644
+index d577238..0000000
+--- a/wmake/rules/solarisGcc/c++Debug
++++ /dev/null
+@@ -1,2 +0,0 @@
+-c++DBUG    = -ggdb3 -DFULLDEBUG
+-c++OPT      = -O0 -fdefault-inline -finline-functions
+diff --git a/wmake/rules/solarisGcc/c++Opt b/wmake/rules/solarisGcc/c++Opt
+deleted file mode 100644
+index 18428f1..0000000
+--- a/wmake/rules/solarisGcc/c++Opt
++++ /dev/null
+@@ -1,2 +0,0 @@
+-c++DBUG       =
+-c++OPT        = -O3 -fno-schedule-insns
+diff --git a/wmake/rules/solarisGcc/c++Prof b/wmake/rules/solarisGcc/c++Prof
+deleted file mode 100644
+index 7381654..0000000
+--- a/wmake/rules/solarisGcc/c++Prof
++++ /dev/null
+@@ -1,2 +0,0 @@
+-c++DBUG       = -pg
+-c++OPT        = -O2 -fno-schedule-insns
+diff --git a/wmake/rules/solarisGcc/cDebug b/wmake/rules/solarisGcc/cDebug
+deleted file mode 100644
+index 72b638f..0000000
+--- a/wmake/rules/solarisGcc/cDebug
++++ /dev/null
+@@ -1,2 +0,0 @@
+-cDBUG       = -ggdb -DFULLDEBUG
+-cOPT        = -O1 -fdefault-inline -finline-functions
+diff --git a/wmake/rules/solarisGcc/cOpt b/wmake/rules/solarisGcc/cOpt
+deleted file mode 100644
+index b0ce515..0000000
+--- a/wmake/rules/solarisGcc/cOpt
++++ /dev/null
+@@ -1,2 +0,0 @@
+-cDBUG       =
+-cOPT        = -O2 -fno-schedule-insns
+diff --git a/wmake/rules/solarisGcc/cProf b/wmake/rules/solarisGcc/cProf
+deleted file mode 100644
+index 79a3be9..0000000
+--- a/wmake/rules/solarisGcc/cProf
++++ /dev/null
+@@ -1,2 +0,0 @@
+-cDBUG       = -pg
+-cOPT        = -O2 -fno-schedule-insns
+diff --git a/wmake/rules/solarisGcc/general b/wmake/rules/solarisGcc/general
+deleted file mode 100644
+index cda7ba8..0000000
+--- a/wmake/rules/solarisGcc/general
++++ /dev/null
+@@ -1,9 +0,0 @@
+-CPP        = /usr/lib/cpp -undef
+-
+-PROJECT_LIBS = -l$(WM_PROJECT) -lnsl -lsocket -L$(FOAM_LIBBIN)/dummy -lPstream
+-
+-include $(GENERAL_RULES)/standard
+-
+-include $(RULES)/X
+-include $(RULES)/c
+-include $(RULES)/c++
+diff --git a/wmake/rules/solarisGcc/mplibMPI b/wmake/rules/solarisGcc/mplibMPI
+deleted file mode 100644
+index 0d79c1d..0000000
+--- a/wmake/rules/solarisGcc/mplibMPI
++++ /dev/null
+@@ -1,3 +0,0 @@
+-PFLAGS     =
+-PINC       = -I$(MPI_ROOT)/include
+-PLIBS      = -L$(MPI_ROOT)/lib/$(MPI_ARCH) -lmpi
+diff --git a/wmake/rules/solarisGcc/mplibMPICH b/wmake/rules/solarisGcc/mplibMPICH
+deleted file mode 100644
+index c4ef548..0000000
+--- a/wmake/rules/solarisGcc/mplibMPICH
++++ /dev/null
+@@ -1,3 +0,0 @@
+-PFLAGS     = -DMPICH_SKIP_MPICXX
+-PINC       = -I$(MPI_ARCH_PATH)/include
+-PLIBS      = -L$(MPI_ARCH_PATH)/lib -lmpich -lrt -laio
