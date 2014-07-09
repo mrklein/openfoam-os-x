@@ -10,6 +10,51 @@ index 7c8bce0..039c370 100644
  platforms/
  
  # reinstate wmake/rules that might look like build folders
+diff --git a/Allwmake b/Allwmake
+index 16edfd1..aed4bd4 100755
+--- a/Allwmake
++++ b/Allwmake
+@@ -8,23 +8,9 @@ wmakeCheckPwd "$WM_PROJECT_DIR" || {
+     exit 1
+ }
+ 
+-[ -n "$FOAM_EXT_LIBBIN" ] || {
+-    echo "Error: FOAM_EXT_LIBBIN not set"
+-    echo "    Check the OpenFOAM entries in your dot-files and source them."
+-    exit 1
+-}
+-
+ # wmake is required for subsequent targets
+ ( cd wmake/src && make )
+ 
+-# build ThirdParty sources
+-if [ -d "$WM_THIRD_PARTY_DIR" ]
+-then
+-    $WM_THIRD_PARTY_DIR/Allwmake
+-else
+-    echo "no ThirdParty sources found - skipping"
+-fi
+-
+ # build OpenFOAM libraries and applications
+ src/Allwmake
+ applications/Allwmake
+diff --git a/applications/Allwmake b/applications/Allwmake
+index 00bc326..9b8bf7d 100755
+--- a/applications/Allwmake
++++ b/applications/Allwmake
+@@ -8,12 +8,6 @@ wmakeCheckPwd "$WM_PROJECT_DIR/applications" || {
+     exit 1
+ }
+ 
+-[ -n "$FOAM_EXT_LIBBIN" ] || {
+-    echo "Error: FOAM_EXT_LIBBIN not set"
+-    echo "    Check the OpenFOAM entries in your dot-files and source them."
+-    exit 1
+-}
+-
+ set -x
+ 
+ wmake all utilities
 diff --git a/applications/solvers/combustion/chemFoam/Make/options b/applications/solvers/combustion/chemFoam/Make/options
 index d5a7a75..4d29d2f 100644
 --- a/applications/solvers/combustion/chemFoam/Make/options
@@ -478,44 +523,114 @@ index 412c2a9..f9c2f73 100644
      const pointField& faceCentres = searchSurf.faceCentres();
  
      List<List<pointIndexHit> > allHitInfo;
-diff --git a/bin/addr2line4Mac.py b/bin/addr2line4Mac.py
+diff --git a/bin/addr2line_mac.py b/bin/addr2line_mac.py
 new file mode 100755
-index 0000000..7a97c15
+index 0000000..3f63e53
 --- /dev/null
-+++ b/bin/addr2line4Mac.py
-@@ -0,0 +1,30 @@
-+#! /usr/bin/python
++++ b/bin/addr2line_mac.py
+@@ -0,0 +1,100 @@
++#!/usr/bin/env python
 +
-+import sys
-+filename=sys.argv[1]
-+address=sys.argv[2]
-+import re
++"""Emulation of addr2line utility."""
 +
-+import subprocess
 +
-+p = subprocess.Popen("gdb -batch -x /dev/stdin",
-+                     shell=True,
-+                     bufsize=0,
-+                     stdin=subprocess.PIPE,
-+                     stdout=subprocess.PIPE,
-+                     close_fds=True)
++import subprocess as sp
 +
-+(child_stdin, child_stdout) = (p.stdin, p.stdout)
-+child_stdin.write("set sharedlibrary preload-libraries no\n")
-+child_stdin.write("file "+filename+"\n")
-+child_stdin.write("info line *"+address+"\n")
-+result=child_stdout.readline()
++DEFAULT_ANSWER = '??:0'
 +
-+answer="??:0"
 +
-+match=re.compile('Line (.+) of "(.+)" starts at').match(result)
-+if match:
-+    answer=match.group(2)+":"+match.group(1)
-+print answer,
++def gdb_is_available():
++    """Check if gdb is installed."""
++    res = sp.call(['which', '-s', 'gdb'])
++    return res == 0
 +
-+sys.exit(255)
++
++def lldb_is_available():
++    """Check if lldb is installed."""
++    res = sp.call(['which', '-s', 'lldb'])
++    return res == 0
++
++
++def addr2line_gdb(filename, address):
++    """Convert address into line of source file using gdb."""
++    proc = sp.Popen('gdb -batch -x /dev/stdin',
++                    shell=True,
++                    bufsize=0,
++                    stdin=sp.PIPE,
++                    stdout=sp.PIPE,
++                    close_fds=True)
++
++    (child_stdin, child_stdout) = (proc.stdin, proc.stdout)
++    child_stdin.write('set sharedlibrary preload-libraries no\n')
++    child_stdin.write('file ' + filename + '\n')
++    child_stdin.write('info line *' + address + '\n')
++    res = child_stdout.readline()
++
++    import re
++
++    match = re.compile('Line (.+) of "(.+)" starts at').match(res)
++    if match:
++        return match.group(2) + ':' + match.group(1)
++    else:
++        return DEFAULT_ANSWER
++
++
++def addr2line_lldb(filename, address):
++    """Convert address into line of source file using lldb."""
++    import sys
++
++    lldb_python_path = sp.check_output(['lldb', '-P'])
++    sys.path.insert(0, lldb_python_path[:-1])
++
++    import lldb
++
++    addr = int(address, 16)
++
++    dbg = lldb.SBDebugger.Create()
++    dbg.SetAsync(False)
++    tgt = dbg.CreateTargetWithFileAndArch(filename,
++                                          lldb.LLDB_ARCH_DEFAULT)
++
++    for mdl in tgt.module_iter():
++        sb_addr = mdl.ResolveFileAddress(addr)
++        resolved_addr = mdl.ResolveSymbolContextForAddress(
++            sb_addr,
++            lldb.eSymbolContextEverything
++        )
++
++        if resolved_addr.IsValid():
++            line_entry = resolved_addr.GetLineEntry()
++            file_ = line_entry.GetFileSpec()
++            line = line_entry.GetLine()
++            if line_entry.ling != 0:
++                return '{0}:{1}'.format(file_, line)
++
++    return DEFAULT_ANSWER
++
++
++def run():
++    """Determine file and line for a given address."""
++    import sys
++
++    filename = sys.argv[1]
++    address = sys.argv[2]
++
++    answer = DEFAULT_ANSWER
++
++    if gdb_is_available():
++        answer = addr2line_gdb(filename, address)
++
++    if lldb_is_available():
++        answer = addr2line_lldb(filename, address)
++
++    print answer,
++
++    sys.exit(255)
++
++if __name__ == '__main__':
++    run()
 diff --git a/etc/bashrc b/etc/bashrc
-index 3c5981b..6553389 100644
+index 3c5981b..26e985b 100644
 --- a/etc/bashrc
 +++ b/etc/bashrc
 @@ -58,12 +58,11 @@ foamInstall=$HOME/$WM_PROJECT
@@ -543,11 +658,22 @@ index 3c5981b..6553389 100644
  export WM_MPLIB=OPENMPI
  
  #- Operating System:
-@@ -199,6 +197,11 @@ cleaned=`$foamClean "$LD_LIBRARY_PATH" "$foamOldDirs"` \
+@@ -113,10 +111,6 @@ fi
+ export WM_PROJECT_INST_DIR=$FOAM_INST_DIR
+ export WM_PROJECT_DIR=$WM_PROJECT_INST_DIR/$WM_PROJECT-$WM_PROJECT_VERSION
+ 
+-# Location of third-party software
+-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+-export WM_THIRD_PARTY_DIR=$WM_PROJECT_INST_DIR/ThirdParty-$WM_PROJECT_VERSION
+-
+ # Location of site-specific templates etc
+ # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ # unset is equivalent to $WM_PROJECT_INST_DIR/site
+@@ -199,6 +193,11 @@ cleaned=`$foamClean "$LD_LIBRARY_PATH" "$foamOldDirs"` \
  
  #- Clean MANPATH
  cleaned=`$foamClean "$MANPATH" "$foamOldDirs"` && MANPATH="$cleaned"
-+if [[ `uname -s` == "Darwin" ]] 
++if [[ `uname -s` == "Darwin" ]]
 +then
 +    cleaned=`$foamClean "$DYLD_LIBRARY_PATH" "$foamOldDirs"` \
 +        && DYLD_LIBRARY_PATH="$cleaned"
@@ -555,7 +681,7 @@ index 3c5981b..6553389 100644
  
  export PATH LD_LIBRARY_PATH MANPATH
  
-@@ -223,10 +226,13 @@ cleaned=`$foamClean "$PATH"` && PATH="$cleaned"
+@@ -223,10 +222,13 @@ cleaned=`$foamClean "$PATH"` && PATH="$cleaned"
  #- Clean LD_LIBRARY_PATH
  cleaned=`$foamClean "$LD_LIBRARY_PATH"` && LD_LIBRARY_PATH="$cleaned"
  
@@ -663,14 +789,14 @@ index df1dce8..0fafd36 100644
  
  # -----------------------------------------------------------------------------
 diff --git a/etc/config/settings.sh b/etc/config/settings.sh
-index 44e23c6..b0da858 100644
+index 44e23c6..e8b5eae 100644
 --- a/etc/config/settings.sh
 +++ b/etc/config/settings.sh
 @@ -46,6 +46,10 @@ _foamAddLib()
      while [ $# -ge 1 ]
      do
          export LD_LIBRARY_PATH=$1:$LD_LIBRARY_PATH
-+	if [ "$WM_ARCH_BASE" == "darwin" ]	    
++	if [ "$WM_ARCH_BASE" == "darwin" ]
 +	then
 +	    export DYLD_LIBRARY_PATH=$1:$DYLD_LIBRARY_PATH
 +	fi
@@ -919,15 +1045,15 @@ index 44e23c6..b0da858 100644
 -cgal_version=CGAL-3.8
 +boost_version=$(brew ls --versions boost | awk '{print $2}')
 +cgal_version=$(brew ls --versions cgal | awk '{print $2}')
- 
--export BOOST_ARCH_PATH=$WM_THIRD_PARTY_DIR/platforms/$WM_ARCH$WM_COMPILER/$boost_version
--export CGAL_ARCH_PATH=$WM_THIRD_PARTY_DIR/platforms/$WM_ARCH$WM_COMPILER/$cgal_version
++
 +if [ "$boost_version" != "" ]; then
 +    export BOOST_ARCH_PATH=$(brew --prefix boost)
 +else
 +    export BOOST_ARCH_PATH=
 +fi
-+
+ 
+-export BOOST_ARCH_PATH=$WM_THIRD_PARTY_DIR/platforms/$WM_ARCH$WM_COMPILER/$boost_version
+-export CGAL_ARCH_PATH=$WM_THIRD_PARTY_DIR/platforms/$WM_ARCH$WM_COMPILER/$cgal_version
 +if [ "$cgal_version" != "" ]; then
 +    export CGAL_ARCH_PATH=$(brew --prefix cgal)
 +    export MPFR_ARCH_PATH=$(brew --prefix mpfr)
@@ -974,12 +1100,15 @@ index 44e23c6..b0da858 100644
 -    export FOAM_MPI=openmpi-1.5.3
 -    # optional configuration tweaks:
 -    _foamSource `$WM_PROJECT_DIR/bin/foamEtcFile config/openmpi.sh`
--
++export FOAM_MPI=openmpi-system
+ 
 -    export MPI_ARCH_PATH=$WM_THIRD_PARTY_DIR/platforms/$WM_ARCH$WM_COMPILER/$FOAM_MPI
--
++libDir=$(brew --prefix open-mpi)
+ 
 -    # Tell OpenMPI where to find its install directory
 -    export OPAL_PREFIX=$MPI_ARCH_PATH
--
++export MPI_ARCH_PATH="$libDir"
+ 
 -    _foamAddPath    $MPI_ARCH_PATH/bin
 -
 -    # 64-bit on OpenSuSE 12.1 uses lib64 others use lib
@@ -1131,12 +1260,6 @@ index 44e23c6..b0da858 100644
 -    export FOAM_MPI=dummy
 -    ;;
 -esac
-+export FOAM_MPI=openmpi-system
-+        
-+libDir=$(brew --prefix open-mpi)
-+            
-+export MPI_ARCH_PATH="$libDir"
-+    
 +_foamAddLib     "$libDir/lib"
 +unset libDir
  
@@ -1167,8 +1290,25 @@ index 44e23c6..b0da858 100644
  
  # cleanup environment:
  # ~~~~~~~~~~~~~~~~~~~~
+diff --git a/src/Allwmake b/src/Allwmake
+index aa17b41..4696526 100755
+--- a/src/Allwmake
++++ b/src/Allwmake
+@@ -9,12 +9,6 @@ wmakeCheckPwd "$WM_PROJECT_DIR/src" || {
+     exit 1
+ }
+ 
+-[ -n "$FOAM_EXT_LIBBIN" ] || {
+-    echo "Error: FOAM_EXT_LIBBIN not set"
+-    echo "    Check the OpenFOAM entries in your dot-files and source them."
+-    exit 1
+-}
+-
+ set -x
+ 
+ # update OpenFOAM version strings if required
 diff --git a/src/OSspecific/POSIX/POSIX.C b/src/OSspecific/POSIX/POSIX.C
-index 3429031..33cbd1a 100644
+index 3429031..c818aa0 100644
 --- a/src/OSspecific/POSIX/POSIX.C
 +++ b/src/OSspecific/POSIX/POSIX.C
 @@ -53,7 +53,10 @@ Description
@@ -1189,7 +1329,7 @@ index 3429031..33cbd1a 100644
 +#ifdef darwin
 +    if(!handle && lib.ext()=="so") {
 +        fileName lName=lib.lessExt()+".dylib";
-+        handle = 
++        handle =
 +            dlopen(lName.c_str(), RTLD_LAZY|RTLD_GLOBAL);
 +    }
 +#endif
@@ -1256,7 +1396,7 @@ index bf04835..625f9b6 100644
  // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
  
 diff --git a/src/OSspecific/POSIX/printStack.C b/src/OSspecific/POSIX/printStack.C
-index df31b35..74c6b2e 100644
+index df31b35..250d88b 100644
 --- a/src/OSspecific/POSIX/printStack.C
 +++ b/src/OSspecific/POSIX/printStack.C
 @@ -31,8 +31,11 @@ License
@@ -1349,11 +1489,11 @@ index df31b35..74c6b2e 100644
 +// After an idea published by Rush Manbert at http://lists.apple.com/archives/xcode-users/2006/Apr/msg00528.html
 +
 +template<int level>
-+void *getStackAddress() 
++void *getStackAddress()
 +{
 +    const unsigned int stackLevel=level;
 +    return (
-+        __builtin_frame_address(level) 
++        __builtin_frame_address(level)
 +        ? __builtin_return_address(stackLevel)
 +        : (void *)0
 +    );
@@ -1394,7 +1534,7 @@ index df31b35..74c6b2e 100644
 +    }
 +}
 +
-+unsigned backtrace(void **bt, unsigned maxAddrs) 
++unsigned backtrace(void **bt, unsigned maxAddrs)
 +{
 +    unsigned valid=0;
 +    bool ok=true;
@@ -1402,7 +1542,7 @@ index df31b35..74c6b2e 100644
 +    for(int level=0;level<maxAddrs;level++) {
 +        if(ok) {
 +            bt[level]=getStackAddress(level);
-+            
++
 +            if(bt[level]!=(void *)0) {
 +                valid=level;
 +            } else {
@@ -1417,7 +1557,7 @@ index df31b35..74c6b2e 100644
 +}
 +
 +// This function is a potential memory leak. But I don't care because the program is terminating anyway
-+char **backtrace_symbols(void **bt,unsigned nr) 
++char **backtrace_symbols(void **bt,unsigned nr)
 +{
 +    char **strings=(char **)malloc(sizeof(char *)*nr);
 +
@@ -1443,7 +1583,7 @@ index df31b35..74c6b2e 100644
  void error::printStack(Ostream& os)
  {
 diff --git a/src/OSspecific/POSIX/signals/sigFpe.C b/src/OSspecific/POSIX/signals/sigFpe.C
-index a275fd7..614351f 100644
+index a275fd7..afd9baa 100644
 --- a/src/OSspecific/POSIX/signals/sigFpe.C
 +++ b/src/OSspecific/POSIX/signals/sigFpe.C
 @@ -42,6 +42,11 @@ License
@@ -1487,7 +1627,7 @@ index a275fd7..614351f 100644
 +        }
 +        _MM_SET_EXCEPTION_MASK(_MM_GET_EXCEPTION_MASK() & ~_MM_MASK_INVALID);
 +        _MM_SET_EXCEPTION_MASK(_MM_GET_EXCEPTION_MASK() & ~_MM_MASK_DIV_ZERO);
-+        
++
 +        _mm_setcsr( _MM_MASK_MASK &~
 +        (_MM_MASK_OVERFLOW|_MM_MASK_INVALID|_MM_MASK_DIV_ZERO) );
 +
@@ -1535,19 +1675,17 @@ index 2f97577..92fc585 100644
  
  
 diff --git a/src/OpenFOAM/db/dynamicLibrary/dynamicCode/dynamicCode.H b/src/OpenFOAM/db/dynamicLibrary/dynamicCode/dynamicCode.H
-index 852ba6d..4dfddc2 100644
+index 852ba6d..30be548 100644
 --- a/src/OpenFOAM/db/dynamicLibrary/dynamicCode/dynamicCode.H
 +++ b/src/OpenFOAM/db/dynamicLibrary/dynamicCode/dynamicCode.H
-@@ -109,7 +109,8 @@ protected:
+@@ -109,6 +109,7 @@ protected:
          //- Top-level directory name for copy/compiling
          static const char* const topDirName;
  
--
 +        static const char* const dynamicLibExtension;
-+       
+ 
      // Protected Member Functions
  
-         //- Copy lines while expanding variables
 @@ -221,7 +222,7 @@ public:
          //  Corresponds to codeRoot()/libSubDir()/lib\<codeName\>.so
          fileName libPath() const
@@ -1558,7 +1696,7 @@ index 852ba6d..4dfddc2 100644
  
          //- Path for specified code name relative to \$FOAM_CASE
 diff --git a/src/OpenFOAM/primitives/Scalar/doubleFloat.H b/src/OpenFOAM/primitives/Scalar/doubleFloat.H
-index 57373e0..bfb6691 100644
+index 57373e0..09ac2c9 100644
 --- a/src/OpenFOAM/primitives/Scalar/doubleFloat.H
 +++ b/src/OpenFOAM/primitives/Scalar/doubleFloat.H
 @@ -31,6 +31,16 @@ License
@@ -1574,7 +1712,7 @@ index 57373e0..bfb6691 100644
 +inline float jnf(const int n, const float s) { return float(jn(n, double(s))); }
 +inline float ynf(const int n, const float s) { return float(yn(n, double(s))); }
 +#endif
-+ 
++
  // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
  
  namespace Foam
@@ -1826,6 +1964,40 @@ index 4658da9..a3f7a08 100644
          writeSurface<Type>(values, surfI, fieldName, outputDir);
      }
  }
+diff --git a/tutorials/Alltest b/tutorials/Alltest
+index 8d8790a..4ede9f2 100755
+--- a/tutorials/Alltest
++++ b/tutorials/Alltest
+@@ -162,9 +162,9 @@ trap 'mv ${MAIN_CONTROL_DICT}.org ${MAIN_CONTROL_DICT} 2>/dev/null; exit 0' \
+     EXIT TERM INT
+ cp ${MAIN_CONTROL_DICT} ${MAIN_CONTROL_DICT}.org
+ 
+-sed \
+--e s/"\(fvSchemes[ \t]*\)\([0-9]\);"/"\1 1;"/g \
+--e s/"\(solution[ \t]*\)\([0-9]\);"/"\1 1;"/g \
++sed -E \
++-e s/"(fvSchemes[[:space:]]*)([0-9]);"/"\1 1;"/g \
++-e s/"(solution[[:space:]]*)([0-9]);"/"\1 1;"/g \
+ ${MAIN_CONTROL_DICT}.org > ${MAIN_CONTROL_DICT}
+ 
+ echo "Copying the tutorials"
+@@ -176,11 +176,11 @@ cd ${TEST_RUN_DIR} || exit 1
+ for CD in `find . -name "controlDict*"`
+ do
+     mv ${CD} ${CD}.org
+-    sed \
+-    -e s/"\(startFrom[ \t]*\)\([a-zA-Z]*\);"/"\1 latestTime;"/g \
+-    -e s/"\(stopAt[ \t]*\)\([a-zA-Z]*\);"/"\1 nextWrite;"/g \
+-    -e s/"\(writeControl[ \t]*\)\([a-zA-Z]*\);"/"\1 timeStep;"/g \
+-    -e s/"\(writeInterval[ \t]*\)\([0-9a-zA-Z.-]*\);"/"\1 1;"/g \
++    sed -E \
++    -e s/"(startFrom[[:space:]]*)([a-zA-Z]*);"/"\1 latestTime;"/g \
++    -e s/"(stopAt[[:space:]]*)([a-zA-Z]*);"/"\1 nextWrite;"/g \
++    -e s/"(writeControl[[:space:]]*)([a-zA-Z]*);"/"\1 timeStep;"/g \
++    -e s/"(writeInterval[[:space:]]*)([0-9a-zA-Z.-]*);"/"\1 1;"/g \
+     ${CD}.org > ${CD}
+ done
+ 
 diff --git a/wmake/Makefile b/wmake/Makefile
 index 96e1885..d17d8fe 100644
 --- a/wmake/Makefile

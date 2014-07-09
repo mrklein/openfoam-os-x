@@ -586,42 +586,97 @@ index 412c2a9..f9c2f73 100644
      List<List<pointIndexHit> > allHitInfo;
 diff --git a/bin/addr2line4Mac.py b/bin/addr2line4Mac.py
 new file mode 100755
-index 0000000..7a97c15
+index 0000000..6adaf9d
 --- /dev/null
 +++ b/bin/addr2line4Mac.py
-@@ -0,0 +1,30 @@
-+#! /usr/bin/python
+@@ -0,0 +1,69 @@
++#!/usr/bin/env python
 +
 +import sys
++import subprocess as s
++
++def gdbIsAvailable():
++    """Check if gdb is installed."""
++    r = s.call(['which', '-s', 'gdb'])
++    return r == 0
++
++def lldbIsAvailable():
++    """Check if lldb is installed."""
++    r = s.call(['which', '-s', 'lldb'])
++    return r == 0
++
 +filename=sys.argv[1]
 +address=sys.argv[2]
-+import re
-+
-+import subprocess
-+
-+p = subprocess.Popen("gdb -batch -x /dev/stdin",
-+                     shell=True,
-+                     bufsize=0,
-+                     stdin=subprocess.PIPE,
-+                     stdout=subprocess.PIPE,
-+                     close_fds=True)
-+
-+(child_stdin, child_stdout) = (p.stdin, p.stdout)
-+child_stdin.write("set sharedlibrary preload-libraries no\n")
-+child_stdin.write("file "+filename+"\n")
-+child_stdin.write("info line *"+address+"\n")
-+result=child_stdout.readline()
 +
 +answer="??:0"
 +
-+match=re.compile('Line (.+) of "(.+)" starts at').match(result)
-+if match:
-+    answer=match.group(2)+":"+match.group(1)
++if gdbIsAvailable():
++    p = s.Popen("gdb -batch -x /dev/stdin",
++                shell=True,
++                bufsize=0,
++                stdin=s.PIPE,
++                stdout=s.PIPE,
++                close_fds=True)
++
++    (child_stdin, child_stdout) = (p.stdin, p.stdout)
++    child_stdin.write("set sharedlibrary preload-libraries no\n")
++    child_stdin.write("file "+filename+"\n")
++    child_stdin.write("info line *"+address+"\n")
++    result=child_stdout.readline()
++
++
++    import re
++    match=re.compile('Line (.+) of "(.+)" starts at').match(result)
++    if match:
++        answer=match.group(2)+":"+match.group(1)
++
++if lldbIsAvailable():
++    lldb_python_path = s.check_output(['lldb', '-P'])
++    sys.path.insert(0, lldb_python_path[:-1])
++
++    import lldb
++
++    address = int(address, 16)
++
++    debugger = lldb.SBDebugger.Create()
++    debugger.SetAsync(False)
++    target = debugger.CreateTargetWithFileAndArch(filename,
++                                                  lldb.LLDB_ARCH_DEFAULT)
++
++    for m in target.module_iter():
++        sb_addr = m.ResolveFileAddress(address)
++        resolved_addr = m.ResolveSymbolContextForAddress(
++            sb_addr,
++            lldb.eSymbolContextEverything
++        )
++        if resolved_addr.IsValid():
++            line_entry = resolved_addr.GetLineEntry()
++            file_ = line_entry.GetFileSpec()
++            line = line_entry.GetLine()
++            if line_entry.ling != 0:
++                answer = "{0}:{1}".format(file_, line)
++
 +print answer,
 +
 +sys.exit(255)
+diff --git a/bin/paraFoam b/bin/paraFoam
+index 867212e..4cc926a 100755
+--- a/bin/paraFoam
++++ b/bin/paraFoam
+@@ -68,9 +68,9 @@ unset regionName optTouch
+ export LC_ALL=C
+ 
+ # reader extension
+-extension=OpenFOAM
++extension=foam
+ 
+-requirePV=1
++requirePV=0
+ 
+ # parse options
+ while [ "$#" -gt 0 ]
 diff --git a/etc/bashrc b/etc/bashrc
-index 7968dff..c2ca71a 100644
+index 7968dff..5f3111a 100644
 --- a/etc/bashrc
 +++ b/etc/bashrc
 @@ -58,12 +58,11 @@ foamInstall=$HOME/$WM_PROJECT
@@ -769,7 +824,7 @@ index df1dce8..0fafd36 100644
  
  # -----------------------------------------------------------------------------
 diff --git a/etc/config/settings.sh b/etc/config/settings.sh
-index eb1dbe2..e3ad167 100644
+index eb1dbe2..388cf2c 100644
 --- a/etc/config/settings.sh
 +++ b/etc/config/settings.sh
 @@ -46,6 +46,10 @@ _foamAddLib()
@@ -1122,35 +1177,32 @@ index eb1dbe2..e3ad167 100644
 -    # 64-bit on OpenSuSE 12.1 uses lib64 others use lib
 -    _foamAddLib     $MPI_ARCH_PATH/lib$WM_COMPILER_LIB_ARCH
 -    _foamAddLib     $MPI_ARCH_PATH/lib
--
++export FOAM_MPI=openmpi-system
+ 
 -    _foamAddMan     $MPI_ARCH_PATH/share/man
 -    ;;
-+export FOAM_MPI=openmpi-system
-+
-+libDir=$(brew --prefix open-mpi)
-+
-+# Bit of a hack: strip off 'lib' and hope this is the path to openmpi
-+# include files and libraries.
-+export MPI_ARCH_PATH="$libDir"
-+
-+_foamAddLib     "$libDir/lib"
-+unset libDir
- 
+-
 -MPICH-GM)
 -    export FOAM_MPI=mpich-gm
 -    export MPI_ARCH_PATH=/opt/mpi
 -    export MPICH_PATH=$MPI_ARCH_PATH
 -    export GM_LIB_PATH=/opt/gm/lib64
--
++libDir=$(brew --prefix open-mpi)
+ 
 -    _foamAddPath    $MPI_ARCH_PATH/bin
--
++# Bit of a hack: strip off 'lib' and hope this is the path to openmpi
++# include files and libraries.
++export MPI_ARCH_PATH="$libDir"
+ 
 -    # 64-bit on OpenSuSE 12.1 uses lib64 others use lib
 -    _foamAddLib     $MPI_ARCH_PATH/lib$WM_COMPILER_LIB_ARCH
 -    _foamAddLib     $MPI_ARCH_PATH/lib
 -
 -    _foamAddLib     $GM_LIB_PATH
 -    ;;
--
++_foamAddLib     "$libDir/lib"
++unset libDir
+ 
 -HPMPI)
 -    export FOAM_MPI=hpmpi
 -    export MPI_HOME=/opt/hpmpi
@@ -1294,7 +1346,7 @@ index eb1dbe2..e3ad167 100644
  # cleanup environment:
  # ~~~~~~~~~~~~~~~~~~~~
 diff --git a/src/OSspecific/POSIX/POSIX.C b/src/OSspecific/POSIX/POSIX.C
-index 3429031..33cbd1a 100644
+index 3429031..c818aa0 100644
 --- a/src/OSspecific/POSIX/POSIX.C
 +++ b/src/OSspecific/POSIX/POSIX.C
 @@ -53,7 +53,10 @@ Description
@@ -1382,7 +1434,7 @@ index bf04835..625f9b6 100644
  // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
  
 diff --git a/src/OSspecific/POSIX/printStack.C b/src/OSspecific/POSIX/printStack.C
-index df31b35..74c6b2e 100644
+index df31b35..250d88b 100644
 --- a/src/OSspecific/POSIX/printStack.C
 +++ b/src/OSspecific/POSIX/printStack.C
 @@ -31,8 +31,11 @@ License
@@ -1569,7 +1621,7 @@ index df31b35..74c6b2e 100644
  void error::printStack(Ostream& os)
  {
 diff --git a/src/OSspecific/POSIX/signals/sigFpe.C b/src/OSspecific/POSIX/signals/sigFpe.C
-index a275fd7..614351f 100644
+index a275fd7..afd9baa 100644
 --- a/src/OSspecific/POSIX/signals/sigFpe.C
 +++ b/src/OSspecific/POSIX/signals/sigFpe.C
 @@ -42,6 +42,11 @@ License
@@ -1661,19 +1713,17 @@ index 2f97577..92fc585 100644
  
  
 diff --git a/src/OpenFOAM/db/dynamicLibrary/dynamicCode/dynamicCode.H b/src/OpenFOAM/db/dynamicLibrary/dynamicCode/dynamicCode.H
-index 852ba6d..4dfddc2 100644
+index 852ba6d..30be548 100644
 --- a/src/OpenFOAM/db/dynamicLibrary/dynamicCode/dynamicCode.H
 +++ b/src/OpenFOAM/db/dynamicLibrary/dynamicCode/dynamicCode.H
-@@ -109,7 +109,8 @@ protected:
+@@ -109,6 +109,7 @@ protected:
          //- Top-level directory name for copy/compiling
          static const char* const topDirName;
  
--
 +        static const char* const dynamicLibExtension;
-+
+ 
      // Protected Member Functions
  
-         //- Copy lines while expanding variables
 @@ -221,7 +222,7 @@ public:
          //  Corresponds to codeRoot()/libSubDir()/lib\<codeName\>.so
          fileName libPath() const
@@ -1684,7 +1734,7 @@ index 852ba6d..4dfddc2 100644
  
          //- Path for specified code name relative to \$FOAM_CASE
 diff --git a/src/OpenFOAM/primitives/Scalar/doubleFloat.H b/src/OpenFOAM/primitives/Scalar/doubleFloat.H
-index 57373e0..bfb6691 100644
+index 57373e0..09ac2c9 100644
 --- a/src/OpenFOAM/primitives/Scalar/doubleFloat.H
 +++ b/src/OpenFOAM/primitives/Scalar/doubleFloat.H
 @@ -31,6 +31,16 @@ License
@@ -1947,6 +1997,40 @@ index 892593d..b44de48 100644
 +            const scalarField& magSf = mag(Sf);
  
              Type meanValue = sum(values*magSf)/sum(magSf);
+ 
+diff --git a/tutorials/Alltest b/tutorials/Alltest
+index 8d8790a..4ede9f2 100755
+--- a/tutorials/Alltest
++++ b/tutorials/Alltest
+@@ -162,9 +162,9 @@ trap 'mv ${MAIN_CONTROL_DICT}.org ${MAIN_CONTROL_DICT} 2>/dev/null; exit 0' \
+     EXIT TERM INT
+ cp ${MAIN_CONTROL_DICT} ${MAIN_CONTROL_DICT}.org
+ 
+-sed \
+--e s/"\(fvSchemes[ \t]*\)\([0-9]\);"/"\1 1;"/g \
+--e s/"\(solution[ \t]*\)\([0-9]\);"/"\1 1;"/g \
++sed -E \
++-e s/"(fvSchemes[[:space:]]*)([0-9]);"/"\1 1;"/g \
++-e s/"(solution[[:space:]]*)([0-9]);"/"\1 1;"/g \
+ ${MAIN_CONTROL_DICT}.org > ${MAIN_CONTROL_DICT}
+ 
+ echo "Copying the tutorials"
+@@ -176,11 +176,11 @@ cd ${TEST_RUN_DIR} || exit 1
+ for CD in `find . -name "controlDict*"`
+ do
+     mv ${CD} ${CD}.org
+-    sed \
+-    -e s/"\(startFrom[ \t]*\)\([a-zA-Z]*\);"/"\1 latestTime;"/g \
+-    -e s/"\(stopAt[ \t]*\)\([a-zA-Z]*\);"/"\1 nextWrite;"/g \
+-    -e s/"\(writeControl[ \t]*\)\([a-zA-Z]*\);"/"\1 timeStep;"/g \
+-    -e s/"\(writeInterval[ \t]*\)\([0-9a-zA-Z.-]*\);"/"\1 1;"/g \
++    sed -E \
++    -e s/"(startFrom[[:space:]]*)([a-zA-Z]*);"/"\1 latestTime;"/g \
++    -e s/"(stopAt[[:space:]]*)([a-zA-Z]*);"/"\1 nextWrite;"/g \
++    -e s/"(writeControl[[:space:]]*)([a-zA-Z]*);"/"\1 timeStep;"/g \
++    -e s/"(writeInterval[[:space:]]*)([0-9a-zA-Z.-]*);"/"\1 1;"/g \
+     ${CD}.org > ${CD}
+ done
  
 diff --git a/wmake/Makefile b/wmake/Makefile
 index 96e1885..d17d8fe 100644
