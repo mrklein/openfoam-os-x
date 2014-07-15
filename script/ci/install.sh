@@ -2,4 +2,6 @@
 
 VERSION=$1;
 
-echo "Building version ... $VERSION";
+cd "$HOME/OpenFOAM/OpenFOAM-$VERSION"
+source etc/bashrc
+./Allwmake > log.Allwmake 2>&1
