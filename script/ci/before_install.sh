@@ -3,5 +3,6 @@
 VERSION=$1;
 
 brew tap homebrew/science
+brew install open-mpi --disable-fortran
 brew install boost --without-single --with-mpi
-brew cgal gmp mpfr open-mpi scotch > /dev/null 2>&1
+brew cmake cgal gmp mpfr scotch
