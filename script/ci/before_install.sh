@@ -2,13 +2,29 @@
 
 VERSION=$1;
 
+ci_brew () {
+    brew install $@ &
+    while true; do
+        ps -p$! 2>& 1>/dev/null
+        if [ $? = 0 ]; then
+            echo "Still building..."
+            sleep 10
+        else
+            break
+        fi
+    done
+}
+
 # Installing dependencies
 brew update
 brew tap homebrew/science
-brew install open-mpi --disable-fortran
-brew install cmake
-brew install boost --without-single --with-mpi
-brew cgal gmp mpfr scotch
+ci_brew open-mpi --disable-fortran
+ci_brew cmake
+ci_brew boost --without-single --with-mpi
+ci_brew gmp
+ci_brew mpfr
+ci_brew cgal
+ci_brew scotch
 
 # Preparing disk image
 hdiutil create -size 4.4g -type SPARSEBUNDLE -fs HFSX -volname OpenFOAM \
