@@ -7,4 +7,4 @@ with tabs.
 
 ## addr2line_mac.py
 
-Added support for llvm debugger.
+Added support for llvm debugger. Corrected source to pass pylint.
