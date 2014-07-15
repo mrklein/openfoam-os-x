@@ -1,14 +1,14 @@
-language: cpp
+language: objective-c
 compiler:
   - clang
 env:
   matrix:
-    - env: OPENFOAM_TEST_VERSION='2.1.1'
-    - env: OPENFOAM_TEST_VERSION='2.1.x'
-    - env: OPENFOAM_TEST_VERSION='2.2.2'
-    - env: OPENFOAM_TEST_VERSION='2.2.x'
-    - env: OPENFOAM_TEST_VERSION='2.3.0'
-    - env: OPENFOAM_TEST_VERSION='2.3.x'
+    - OPENFOAM_TEST_VERSION='2.1.1'
+    - OPENFOAM_TEST_VERSION='2.1.x'
+    - OPENFOAM_TEST_VERSION='2.2.2'
+    - OPENFOAM_TEST_VERSION='2.2.x'
+    - OPENFOAM_TEST_VERSION='2.3.0'
+    - OPENFOAM_TEST_VERSION='2.3.x'
 before_install:
   - ./script/ci/before_install.sh $OPENFOAM_TEST_VERSION
 install:
