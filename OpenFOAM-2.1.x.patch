@@ -630,7 +630,7 @@ index 0000000..3f63e53
 +if __name__ == '__main__':
 +    run()
 diff --git a/etc/bashrc b/etc/bashrc
-index 3c5981b..26e985b 100644
+index 3c5981b..e031c5c 100644
 --- a/etc/bashrc
 +++ b/etc/bashrc
 @@ -58,12 +58,11 @@ foamInstall=$HOME/$WM_PROJECT
@@ -669,7 +669,7 @@ index 3c5981b..26e985b 100644
  # Location of site-specific templates etc
  # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  # unset is equivalent to $WM_PROJECT_INST_DIR/site
-@@ -199,6 +193,11 @@ cleaned=`$foamClean "$LD_LIBRARY_PATH" "$foamOldDirs"` \
+@@ -199,9 +193,19 @@ cleaned=`$foamClean "$LD_LIBRARY_PATH" "$foamOldDirs"` \
  
  #- Clean MANPATH
  cleaned=`$foamClean "$MANPATH" "$foamOldDirs"` && MANPATH="$cleaned"
@@ -681,7 +681,15 @@ index 3c5981b..26e985b 100644
  
  export PATH LD_LIBRARY_PATH MANPATH
  
-@@ -223,10 +222,13 @@ cleaned=`$foamClean "$PATH"` && PATH="$cleaned"
++if [[ `uname -s` == "Darwin" ]]
++then
++    export DYLD_LIBRARY_PATH
++fi
++
+ 
+ # Source project setup files
+ # ~~~~~~~~~~~~~~~~~~~~~~~~~~
+@@ -223,10 +227,13 @@ cleaned=`$foamClean "$PATH"` && PATH="$cleaned"
  #- Clean LD_LIBRARY_PATH
  cleaned=`$foamClean "$LD_LIBRARY_PATH"` && LD_LIBRARY_PATH="$cleaned"
  
@@ -1396,7 +1404,7 @@ index bf04835..625f9b6 100644
  // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
  
 diff --git a/src/OSspecific/POSIX/printStack.C b/src/OSspecific/POSIX/printStack.C
-index df31b35..250d88b 100644
+index df31b35..4381eb4 100644
 --- a/src/OSspecific/POSIX/printStack.C
 +++ b/src/OSspecific/POSIX/printStack.C
 @@ -31,8 +31,11 @@ License
@@ -1462,7 +1470,7 @@ index df31b35..250d88b 100644
 +#ifndef darwin
              "addr2line -f --demangle=auto --exe "
 +#else
-+            "addr2line4Mac.py "
++            "addr2line_mac.py "
 +#endif
            + filename
            + " "
@@ -1474,7 +1482,7 @@ index df31b35..250d88b 100644
 +#ifndef darwin
              "addr2line -f --demangle=auto --exe "
 +#else
-+            "addr2line4Mac.py "
++            "addr2line_mac.py "
 +#endif
            + filename
            + " "

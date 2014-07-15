@@ -362,42 +362,107 @@ index e4ea36c..fdf751a 100644
      -lincompressibleRASModels \
      -lincompressibleLESModels \
      -lincompressibleTransportModels \
-diff --git a/bin/addr2line4Mac.py b/bin/addr2line4Mac.py
+diff --git a/bin/addr2line_mac.py b/bin/addr2line_mac.py
 new file mode 100755
-index 0000000..7a97c15
+index 0000000..123d2cb
 --- /dev/null
-+++ b/bin/addr2line4Mac.py
-@@ -0,0 +1,30 @@
-+#! /usr/bin/python
++++ b/bin/addr2line_mac.py
+@@ -0,0 +1,95 @@
++#!/usr/bin/env python
 +
-+import sys
-+filename=sys.argv[1]
-+address=sys.argv[2]
-+import re
++"""Emulation of addr2line utility."""
 +
-+import subprocess
 +
-+p = subprocess.Popen("gdb -batch -x /dev/stdin",
-+                     shell=True,
-+                     bufsize=0,
-+                     stdin=subprocess.PIPE,
-+                     stdout=subprocess.PIPE,
-+                     close_fds=True)
++import subprocess as sp
 +
-+(child_stdin, child_stdout) = (p.stdin, p.stdout)
-+child_stdin.write("set sharedlibrary preload-libraries no\n")
-+child_stdin.write("file "+filename+"\n")
-+child_stdin.write("info line *"+address+"\n")
-+result=child_stdout.readline()
++DEFAULT_ANSWER = "??:0"
 +
-+answer="??:0"
++def gdb_is_available():
++    """Check if gdb is installed."""
++    res = sp.call(['which', '-s', 'gdb'])
++    return res == 0
 +
-+match=re.compile('Line (.+) of "(.+)" starts at').match(result)
-+if match:
-+    answer=match.group(2)+":"+match.group(1)
-+print answer,
++def lldb_is_available():
++    """Check if lldb is installed."""
++    res = sp.call(['which', '-s', 'lldb'])
++    return res == 0
 +
-+sys.exit(255)
++def addr2line_gdb(filename, address):
++    """Convert address into line of source file using gdb."""
++    proc = sp.Popen("gdb -batch -x /dev/stdin",
++                    shell=True,
++                    bufsize=0,
++                    stdin=sp.PIPE,
++                    stdout=sp.PIPE,
++                    close_fds=True)
++
++    (child_stdin, child_stdout) = (proc.stdin, proc.stdout)
++    child_stdin.write("set sharedlibrary preload-libraries no\n")
++    child_stdin.write("file " + filename + "\n")
++    child_stdin.write("info line *" + address + "\n")
++    res = child_stdout.readline()
++
++    import re
++
++    match = re.compile('Line (.+) of "(.+)" starts at').match(res)
++    if match:
++        return match.group(2) + ":" + match.group(1)
++    else:
++        return DEFAULT_ANSWER
++
++def addr2line_lldb(filename, address):
++    """Convert address into line of source file using lldb."""
++    import sys
++
++    lldb_python_path = sp.check_output(['lldb', '-P'])
++    sys.path.insert(0, lldb_python_path[:-1])
++
++    import lldb
++
++    addr = int(address, 16)
++
++    dbg = lldb.SBDebugger.Create()
++    dbg.SetAsync(False)
++    tgt = dbg.CreateTargetWithFileAndArch(filename,
++                                          lldb.LLDB_ARCH_DEFAULT)
++
++    for mdl in tgt.module_iter():
++        sb_addr = mdl.ResolveFileAddress(addr)
++        resolved_addr = mdl.ResolveSymbolContextForAddress(
++            sb_addr,
++            lldb.eSymbolContextEverything
++        )
++
++        if resolved_addr.IsValid():
++            line_entry = resolved_addr.GetLineEntry()
++            file_ = line_entry.GetFileSpec()
++            line = line_entry.GetLine()
++            if line_entry.ling != 0:
++                return "{0}:{1}".format(file_, line)
++    return DEFAULT_ANSWER
++
++
++def run():
++    """Determine file and line for a given address."""
++    import sys
++
++    filename = sys.argv[1]
++    address = sys.argv[2]
++
++    answer = DEFAULT_ANSWER
++
++    if gdb_is_available():
++        answer = addr2line_gdb(filename, address)
++
++    if lldb_is_available():
++        answer = addr2line_lldb(filename, address)
++
++    print answer,
++
++    sys.exit(255)
++
++if __name__ == '__main__':
++    run()
 diff --git a/bin/paraFoam b/bin/paraFoam
 index a902d21..efb7118 100755
 --- a/bin/paraFoam
@@ -1385,7 +1450,7 @@ index bf04835..625f9b6 100644
  // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
  
 diff --git a/src/OSspecific/POSIX/printStack.C b/src/OSspecific/POSIX/printStack.C
-index d94451e..67b2d22 100644
+index d94451e..5880fa1 100644
 --- a/src/OSspecific/POSIX/printStack.C
 +++ b/src/OSspecific/POSIX/printStack.C
 @@ -31,8 +31,11 @@ License
@@ -1451,7 +1516,7 @@ index d94451e..67b2d22 100644
 +#ifndef darwin
              "addr2line -f --demangle=auto --exe "
 +#else
-+            "addr2line4Mac.py "
++            "addr2line_mac.py "
 +#endif
            + filename
            + " "
@@ -1463,7 +1528,7 @@ index d94451e..67b2d22 100644
 +#ifndef darwin
              "addr2line -f --demangle=auto --exe "
 +#else
-+            "addr2line4Mac.py "
++            "addr2line_mac.py "
 +#endif
            + filename
            + " "
@@ -2160,7 +2225,7 @@ index e6d0a1d..6bd6682 100755
              export LINK_FLAGS="-lscotch"
          fi
 diff --git a/src/parallel/decompose/ptscotchDecomp/Make/options b/src/parallel/decompose/ptscotchDecomp/Make/options
-index acdebd8..1decfba 100644
+index acdebd8..eb11f02 100644
 --- a/src/parallel/decompose/ptscotchDecomp/Make/options
 +++ b/src/parallel/decompose/ptscotchDecomp/Make/options
 @@ -3,10 +3,12 @@ sinclude $(RULES)/mplib$(WM_MPLIB)
@@ -2168,8 +2233,9 @@ index acdebd8..1decfba 100644
  EXE_INC = \
      $(PFLAGS) $(PINC) \
 -    -I$(SCOTCH_ROOT)/include \
-     -I$(SCOTCH_ARCH_PATH)/include/$(FOAM_MPI) \
+-    -I$(SCOTCH_ARCH_PATH)/include/$(FOAM_MPI) \
 -    -I/usr/include/scotch \
++    -I$(SCOTCH_ARCH_PATH)/include \
      -I../decompositionMethods/lnInclude
  
 +ifneq ($(WM_ARCH_BASE),darwin)
@@ -2199,6 +2265,24 @@ index 3bb11fb..cb7520b 100644
  LIB_LIBS = \
 -    -L$(SCOTCH_ROOT)/lib -L$(FOAM_EXT_LIBBIN) -lscotch -lscotcherrexit -lrt
 +    -L$(SCOTCH_ARCH_PATH)/lib -lscotch -lscotcherrexit $(RTLIB)
+diff --git a/src/renumber/SloanRenumber/Make/options b/src/renumber/SloanRenumber/Make/options
+index 492a3ae..5ae48e9 100644
+--- a/src/renumber/SloanRenumber/Make/options
++++ b/src/renumber/SloanRenumber/Make/options
+@@ -1,12 +1,11 @@
+ EXE_INC = \
+-    /* -DFULLDEBUG -g -O0 */ \
+     -I$(BOOST_ARCH_PATH)/include \
+     -I$(LIB_SRC)/meshTools/lnInclude \
+     -I$(LIB_SRC)/parallel/decompose/decompositionMethods/lnInclude \
+     -I$(LIB_SRC)/renumber/renumberMethods/lnInclude
+ 
+ LIB_LIBS = \
+-    -L$(BOOST_ARCH_PATH)/lib -lboost_thread \
++    -L$(BOOST_ARCH_PATH)/lib -lboost_thread-mt \
+     -lmeshTools \
+     -ldecompositionMethods \
+     -lrenumberMethods
 diff --git a/src/renumber/zoltanRenumber/Make/options b/src/renumber/zoltanRenumber/Make/options
 index c637f39..f7306d6 100644
 --- a/src/renumber/zoltanRenumber/Make/options
@@ -2216,74 +2300,127 @@ index c637f39..f7306d6 100644
  LIB_LIBS = \
 -    /* -L$(ZOLTAN_ARCH_PATH)/lib -lzoltan */ \
      -lmeshTools
-diff --git a/tutorials/basic/potentialFoam/cylinder/constant/polyMesh/boundary b/tutorials/basic/potentialFoam/cylinder/constant/polyMesh/boundary
-new file mode 100644
-index 0000000..4a640bf
---- /dev/null
-+++ b/tutorials/basic/potentialFoam/cylinder/constant/polyMesh/boundary
-@@ -0,0 +1,62 @@
-+/*--------------------------------*- C++ -*----------------------------------*\
-+| =========                 |                                                 |
-+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
-+|  \\    /   O peration     | Version:  2.3.0                                 |
-+|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
-+|    \\/     M anipulation  |                                                 |
-+\*---------------------------------------------------------------------------*/
-+FoamFile
-+{
-+    version     2.0;
-+    format      ascii;
-+    class       polyBoundaryMesh;
-+    location    "constant/polyMesh";
-+    object      boundary;
-+}
-+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-+
-+6
-+(
-+    down
-+    {
-+        type            symmetryPlane;
-+        inGroups        1(symmetryPlane);
-+        nFaces          60;
-+        startFace       3890;
-+    }
-+    right
-+    {
-+        type            patch;
-+        nFaces          30;
-+        startFace       3950;
-+    }
-+    up
-+    {
-+        type            symmetryPlane;
-+        inGroups        1(symmetryPlane);
-+        nFaces          60;
-+        startFace       3980;
-+    }
-+    left
-+    {
-+        type            patch;
-+        nFaces          30;
-+        startFace       4040;
-+    }
-+    cylinder
-+    {
-+        type            symmetry;
-+        inGroups        1(symmetry);
-+        nFaces          40;
-+        startFace       4070;
-+    }
-+    defaultFaces
-+    {
-+        type            empty;
-+        inGroups        1(empty);
-+        nFaces          4000;
-+        startFace       4110;
-+    }
-+)
-+
-+// ************************************************************************* //
+diff --git a/tutorials/Alltest b/tutorials/Alltest
+index 6d30a07..4ede9f2 100755
+--- a/tutorials/Alltest
++++ b/tutorials/Alltest
+@@ -3,7 +3,7 @@
+ # =========                 |
+ # \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+ #  \\    /   O peration     |
+-#   \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
++#   \\  /    A nd           | Copyright (C) 2011 OpenFOAM Foundation
+ #    \\/     M anipulation  |
+ #------------------------------------------------------------------------------
+ # License
+@@ -39,7 +39,6 @@ usage()
+ usage: ${0##*/} [OPTION]
+ 
+ options:
+-  -root <dir>       specify root directory to run tests from
+   -default          sets up a default scheme on all schemes
+   -help             print the usage
+ 
+@@ -53,31 +52,24 @@ USAGE
+ 
+ unset DEFAULT_SCHEMES
+ 
+-ROOT="./"
+-
+ # parse options
+ while [ "$#" -gt 0 ]
+ do
+     case "$1" in
+-    -r | -root)
+-        [ "$#" -ge 2 ] || usage "'$1' option requires an argument"
+-        ROOT="$2"
+-        shift
+-        ;;
+     -h | -help)
+         usage
+         ;;
+     -d | -default)
+         DEFAULT_SCHEMES=true
++        shift
+         ;;
+     -*)
+         usage "unknown option: '$*'"
+         ;;
+     *)
+-        usage "unknown option/argument: '$*'"
++        break
+         ;;
+     esac
+-    shift
+ done
+ 
+ 
+@@ -88,13 +80,13 @@ gradSchemes { default Gauss linear; }
+ divSchemes
+ {
+     default Gauss linear;
+-    div(phi,fu_ft_ha) Gauss multivariateSelection
++    div(phi,fu_ft_h) Gauss multivariateSelection
+     {
+         fu upwind;
+         ft upwind;
+         h  upwind;
+     };
+-    div(phi,ft_b_ha_hau) Gauss multivariateSelection
++    div(phi,ft_b_h_hu) Gauss multivariateSelection
+     {
+         fu upwind;
+         ft upwind;
+@@ -131,7 +123,7 @@ done
+ [ -f "$MAIN_CONTROL_DICT" ] || usage "main controlDict not found"
+ 
+ 
+-TUTORIALS_DIR=$ROOT
++TUTORIALS_DIR=.
+ TEST_RUN_DIR=../tutorialsTest
+ FV_SCHEMES=\
+ " \
+@@ -170,9 +162,9 @@ trap 'mv ${MAIN_CONTROL_DICT}.org ${MAIN_CONTROL_DICT} 2>/dev/null; exit 0' \
+     EXIT TERM INT
+ cp ${MAIN_CONTROL_DICT} ${MAIN_CONTROL_DICT}.org
+ 
+-sed \
+--e s/"\(fvSchemes[ \t]*\)\([0-9]\);"/"\1 1;"/g \
+--e s/"\(solution[ \t]*\)\([0-9]\);"/"\1 1;"/g \
++sed -E \
++-e s/"(fvSchemes[[:space:]]*)([0-9]);"/"\1 1;"/g \
++-e s/"(solution[[:space:]]*)([0-9]);"/"\1 1;"/g \
+ ${MAIN_CONTROL_DICT}.org > ${MAIN_CONTROL_DICT}
+ 
+ echo "Copying the tutorials"
+@@ -184,11 +176,11 @@ cd ${TEST_RUN_DIR} || exit 1
+ for CD in `find . -name "controlDict*"`
+ do
+     mv ${CD} ${CD}.org
+-    sed \
+-    -e s/"\(startFrom[ \t]*\)\([a-zA-Z]*\);"/"\1 latestTime;"/g \
+-    -e s/"\(stopAt[ \t]*\)\([a-zA-Z]*\);"/"\1 nextWrite;"/g \
+-    -e s/"\(writeControl[ \t]*\)\([a-zA-Z]*\);"/"\1 timeStep;"/g \
+-    -e s/"\(writeInterval[ \t]*\)\([0-9a-zA-Z.-]*\);"/"\1 1;"/g \
++    sed -E \
++    -e s/"(startFrom[[:space:]]*)([a-zA-Z]*);"/"\1 latestTime;"/g \
++    -e s/"(stopAt[[:space:]]*)([a-zA-Z]*);"/"\1 nextWrite;"/g \
++    -e s/"(writeControl[[:space:]]*)([a-zA-Z]*);"/"\1 timeStep;"/g \
++    -e s/"(writeInterval[[:space:]]*)([0-9a-zA-Z.-]*);"/"\1 1;"/g \
+     ${CD}.org > ${CD}
+ done
+ 
+@@ -206,10 +198,8 @@ then
+     done
+ fi
+ 
+-cp -f $FOAM_TUTORIALS/Allrun .
+ ./Allrun
+ 
+-
+ sed -e :a -e '/\\$/N; s/\\\n//; ta' Allrun > temp
+ APPLICATIONS=\
+     `grep "applications=" temp | sed 's/applications=\"\([A-Za-z \t]*\)\"/\1/g'`
 diff --git a/wmake/Makefile b/wmake/Makefile
 index 96e1885..d17d8fe 100644
 --- a/wmake/Makefile
