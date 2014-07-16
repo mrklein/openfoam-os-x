@@ -704,6 +704,18 @@ index 3c5981b..e031c5c 100644
  
  #- Clean LD_PRELOAD
  if [ -n "$LD_PRELOAD" ]
+diff --git a/etc/config/aliases.sh b/etc/config/aliases.sh
+index 341899e..7b96499 100644
+--- a/etc/config/aliases.sh
++++ b/etc/config/aliases.sh
+@@ -74,7 +74,6 @@ alias foamApps='cd $FOAM_APP'
+ alias foamSol='cd $FOAM_SOLVERS'
+ alias foamTuts='cd $FOAM_TUTORIALS'
+ alias foamUtils='cd $FOAM_UTILITIES'
+-alias foam3rdParty='cd $WM_THIRD_PARTY_DIR'
+ 
+ if [ -n "$WM_PROJECT_SITE" ]
+ then
 diff --git a/etc/config/paraview.sh b/etc/config/paraview.sh
 index a432e62..dfb742c 100644
 --- a/etc/config/paraview.sh
@@ -1298,6 +1310,26 @@ index 44e23c6..e8b5eae 100644
  
  # cleanup environment:
  # ~~~~~~~~~~~~~~~~~~~~
+diff --git a/etc/config/unset.sh b/etc/config/unset.sh
+index 3996a6d..8b9ae1c 100644
+--- a/etc/config/unset.sh
++++ b/etc/config/unset.sh
+@@ -71,7 +71,6 @@ unset WM_PROJECT_SITE
+ unset WM_PROJECT_USER_DIR
+ unset WM_PROJECT_VERSION
+ unset WM_SCHEDULER
+-unset WM_THIRD_PARTY_DIR
+ 
+ 
+ #------------------------------------------------------------------------------
+@@ -165,7 +164,6 @@ unalias foamApps
+ unalias foamSol
+ unalias foamTuts
+ unalias foamUtils
+-unalias foam3rdParty
+ unalias foamSite
+ 
+ 
 diff --git a/src/Allwmake b/src/Allwmake
 index aa17b41..4696526 100755
 --- a/src/Allwmake

@@ -1336,6 +1336,34 @@ index 4fa9120..295a95a 100644
  
  # cleanup environment:
  # ~~~~~~~~~~~~~~~~~~~~
+diff --git a/etc/config/unset.sh b/etc/config/unset.sh
+index 59428c5..cd3eace 100644
+--- a/etc/config/unset.sh
++++ b/etc/config/unset.sh
+@@ -71,7 +71,6 @@ unset WM_PROJECT_SITE
+ unset WM_PROJECT_USER_DIR
+ unset WM_PROJECT_VERSION
+ unset WM_SCHEDULER
+-unset WM_THIRD_PARTY_DIR
+ 
+ 
+ #------------------------------------------------------------------------------
+@@ -79,7 +78,6 @@ unset WM_THIRD_PARTY_DIR
+ 
+ unset FOAM_APPBIN
+ unset FOAM_APP
+-unset FOAM_EXT_LIBBIN
+ unset FOAM_CODE_TEMPLATES
+ unset FOAM_INST_DIR
+ unset FOAM_JOB_DIR
+@@ -166,7 +164,6 @@ unalias foamApps
+ unalias foamSol
+ unalias foamTuts
+ unalias foamUtils
+-unalias foam3rdParty
+ unalias foamSite
+ 
+ 
 diff --git a/src/Allwmake b/src/Allwmake
 index fa091ed..2f184aa 100755
 --- a/src/Allwmake
