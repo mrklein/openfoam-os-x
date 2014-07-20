@@ -7,7 +7,9 @@ with tabs.
 
 ## addr2line_mac.py
 
-Added support for llvm debugger. Corrected source to pass pylint.
+Added support for llvm debugger. Corrected source to pass pylint. If you'd like
+to use it with already installed OpenFOAM, rename it into addr2line4Mac.py and
+place in $WM_PROJECT_DIR/bin folder.
 
 ## openfoam-env-setup.sh
 
