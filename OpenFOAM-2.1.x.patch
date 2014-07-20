@@ -629,6 +629,22 @@ index 0000000..3f63e53
 +
 +if __name__ == '__main__':
 +    run()
+diff --git a/bin/paraFoam b/bin/paraFoam
+index e6465f0..5782c61 100755
+--- a/bin/paraFoam
++++ b/bin/paraFoam
+@@ -68,9 +68,9 @@ unset regionName optTouch
+ export LC_ALL=C
+ 
+ # reader extension
+-extension=OpenFOAM
++extension=foam
+ 
+-requirePV=1
++requirePV=0
+ 
+ # parse options
+ while [ "$#" -gt 0 ]
 diff --git a/etc/bashrc b/etc/bashrc
 index 3c5981b..e031c5c 100644
 --- a/etc/bashrc
