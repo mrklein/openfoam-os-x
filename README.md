@@ -3,6 +3,12 @@
 Patches for OpenFOAM compilation on OS X. Detailed installation instructions
 can be found in [wiki](https://github.com/mrklein/openfoam-os-x/wiki).
 
+## Mar. 26, 2015
+
+1. Updated OpenFOAM 2.3.1 patch for new version of Scotch.
+2. Added patch to fix Scotch linking. Though patch was tested on 2.3.1 guess it
+   will work on 2.3.0 and exec 2.2.x versions.
+
 ## Dec. 13, 2014
 
 Added patch for OpenFOAM 2.3.1. Build was tested on:
