@@ -1,0 +1,10 @@
+diff --git a/src/parallel/decompose/ptscotchDecomp/Make/options b/src/parallel/decompose/ptscotchDecomp/Make/options
+index eb11f02..740dd32 100644
+--- a/src/parallel/decompose/ptscotchDecomp/Make/options
++++ b/src/parallel/decompose/ptscotchDecomp/Make/options
+@@ -11,4 +11,4 @@ RTLIB=-lrt
+ endif
+ 
+ LIB_LIBS = \
+-    -L$(SCOTCH_ARCH_PATH)/lib -lptscotch -lptscotcherrexit ${LINK_FLAGS} $(RTLIB)
++    -L$(SCOTCH_ARCH_PATH)/lib -lscotch -lscotcherrexit -lptscotch -lptscotcherrexit ${LINK_FLAGS} $(RTLIB)

@@ -2306,7 +2306,7 @@ index e6d0a1d..6bd6682 100755
              export LINK_FLAGS="-lscotch"
          fi
 diff --git a/src/parallel/decompose/ptscotchDecomp/Make/options b/src/parallel/decompose/ptscotchDecomp/Make/options
-index acdebd8..eb11f02 100644
+index acdebd8..740dd32 100644
 --- a/src/parallel/decompose/ptscotchDecomp/Make/options
 +++ b/src/parallel/decompose/ptscotchDecomp/Make/options
 @@ -3,10 +3,12 @@ sinclude $(RULES)/mplib$(WM_MPLIB)
@@ -2325,7 +2325,7 @@ index acdebd8..eb11f02 100644
 +
  LIB_LIBS = \
 -    -L$(SCOTCH_ROOT)/lib -L$(FOAM_EXT_LIBBIN)/$(FOAM_MPI) -lptscotch -lptscotcherrexit ${LINK_FLAGS} -lrt
-+    -L$(SCOTCH_ARCH_PATH)/lib -lptscotch -lptscotcherrexit ${LINK_FLAGS} $(RTLIB)
++    -L$(SCOTCH_ARCH_PATH)/lib -lscotch -lscotcherrexit -lptscotch -lptscotcherrexit ${LINK_FLAGS} $(RTLIB)
 diff --git a/src/parallel/decompose/scotchDecomp/Make/options b/src/parallel/decompose/scotchDecomp/Make/options
 index 3bb11fb..cb7520b 100644
 --- a/src/parallel/decompose/scotchDecomp/Make/options
