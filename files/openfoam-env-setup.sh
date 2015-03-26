@@ -15,7 +15,7 @@ mount_disk_image () {
     cd $HOME
     # Attempt to mount image
     hdiutil attach -quiet -mountpoint $FOAM_MOUNT_POINT $FOAM_DISK_IMAGE
-    cd $OLD_PWD
+    cd -
     return 0
 }
 
@@ -81,6 +81,12 @@ of230 () {
 }
 
 export -f of230
+
+of231 () {
+    ofxxx '2.3.1'
+}
+
+export -f of231
 
 of23x () {
     ofxxx '2.3.x'
