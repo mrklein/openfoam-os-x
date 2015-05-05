@@ -9,7 +9,7 @@ can be found in [wiki](https://github.com/mrklein/openfoam-os-x/wiki).
    only one laptop, and I do not use those versions, further support of patches
    for these versions is dropped.
 2. Patches for 2.3.1 and 2.3.x (commit
-   openfoam/openfoam-2.3.x@00eea576852a0b95b772665dc4414b9bc32ce17f) include:
+   OpenFOAM/OpenFOAM-2.3.x@00eea576852a0b95b772665dc4414b9bc32ce17f) include:
        - new printStack implementation (so there is no need in Python script for address resolution)
        - update of the code for new version of CGAL
        - corrections in METIS decomposition build logic
