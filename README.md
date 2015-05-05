@@ -10,14 +10,11 @@ can be found in [wiki](https://github.com/mrklein/openfoam-os-x/wiki).
    for these versions is dropped.
 2. Patches for 2.3.1 and 2.3.x (commit
    openfoam/openfoam-2.3.x@00eea576852a0b95b772665dc4414b9bc32ce17f) include:
-       - new printStack implementation (so there is no need in Python script for
-     address resolution)
+       - new printStack implementation (so there is no need in Python script for address resolution)
        - update of the code for new version of CGAL
        - corrections in METIS decomposition build logic
-       - corrections in fvAgglomerationMethods build logic, so it can use
-	 Homebrew-installed ParMGridGen
-       - corrections in sigFpe.C, so there is no more infinite loop in parallel
-	 run (due to print stack functionality in OpenMPI)
+       - corrections in fvAgglomerationMethods build logic, so it can use Homebrew-installed ParMGridGen
+       - corrections in sigFpe.C, so there is no more infinite loop in parallel run (due to print stack functionality in OpenMPI)
 3. Initial foam-extend (commit ec44c952c9f8841ea5fba2bdb9235a5914c6c1c5) patch
    attempt. Installation guide is in [wiki](https://github.com/mrklein/openfoam-os-x/wiki/foam-extend---Homebrew).
 4. Homebrew formulae for Mosquite and ParMGridGen.
