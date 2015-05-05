@@ -1,0 +1,2059 @@
+diff --git a/ThirdParty/AllMake b/ThirdParty/AllMake
+index 48f14a4..9e0c6cd 100755
+--- a/ThirdParty/AllMake
++++ b/ThirdParty/AllMake
+@@ -45,6 +45,12 @@ wmakeCheckPwd "$WM_THIRD_PARTY_DIR" || {
+     echo "    Check the foam-extend entries in your dot-files and source them."
+     exit 1
+ }
++
++if [ "$WM_USE_HOMEBREW" -eq "1" ]
++then
++    exit 0
++fi
++
+ . tools/makeThirdPartyFunctionsForRPM
+ #------------------------------------------------------------------------------
+ 
+diff --git a/ThirdParty/AllMake.pre b/ThirdParty/AllMake.pre
+index cebcc2a..5905e01 100755
+--- a/ThirdParty/AllMake.pre
++++ b/ThirdParty/AllMake.pre
+@@ -46,6 +46,14 @@ wmakeCheckPwd "$WM_THIRD_PARTY_DIR" || {
+     echo "    Check the foam-extend entries in your dot-files and source them."
+     exit 1
+ }
++
++if [ "$WM_USE_HOMEBREW" -eq "1" ]
++then
++    echo "Using Homebrew installed third party packages."
++    echo
++    exit 0
++fi
++
+ . tools/makeThirdPartyFunctionsForRPM
+ #------------------------------------------------------------------------------
+ 
+diff --git a/ThirdParty/AllMake.stage0 b/ThirdParty/AllMake.stage0
+index 0b79538..f36718b 100755
+--- a/ThirdParty/AllMake.stage0
++++ b/ThirdParty/AllMake.stage0
+@@ -50,6 +50,11 @@ wmakeCheckPwd "$WM_THIRD_PARTY_DIR" || {
+     exit 1
+ }
+ 
++if [ ! -z "$WM_USE_HOMEBREW" ]
++then
++    exit
++fi
++
+ . tools/makeThirdPartyFunctionsForRPM
+ #------------------------------------------------------------------------------
+ 
+diff --git a/ThirdParty/AllMake.stage1 b/ThirdParty/AllMake.stage1
+index c17f636..d3d72b7 100755
+--- a/ThirdParty/AllMake.stage1
++++ b/ThirdParty/AllMake.stage1
+@@ -52,6 +52,12 @@ wmakeCheckPwd "$WM_THIRD_PARTY_DIR" || {
+     echo "    Check the foam-extend entries in your dot-files and source them."
+     exit 1
+ }
++
++if [ ! -z "$WM_USE_HOMEBREW" ]
++then
++    exit
++fi
++
+ . tools/makeThirdPartyFunctionsForRPM
+ #------------------------------------------------------------------------------
+ 
+diff --git a/ThirdParty/AllMake.stage2 b/ThirdParty/AllMake.stage2
+index 5e76b44..5cdbb13 100755
+--- a/ThirdParty/AllMake.stage2
++++ b/ThirdParty/AllMake.stage2
+@@ -54,6 +54,12 @@ wmakeCheckPwd "$WM_THIRD_PARTY_DIR" || {
+     echo "    Check the foam-extend entries in your dot-files and source them."
+     exit 1
+ }
++
++if [ ! -z "$WM_USE_HOMEBREW" ]
++then
++    exit
++fi
++
+ . tools/makeThirdPartyFunctionsForRPM
+ #------------------------------------------------------------------------------
+ 
+diff --git a/ThirdParty/AllMake.stage3 b/ThirdParty/AllMake.stage3
+index 2823998..5867fca 100755
+--- a/ThirdParty/AllMake.stage3
++++ b/ThirdParty/AllMake.stage3
+@@ -48,6 +48,12 @@ wmakeCheckPwd "$WM_THIRD_PARTY_DIR" || {
+     echo "    Check the foam-extend entries in your dot-files and source them."
+     exit 1
+ }
++
++if [ ! -z "$WM_USE_HOMEBREW" ]
++then
++    exit
++fi
++
+ . tools/makeThirdPartyFunctionsForRPM
+ #------------------------------------------------------------------------------
+ 
+diff --git a/ThirdParty/AllMake.stage4 b/ThirdParty/AllMake.stage4
+index 2d0e77a..5843ed4 100755
+--- a/ThirdParty/AllMake.stage4
++++ b/ThirdParty/AllMake.stage4
+@@ -48,6 +48,12 @@ wmakeCheckPwd "$WM_THIRD_PARTY_DIR" || {
+     echo "    Check the foam-extend entries in your dot-files and source them."
+     exit 1
+ }
++
++if [ ! -z "$WM_USE_HOMEBREW" ]
++then
++    exit
++fi
++
+ . tools/makeThirdPartyFunctionsForRPM
+ #------------------------------------------------------------------------------
+ 
+diff --git a/ThirdParty/AllMake.stage5 b/ThirdParty/AllMake.stage5
+index e728407..6e9cae8 100755
+--- a/ThirdParty/AllMake.stage5
++++ b/ThirdParty/AllMake.stage5
+@@ -36,6 +36,7 @@
+ #
+ # Author:
+ #     Martin Beaudoin, Hydro-Quebec, (2012)
++#     Alexey Matveichev (2015)
+ #
+ #------------------------------------------------------------------------------
+ # run from Third-party directory only
+@@ -56,64 +57,197 @@ echo "========================================"
+ echo
+ 
+ # swak4Foam - Version 0.3.1
+-# In fact, we are basically tracking the head branch from the Mercurial repository
+-# which is also replicated under the Breeder_2.0 section of the Subversion repository
+-#
++# In fact, we are basically tracking the head branch from the Mercurial
++# repository which is also replicated under the Breeder_2.0 section of the
++# Subversion repository
+ 
+-SWAK_RELEASE_VERSION=0.3.1
+-
+-if [ -z "$SWAK4FOAM_SYSTEM" ]
+-then
+-    # Do we need to download the source code?
+-    # We choose to put the source code under ./rpmBuild/BUILD prior to compiling.
+-    # We will not generate a rpm package, but all ThirdParty source code will be
+-    # centralized under the same scratch area
+-    if [ ! -e ./rpmBuild/BUILD/swak4Foam-$SWAK_RELEASE_VERSION ];
+-    then
+-        echo "Checking for a Mercurial client: hg"
+-        command -v hg >/dev/null
+-        if [ $? -eq 0 ];
+-        then
+-            echo "Using Mercurial/hg to download the source code for swak4Foam"
+-            (
+-                cd ./rpmBuild/BUILD;
+-                hg clone http://hg.code.sf.net/p/openfoam-extend/swak4Foam swak4Foam-$SWAK_RELEASE_VERSION;
+-                cd swak4Foam-$SWAK_RELEASE_VERSION;
+-                hg checkout version_${SWAK_RELEASE_VERSION}_v2.x
+-            )
+-        else
+-            echo "Warning: Mercurial/hg is not installed. Switching to an alternate Subversion repository"
+-            command -v svn >/dev/null
+-            if [ $? -eq 0 ];
+-            then
+-                echo "Using Subversion/svn to download the source code for swak4Foam"
+-                (cd ./rpmBuild/BUILD; svn checkout svn://svn.code.sf.net/p/openfoam-extend/svn/trunk/Breeder_2.0/libraries/swak4Foam swak4Foam-$SWAK_RELEASE_VERSION)
+-            else
+-                echo "Error: Please install either a Mercurial or Subversion client in order to download the source code for swak4Foam"
+-                exit -1
+-            fi
+-        fi
+-        # We move the compilation results directly to $FOAM_SITE_APPBIN and $FOAM_SITE_LIBBIN
+-        # If you prefer to keep the libraries and tools under $FOAM_USER_LIBBIN and $FOAM_USER_APPBIN, simply
+-        # comment out the next two lines
+-        (cd ./rpmBuild/BUILD/swak4Foam-$SWAK_RELEASE_VERSION; find . -name files   | xargs -n 1 sed -i.old "s/FOAM_USER/FOAM_SITE/g")
+-        (cd ./rpmBuild/BUILD/swak4Foam-$SWAK_RELEASE_VERSION; find . -name options | xargs -n 1 sed -i.old "s/FOAM_USER/FOAM_SITE/g")
+-
+-        # We recompile everything
+-        (cd ./rpmBuild/BUILD/swak4Foam-$SWAK_RELEASE_VERSION; ./Allwclean; ./Allwmake)
+-    else
+-        echo "The source code for swak4Foam is already present under ./rpmBuild/BUILD/swak4Foam-$SWAK_RELEASE_VERSION"
+-        echo "Please remove this directory if you want to refresh your installation of swak4Foam"
+-    fi
+-    echo ""
++readonly SWAK_RELEASE_VERSION=${SWAK_RELEASE_VERSION:-0.3.1}
++
++if [ "$WM_USE_HOMEBREW" -eq "1" ]; then
++    readonly SWAK_SOURCE_PATH=Homebrew
+ else
+-    echo "Using system installed swak4Foam"
+-    echo ""
++    readonly SWAK_SOURCE_PATH=rpmBuild/BUILD
+ fi
+ 
++readonly SWAK_SITE_INSTALL=${SWAK_SITE_INSTALL:-1}
++
++# Check if we have Mercurial client installed
++has_mercurial () {
++    $(which -s hg > /dev/null)
++    return $?
++}
++
++# Check if we have Subversion client installed
++has_subversion () {
++    $(which -s svn > /dev/null)
++    return $?
++}
++
++# Check out sources from official Mercurial repository
++download_mercurial () {
++    if [ $# -lt 1 ]; then
++        echo "Usage: $0 [VERSION] [TARGET]"
++    fi
++
++    [ -n "$FOAM_VERBOSE" ] && \
++        echo "Using Mercurial to download the source code for swak4Foam."
++
++    local hg_url="http://hg.code.sf.net/p/openfoam-extend/swak4Foam"
++
++    local version="$1"
++    local target="$2"
++
++    local src_folder="swak4Foam-$version"
++    local hg_tag="version_${version}_v2.x"
++
++    (
++        cd "$target"
++        hg clone "$hg_url" "$src_folder" > /dev/null 2>&1
++        cd "$src_folder"
++        hg checkout "$hg_tag" > /dev/null 2>&1
++    )
++
++    return $?
++}
++
++# Check out sources from backup Subversion repository
++download_subversion () {
++    if [ $# -lt 2 ]; then
++        echo "Usage: $0 [VERSION] [TARGET]"
++    fi
++
++    local version="$1"
++    local target="$2"
++
++    local svn_url="svn://svn.code.sf.net/p/openfoam-extend/svn/trunk/Breeder_2.0/libraries/swak4Foam"
++    local src_folder="swak4Foam-$version"
++
++    (
++        cd "$target"
++        svn checkout "$svn_url" "$src_folder" > /dev/null 2>&1
++    )
++
++    return $?
++}
++
++# Download release tarball from swak4Foam-releases project
++download_tarball () {
++    if [ $# -lt 2 ]; then
++        echo "Usage: $0 [VERSION] [TARGET]"
++    fi
++
++    local version="$1"
++    local target="$2"
++
++    local http_url="http://downloads.sourceforge.net/project/swak4foam-releases/2.x"
++    local tarball_name="swak4Foam-version_${version}_v2.x.tbz2"
++    local src_folder="swak4Foam-$version"
++
++    (
++        cd "$target"
++        curl -L "$http_url/$tarball_name"
++        tar xjf "$tarball_name"
++        mv "${tarball_name/\.tbz2/}" "$src_folder"
++    )
++
++    return $?
++}
++
++# Download swak4Foam sources using given release version
++# Will try to...
++#   - use hg to checkout from Sourceforge Mercurial repository
++#   - use svn to checkout from Sourceforge Subversion repository
++#   - download tarball from Sourceforge swak4Foam-releases project
++# Agruments:
++#   1 - tag (release version)
++#   2 - download path
++download_sources () {
++    if [ $# -lt 2 ]; then
++        echo "Usage: download_sources <release version> <download path>"
++    fi
++
++    local version="$1"
++    local target="$2"
++
++    [ ! -d "$target" ] && return 1
++
++    if [ has_mercurial ]; then
++        download_mercurial $version $target
++    elif [ has_subversion ]; then
++        download_subverson $version $target
++    else
++        download_tarbal $version $target
++    fi
++
++    return $?
++}
++
++prepare_sources () {
++
++    # From original stage5
++    (
++        cd "$SWAK_SOURCE_PATH/swak4Foam-$SWAK_RELEASE_VERSION"
++        find . -name files | xargs -n 1 sed -i.old "s/FOAM_USER/FOAM_SITE/g"
++        find . -name options | xargs -n 1 sed -i.old "s/FOAM_USER/FOAM_SITE/g"
++    )
++
++    [ "$WM_USE_HOMEBREW" -ne "1" ] && return 0
++
++    # Python auto-configuration & bison 2.7
++    (
++        cd "$SWAK_SOURCE_PATH/swak4Foam-$SWAK_RELEASE_VERSION"
++        echo 'export SWAK_PYTHON_INCLUDE=$(python-config --includes)' \
++            > swakConfiguration
++        echo 'export SWAK_PYTHON_LINK=$(python-config --ldflags)' \
++            >> swakConfiguration
++        echo 'export SWAK_COMPILE_GRAMMAR_OPTION="-O1"' \
++            >> swakConfiguration
++
++        mkdir -p privateRequirements/bin
++        [ ! -h "privateRequirements/bin/bison" ] && \
++            ln -s /usr/local/opt/bison27/bin/bison privateRequirements/bin/bison
++    )
++
++    return 0
++}
++
++build_swak () {
++
++    (
++        cd "$SWAK_SOURCE_PATH/swak4Foam-$SWAK_RELEASE_VERSION"
++        ./Allwclean
++        ./Allwmake
++    )
++
++    return 0
++}
++
++main () {
++    if [ -n "$SWAK4FOAM_SYSTEM" ]; then
++        echo "Using installed swak4Foam."
++        return 1
++    fi
++
++    download_sources $SWAK_RELEASE_VERSION $SWAK_SOURCE_PATH
++    if [ $? ]; then
++        prepare_sources
++        build_swak
++    else
++        echo "Can't download sources."
++        return 1
++    fi
++
++    return 0
++}
++
++main
++
+ echo "========================================"
+ echo "Done ThirdParty AllMake: Stage5         "
+ echo "========================================"
+ echo
+ 
++unset main download_source prepare_source build_swak download_mercurial \
++    download_subversion download_tarball
++
+ # ----------------------------------------------------------------- end-of-file
+diff --git a/ThirdParty/Homebrew/Formula/mesquite.rb b/ThirdParty/Homebrew/Formula/mesquite.rb
+new file mode 100644
+index 0000000..555235d
+--- /dev/null
++++ b/ThirdParty/Homebrew/Formula/mesquite.rb
+@@ -0,0 +1,27 @@
++class Mesquite < Formula
++  homepage "http://trilinos.org/packages/mesquite/"
++  url "http://sourceforge.net/projects/openfoam-extend/files/foam-extend-3.1/ThirdParty/mesquite-2.1.2.tar.gz"
++  sha256 "a1410104737c27e6f59b131b5c93a462016c5f2e51cf4381dd940638fe1a968f"
++
++  depends_on "cmake" => :build
++
++  def install
++    system "./configure", "--disable-debug",
++                          "--disable-dependency-tracking",
++                          "--disable-silent-rules",
++                          "--prefix=#{prefix}",
++                          "--enable-release",
++                          "--disable-debug-assertions",
++                          "--disable-igeom",
++                          "--disable-imesh",
++                          "--disable-irel",
++                          "--enable-shared",
++                          "--without-cppunit",
++                          "--enable-trap-fpe",
++                          "--disable-function-timers"
++    system "make", "install"
++  end
++
++  test do
++  end
++end
+diff --git a/ThirdParty/Homebrew/Formula/parmgridgen.rb b/ThirdParty/Homebrew/Formula/parmgridgen.rb
+new file mode 100644
+index 0000000..29370a8
+--- /dev/null
++++ b/ThirdParty/Homebrew/Formula/parmgridgen.rb
+@@ -0,0 +1,24 @@
++class Parmgridgen < Formula
++  homepage "http://www-users.cs.umn.edu/~moulitsa/software.html"
++  url "https://github.com/mrklein/ParMGridGen/archive/v0.0.1.tar.gz"
++  sha256 "94fd48e0253c809646b2ce90d9e282dff63393802cdf0d29d21368617599b1c5"
++
++  depends_on :mpi => :cc
++
++  def install
++    ENV.deparallelize
++
++    system "make", "parallel"
++    bin.install "bin/mgridgen"
++    bin.install "bin/parmgridgen"
++    include.install "mgridgen.h"
++    include.install "parmgridgen.h"
++    lib.install "libmgrid.a"
++    lib.install "libparmgrid.a"
++    lib.install "ParMGridGen/IMParMetis-2.0/libIMparmetis.a"
++    lib.install "MGridGen/IMLib/libIMlib.a"
++    doc.install "Doc/manual-parmgridgen.pdf"
++    doc.install "Graphs/M6.metis"
++    doc.install "Graphs/README"
++  end
++end
+diff --git a/etc/bashrc b/etc/bashrc
+index dfb9ada..09abd66 100755
+--- a/etc/bashrc
++++ b/etc/bashrc
+@@ -63,8 +63,7 @@ foamInstall=$HOME/$WM_PROJECT
+ # - remove anything under top-level directory.
+ # NB: the WM_PROJECT_INST_DIR might not be identical between versions
+ foamOldDirs="$FOAM_INST_DIR $HOME/$WM_PROJECT/$USER"
+-if [ "$WM_PROJECT_INST_DIR" != "$FOAM_INST_DIR" ]
+-then
++if [ "$WM_PROJECT_INST_DIR" != "$FOAM_INST_DIR" ]; then
+     foamOldDirs="$WM_PROJECT_INST_DIR $foamOldDirs"
+ fi
+ 
+@@ -80,6 +79,22 @@ export WM_PROJECT_USER_DIR=$HOME/$WM_PROJECT/$USER-$WM_PROJECT_VERSION
+ #: ${WM_THIRD_PARTY_DIR=$WM_PROJECT_INST_DIR/ThirdParty-$WM_PROJECT_VERSION}; export WM_THIRD_PARTY_DIR
+ export WM_THIRD_PARTY_DIR=$WM_PROJECT_DIR/ThirdParty
+ 
++# Echo if FOAM_VERBOSE is set
++_foamEcho()
++{
++    local nonl=
++    local _echo=echo
++
++    local n="$1";
++    if [ "$n" = "-n" ]
++    then
++        _echo="$_echo -n"
++        shift
++    fi
++
++    $_echo "$@"
++}
++
+ # Source files, possibly with some verbosity
+ _foamSource()
+ {
+@@ -96,7 +111,7 @@ if [ -e $WM_PROJECT_DIR/etc/prefs.sh ]
+ then
+     _foamSource $WM_PROJECT_DIR/etc/prefs.sh
+ else
+-     [ "$FOAM_VERBOSE" -a "$PS1" ] && echo "No prefs.sh found"
++    _foamEcho "No prefs.sh found"
+ fi
+ 
+ 
+@@ -144,13 +159,15 @@ export WM_COMPILER_LIB_ARCH=
+ # WM_COMPILE_OPTION = Opt | Debug | Prof
+ : ${WM_COMPILE_OPTION:=Opt}; export WM_COMPILE_OPTION
+ 
+-# WM_MPLIB = SYSTEMOPENMPI | OPENMPI | MPICH | MPICH-GM | HPMPI | GAMMA | MPI | QSMPI | MVAPICH2
++# WM_MPLIB = SYSTEMOPENMPI | OPENMPI | MPICH | MPICH-GM | HPMPI | GAMMA \
++#    | MPI | QSMPI | MVAPICH2
+ : ${WM_MPLIB:=OPENMPI}; export WM_MPLIB
+ 
+ # WM_NCOMPPROCS = <number of processes to use>
+ # Warning: Need to use a complete path for foamGetSystemInfo because the PATH
+ # environment variable is not properly initialized yet.
+-: ${WM_NCOMPPROCS:=`$WM_PROJECT_DIR/bin/foamGetSystemInfo -nbrCores`}; export WM_NCOMPPROCS
++: ${WM_NCOMPPROCS:=$($WM_PROJECT_DIR/bin/foamGetSystemInfo -nbrCores)}; \
++    export WM_NCOMPPROCS
+ 
+ 
+ # Run options (floating-point signal handling and memory initialisation)
+@@ -161,14 +178,14 @@ export FOAM_SIGFPE=
+ 
+ # Detect system type and set environment variables appropriately
+ # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+-export WM_ARCH=`uname -s`
++export WM_ARCH="$(uname -s)"
+ 
+ case $WM_ARCH in
+ Linux)
+     WM_ARCH=linux
+ 
+     # compiler specifics
+-    case `uname -m` in
++    case "$(uname -m)" in
+     i686)
+         ;;
+ 
+@@ -188,7 +205,7 @@ Linux)
+             export WM_LDFLAGS='-m64'
+             ;;
+         *)
+-            echo Unknown WM_ARCH_OPTION $WM_ARCH_OPTION, should be 32 or 64
++            echo "Unknown WM_ARCH_OPTION $WM_ARCH_OPTION, should be 32 or 64"
+             ;;
+         esac
+         ;;
+@@ -216,7 +233,7 @@ Linux)
+         ;;
+ 
+     *)
+-        echo Unknown processor type `uname -m` for Linux
++        echo "Unknown processor type $(uname -m) for Linux"
+         ;;
+     esac
+     ;;
+@@ -225,17 +242,20 @@ Darwin)
+     # this makes certain things easier
+     export WM_ARCH_BASE=darwin
+ 
+-    case `uname -p` in
++    case "$(uname -p)" in
+     powerpc)
+         export WM_ARCH=darwinPpc
+-    ;;
++        ;;
++
+     i386)
+         export WM_ARCH=darwinIntel
+-    ;;
++        ;;
++
+     *)
+-        echo "This seems to be neither an Intel-Mac nor a PPC-Mac please tell me the output of 'uname -p'. Bernhard."
++        echo "This seems to be neither an Intel-Mac nor a PPC-Mac " \
++            "please tell me the output of 'uname -p'. Bernhard."
+         export WM_ARCH=darwinUnknown
+-    ;;
++        ;;
+     esac
+ 
+     case $WM_ARCH_OPTION in
+@@ -243,127 +263,148 @@ Darwin)
+         export WM_CFLAGS='-m32 -fPIC'
+         export WM_CXXFLAGS='-m32 -fPIC'
+         export WM_LDFLAGS='-m32'
+-    ;;
++        ;;
++
+     64)
+         export WM_ARCH=${WM_ARCH}64
+         export WM_CFLAGS='-m64 -fPIC'
+         export WM_CXXFLAGS='-m64 -fPIC'
+         export WM_LDFLAGS='-m64'
+-    ;;
++        ;;
++
+     *)
+         echo Unknown WM_ARCH_OPTION $WM_ARCH_OPTION, should be 32 or 64
+-    ;;
++        ;;
+     esac
+ 
++    # Setting up MacPorts
+     which -s port >/dev/null
+     if [ $? -eq "0" -a -d '/opt/local/etc/macports' ]
+     then
+-	if [ "$FOAM_VERBOSE" -a "$PS1" ]
+-	then
+-	    echo "Using Macports binaries"
+-	fi
+-
+-	export WM_USE_MACPORT=1
+-	export WM_BASE_COMPILER=`echo $WM_COMPILER | tr -d "[:digit:]"`
+-	export WM_MACPORT_MPI_VERSION=`echo $WM_COMPILER | tr "[:upper:]" "[:lower:]"`
+-	export WM_MACPORT_VERSION=`echo $WM_MACPORT_MPI_VERSION | tr -d "[:alpha:]" | sed -e "s/\(.\)\(.\)/\1\.\2/"`
+-
+-	if [ -z "$WM_CHOSEN_MAC_MPI" ]
+-	then
+-	    if [ -e '/opt/local/bin/mpicc' ]
+-	    then
+-		readlink /opt/local/bin/mpicc | grep openmpi >/dev/null
+-		if [ $? -eq "0" ]
+-		then
+-		    export WM_MPLIB=MACPORTOPENMPI
+-		    if [ "$FOAM_VERBOSE" -a "$PS1" ]
+-		    then
+-			echo "Using OpenMPI from MacPorts"
+-		    fi
+-		else
+-		    readlink /opt/local/bin/mpicc | grep mpich >/dev/null
+-		    if [ $? -eq "0" ]
+-		    then
+-			export WM_MPLIB=MACPORTMPICH
+-			if [ "$FOAM_VERBOSE" -a "$PS1" ]
+-			then
+-			    echo "Using MPICH from MacPorts"
+-			fi
+-		    else
+-			echo "/opt/local/bin/mpicc neither OpenMPI nor MPICH. Confused. Defaulting to OPENMPI"
+-			export WM_MPLIB=OPENMPI
+-		    fi
+-		fi
+-	    fi
+-	else
+-	    export WM_MPLIB=$WM_CHOSEN_MAC_MPI
+-	    if [ "$FOAM_VERBOSE" -a "$PS1" ]
+-	    then
+-		echo "User chose WM_CHOSEN_MAC_MPI=$WM_CHOSEN_MAC_MPI"
+-	    fi
+-	fi
+-
+-	if [ "$WM_MPLIB" == "MACPORTOPENMPI" ]
+-	then
+-	    if [ ! -e "/opt/local/lib/openmpi-$WM_MACPORT_MPI_VERSION" ]
+-	    then
+-		export WM_MACPORT_MPI_VERSION=mp
+-		if [ ! -e "/opt/local/lib/openmpi-$WM_MACPORT_MPI_VERSION" ]
+-		then
+-		    echo "Proper OpenMPI not installed. Either do 'port install openmpi-$WM_MACPORT_MPI_VERSION' or 'port install openmpi-default'"
+-		fi
+-	    fi
+-	else
+-	    if [ "$WM_MPLIB" == "MACPORTMPICH" ]
+-	    then
+-		if [ ! -e "/opt/local/lib/mpich-$WM_MACPORT_MPI_VERSION" ]
+-		then
+-		    echo "MPICH wants the same version as the used compiler. Do 'port install mpich-$WM_MACPORT_MPI_VERSION'"
+-		fi
+-	    fi
+-	fi
+-
+-	if [ "$WM_COMPILER" != "Gcc" ]
+-	then
+-	    if [ "$WM_BASE_COMPILER" == "Gcc" ]
+-	    then
+-		export WM_CC="gcc-mp-$WM_MACPORT_VERSION"
+-		export WM_CXX="g++-mp-$WM_MACPORT_VERSION"
+-		export WM_FC="gfortran-mp-$WM_MACPORT_VERSION"
+-	    elif [ "$WM_BASE_COMPILER" == "Clang" ]
+-	    then
+-		export WM_CC="clang-mp-$WM_MACPORT_VERSION"
+-		export WM_CXX="clang++-mp-$WM_MACPORT_VERSION"
+-		# Seems like there is no Fortran-frontend for LLVM at thistime
+-	    elif [ "$WM_BASE_COMPILER" == "Dragonegg" ]
+-	    then
+-		export WM_CC="dragonegg-$WM_MACPORT_VERSION-gcc"
+-		export WM_CXX="dragonegg-$WM_MACPORT_VERSION-g++"
+-		export WM_CXX="dragonegg-$WM_MACPORT_VERSION-gfortran"
+-	    else
+-		echo "Unknown base compiler $WM_BASE_COMPILER"
+-	    fi
+-
+-	    ruleDirBase=$WM_PROJECT_DIR/wmake/rules/$WM_ARCH
+-	    ruleDirTarget=$ruleDirBase$WM_BASE_COMPILER
+-	    ruleDir=$ruleDirBase$WM_COMPILER
+-	    if [ ! -e $ruleDir ]
+-	    then
+-		echo "Rule directory $ruleDir not existing. Linking to $ruleDirTarget"
+-		ln -s $ruleDirTarget $ruleDir
+-	    fi
+-	    unset ruleDir ruleDirBase
+-	fi
+-    else
+-        export WM_COMPILER=Gcc
+-        export WM_MPLIB=OPENMPI
++        _foamEcho "Using Macports binaries"
++
++        export WM_USE_MACPORT=1
++        export WM_BASE_COMPILER=$(echo $WM_COMPILER | tr -d "[:digit:]")
++        export WM_MACPORT_MPI_VERSION=$(echo $WM_COMPILER \
++            | tr "[:upper:]" "[:lower:]")
++        export WM_MACPORT_VERSION=$(echo $WM_MACPORT_MPI_VERSION \
++            | tr -d "[:alpha:]" | sed -e "s/\(.\)\(.\)/\1\.\2/")
++
++        if [ -z "$WM_CHOSEN_MAC_MPI" ]
++        then
++            if [ -e '/opt/local/bin/mpicc' ]
++            then
++                readlink /opt/local/bin/mpicc | grep openmpi >/dev/null
++                if [ $? -eq "0" ]
++                then
++                    export WM_MPLIB=MACPORTOPENMPI
++                    _foamEcho "Using OpenMPI from MacPorts"
++                else
++                    readlink /opt/local/bin/mpicc | grep mpich >/dev/null
++                    if [ $? -eq "0" ]
++                    then
++                        export WM_MPLIB=MACPORTMPICH
++                        _foamEcho "Using MPICH from MacPorts"
++                    else
++                        echo "/opt/local/bin/mpicc neither OpenMPI nor MPICH." \
++                            " Confused. Defaulting to OPENMPI"
++                        export WM_MPLIB=OPENMPI
++                    fi
++                fi
++            fi
++        else
++            export WM_MPLIB=$WM_CHOSEN_MAC_MPI
++            _foamEcho "User chose WM_CHOSEN_MAC_MPI=$WM_CHOSEN_MAC_MPI"
++        fi
++
++        if [ "$WM_MPLIB" == "MACPORTOPENMPI" ]
++        then
++            if [ ! -e "/opt/local/lib/openmpi-$WM_MACPORT_MPI_VERSION" ]
++            then
++                export WM_MACPORT_MPI_VERSION=mp
++                if [ ! -e "/opt/local/lib/openmpi-$WM_MACPORT_MPI_VERSION" ]
++                then
++                    echo "Proper OpenMPI not installed. " \
++                        "Either do 'port install openmpi-$WM_MACPORT_MPI_VERSION' " \
++                        "or 'port install openmpi-default'"
++                fi
++            fi
++        else
++            if [ "$WM_MPLIB" == "MACPORTMPICH" ]
++            then
++                if [ ! -e "/opt/local/lib/mpich-$WM_MACPORT_MPI_VERSION" ]
++                then
++                    echo "MPICH wants the same version as the used compiler. " \
++                        "Do 'port install mpich-$WM_MACPORT_MPI_VERSION'"
++                fi
++            fi
++        fi
++
++        if [ "$WM_COMPILER" != "Gcc" ]
++        then
++            if [ "$WM_BASE_COMPILER" == "Gcc" ]
++            then
++                export WM_CC="gcc-mp-$WM_MACPORT_VERSION"
++                export WM_CXX="g++-mp-$WM_MACPORT_VERSION"
++                export WM_FC="gfortran-mp-$WM_MACPORT_VERSION"
++            elif [ "$WM_BASE_COMPILER" == "Clang" ]
++            then
++                export WM_CC="clang-mp-$WM_MACPORT_VERSION"
++                export WM_CXX="clang++-mp-$WM_MACPORT_VERSION"
++                # Seems like there is no Fortran-frontend for LLVM at thistime
++            elif [ "$WM_BASE_COMPILER" == "Dragonegg" ]
++            then
++                export WM_CC="dragonegg-$WM_MACPORT_VERSION-gcc"
++                export WM_CXX="dragonegg-$WM_MACPORT_VERSION-g++"
++                export WM_FC="dragonegg-$WM_MACPORT_VERSION-gfortran"
++            else
++                echo "Unknown base compiler $WM_BASE_COMPILER"
++            fi
++
++            ruleDirBase=$WM_PROJECT_DIR/wmake/rules/$WM_ARCH
++            ruleDirTarget=$ruleDirBase$WM_BASE_COMPILER
++            ruleDir=$ruleDirBase$WM_COMPILER
++            if [ ! -e $ruleDir ]
++            then
++                echo "Rule directory $ruleDir does not exist. " \
++                    "Linking to $ruleDirTarget."
++                ln -s $ruleDirTarget $ruleDir
++            fi
++            unset ruleDir ruleDirBase
++        fi
+     fi
+ 
++    which -s brew > /dev/null
++
++    if [ $? ]
++    then
++        _foamEcho "Using Homebrew installed binaries."
++        export WM_USE_HOMEBREW=1
++        export WM_USE_NATIVE_CLANG=1
++        export WM_COMPILER="Clang"
++        export WM_CC="xcrun clang"
++        export WM_CXX="xcrun clang++"
++        if [ -h /usr/local/opt/open-mpi ]
++        then
++            export WM_MPLIB=BREWOPENMPI
++        elif [ -h /usr/local/opt/mpich2 ]
++        then
++            export WM_MPLIB=BREWMPICH2
++        else
++            export WM_MPLIB=OPENMPI
++        fi
++    fi
++
++    export WM_COMPILER=${WM_COMPILER:-Gcc}
++    export WM_MPLIB=${WM_MPLIB:-OPENMPI}
++
++
+     # Make sure that binaries use the best features of the used OS-Version
+     # We need to get rid of the revision number from this string. eg turn "10.7.5" into "10.7"
+     #    v=(`sw_vers -productVersion | sed 's/\./ /g'`)
+     #    export MACOSX_DEPLOYMENT_TARGET="${v[1]}.${v[2]}"
+-    export MACOSX_DEPLOYMENT_TARGET=`sw_vers -productVersion | sed -e "s/\([0-9][0-9]*\)\.\([0-9][0-9]*\)\.\([0-9][0-9]*\)/\1.\2/g"`
++    export MACOSX_DEPLOYMENT_TARGET=$(sw_vers -productVersion \
++        | awk -F. '{printf("%d.%d", $1, $2)}')
+     ;;
+ 
+ SunOS)
+@@ -394,12 +435,14 @@ cleanProg=$WM_PROJECT_DIR/bin/foamCleanPath
+ cleanEnv=`$cleanProg "$PATH" "$foamOldDirs"` && PATH="$cleanEnv"
+ 
+ #- Clean LD_LIBRARY_PATH
+-cleanEnv=`$cleanProg "$LD_LIBRARY_PATH" "$foamOldDirs"` && LD_LIBRARY_PATH="$cleanEnv"
++cleanEnv=`$cleanProg "$LD_LIBRARY_PATH" "$foamOldDirs"` && \
++    LD_LIBRARY_PATH="$cleanEnv"
+ 
+ #- Clean DYLD_LIBRARY_PATH
+-if [[ "$WM_ARCH_BASE" == "darwin" ]]
++if [ "$WM_ARCH_BASE" == "darwin" ]
+ then
+-    cleanEnv=`$cleanProg "$DYLD_LIBRARY_PATH" "$foamOldDirs"` && DYLD_LIBRARY_PATH="$cleanEnv"
++    cleanEnv=`$cleanProg "$DYLD_LIBRARY_PATH" "$foamOldDirs"` && \
++        DYLD_LIBRARY_PATH="$cleanEnv"
+ fi
+ 
+ #- Clean MANPATH
+@@ -407,6 +450,8 @@ cleanEnv=`$cleanProg "$MANPATH" "$foamCleanDirs"` && MANPATH="$cleanEnv"
+ 
+ export PATH LD_LIBRARY_PATH MANPATH
+ 
++[ "$WM_ARCH_BASE" == "darwin" ] && export DYLD_LIBRARY_PATH
++
+ # Source project setup files
+ # ~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 
+@@ -434,6 +479,8 @@ cleanEnv=`$cleanProg "$MANPATH"` && MANPATH="$cleanEnv:"
+ 
+ export PATH LD_LIBRARY_PATH MANPATH
+ 
++[ "$WM_ARCH_BASE" == "darwin" ] && export DYLD_LIBRARY_PATH
++
+ #- Clean LD_PRELOAD
+ if [ "$LD_PRELOAD" != "" ]
+ then
+@@ -442,18 +489,18 @@ then
+ fi
+ 
+ # temporarily disabled.  HJ, 13/Jun/2014
+-# if [[ `uname -s` == "Darwin" ]]
++# if [ "$(uname -s)" == "Darwin" ]
+ # then
+-#     if [[ `ulimit -n` == "unlimited" || `ulimit -n` < 8192 ]]
++#     if [ "$(ulimit -n)" = "unlimited" -o "$(ulimit -n)" -lt 8192 ]
+ #     then
+-# 	# higher limit needed for wmkdeps
+-# 	ulimit -n 8192
++#         # higher limit needed for wmkdeps
++#         ulimit -n 8192
+ #     fi
+ # fi
+ 
+ # cleanup environment:
+ # ~~~~~~~~~~~~~~~~~~~~
+ unset cleanEnv cleanProg foamInstall foamOldDirs
+-unset _foamSource
++unset _foamSource _foamEcho
+ 
+ # -----------------------------------------------------------------------------
+diff --git a/etc/settings.sh b/etc/settings.sh
+index ba8ff7c..fa276f7 100755
+--- a/etc/settings.sh
++++ b/etc/settings.sh
+@@ -273,6 +273,30 @@ MACPORTMPICH)
+     fi
+     ;;
+ 
++BREWOPENMPI)
++	unset OPAL_PREFIX
++
++	export FOAM_MPI=openmpi-homebrew
++
++	# Currently not correctly working on MacPorts
++	libDir=/usr/local/opt/lib
++
++	export FOAM_MPI_LIBBIN=$FOAM_LIBBIN/$FOAM_MPI
++	_foamAddLib $libDir
++	unset libDir
++ 	;;
++
++BREWMPICH2)
++    export FOAM_MPI=mpich-homebrew
++    export MPI_HOME=/usr/local/opt/mpich2
++
++    export FOAM_MPI_LIBBIN=$FOAM_LIBBIN/$FOAM_MPI
++    libDir=/usr/local/opt/mpich2
++
++    _foamAddLib $libDir
++    unset libDir
++    ;;
++
+ SYSTEMOPENMPI)
+     mpi_version=openmpi-system
+ 
+@@ -505,6 +529,7 @@ export MPI_BUFFER_SIZE
+ 
+ # CGAL library if available
+ # ~~~~~~~~~~~~~~~~~~~~~~~~~
++[ "$WM_USE_HOMEBREW" -eq "1" ] && export CGAL_LIB_DIR=/usr/local/opt/cgal
+ [ -d "$CGAL_LIB_DIR" ] && _foamAddLib $CGAL_LIB_DIR
+ 
+ 
+@@ -533,134 +558,262 @@ export MPI_BUFFER_SIZE
+ # appropriate XXX_SYSTEM environment variable for a given package in your prefs.sh
+ # file in order to disable the sourcing of the ThirdParty version of the same package.
+ 
++_foam3rdPartyDir () {
++    [ $# -lt 2 ] && return 1
++    local res="$WM_THIRD_PARTY_DIR/packages/$1/platforms/$2"
++}
++
++_foamSource3rdPartyPackage () {
++    [ $# -lt 2 ] && return 1
++    local folder="$WM_THIRD_PARTY_DIR/packages/$1/platforms/$2"
++    [ -e $folder ] && _foamSource "$folder/etc/$1.sh"
++}
++
++_foamEcho () {
++    [ "$FOAM_VERBOSE" -a "$PS1" ] && echo "$@"
++}
++
+ # Load Mesquite library
+ # ~~~~~~~~~~~~~~~~~~~~~~
+-[ -z "$MESQUITE_SYSTEM" ] && [ -e $WM_THIRD_PARTY_DIR/packages/mesquite-2.1.2/platforms/$WM_OPTIONS ] && {
+-    _foamSource $WM_THIRD_PARTY_DIR/packages/mesquite-2.1.2/platforms/$WM_OPTIONS/etc/mesquite-2.1.2.sh
+-}
+-[ "$FOAM_VERBOSE" -a "$PS1" ] && echo "    MESQUITE_DIR is initialized to: $MESQUITE_DIR"
++if [ "$WM_USE_HOMEBREW" -eq "1" ]
++then
++    export MESQUITE_DIR=/usr/local/opt/mesquite
++
++    export MESQUITE_BIN_DIR=$MESQUITE_DIR/bin
++    export MESQUITE_LIB_DIR=$MESQUITE_DIR/lib
++    export MESQUITE_INCLUDE_DIR=$MESQUITE_DIR/include
++else
++    [ -z "$MESQUITE_SYSTEM" ] && _foamSource3rdPartyPackage mesquite-2.1.2
++fi
++_foamEcho "    MESQUITE_DIR is initialized to: $MESQUITE_DIR"
+ 
+ 
+ # Load Metis library
+ # ~~~~~~~~~~~~~~~~~~
+-[ -z "$METIS_SYSTEM" ] && [ -e $WM_THIRD_PARTY_DIR/packages/metis-5.1.0/platforms/$WM_OPTIONS ] && {
+-    _foamSource $WM_THIRD_PARTY_DIR/packages/metis-5.1.0/platforms/$WM_OPTIONS/etc/metis-5.1.0.sh
+-}
+-[ "$FOAM_VERBOSE" -a "$PS1" ] && echo "    METIS_DIR is initialized to: $METIS_DIR"
++if [ "$WM_USE_HOMEBREW" -eq "1" ]
++then
++    export METIS_DIR=/usr/local/opt/metis
++    export METIS_BIN_DIR=/usr/local/opt/metis/bin
++    export METIS_LIB_DIR=/usr/local/opt/metis/lib
++    export METIS_INCLUDE_DIR=/usr/local/opt/metis/include
++
++    [ -d $METIS_BIN_DIR ] && _foamAddPath $METIS_BIN_DIR
++    [ -d $METIS_LIB_DIR ] && _foamAddLib $METIS_LIB_DIR
++else
++    [ -z "$METIS_SYSTEM" ] && _foamSource3rdPartyPackage metis-5.1.0
++fi
++_foamEcho "    METIS_DIR is initialized to: $METIS_DIR"
+ 
+ 
+ # Load ParMetis library
+ # ~~~~~~~~~~~~~~~~~~~~~
+-[ -z "$PARMETIS_SYSTEM" ] && [ -e $WM_THIRD_PARTY_DIR/packages/parmetis-4.0.3/platforms/$WM_OPTIONS ] && {
+-    _foamSource $WM_THIRD_PARTY_DIR/packages/parmetis-4.0.3/platforms/$WM_OPTIONS/etc/parmetis-4.0.3.sh
+-}
+-[ "$FOAM_VERBOSE" -a "$PS1" ] && echo "    PARMETIS_DIR is initialized to: $PARMETIS_DIR"
++if [ "$WM_USE_HOMEBREW" -eq "1" ]
++then
++    export PARMETIS_DIR=/usr/local/opt/parmetis
++    export PARMETIS_BIN_DIR=/usr/local/opt/parmetis/bin
++    export PARMETIS_LIB_DIR=/usr/local/opt/parmetis/lib
++    export PARMETIS_INCLUDE_DIR=/usr/local/opt/parmetis/include
++
++    [ -d "$PARMETIS_BIN_DIR" ] && _foamAddPath $PARMETIS_BIN_DIR
++    [ -d "$PARMETIS_LIB_DIR" ] && _foamAddLib $PARMETIS_LIB_DIR
++else
++    [ -z "$PARMETIS_SYSTEM" ] && _foamSource3rdPartyPackage parmetis-4.0.3
++fi
++_foamEcho "    PARMETIS_DIR is initialized to: $PARMETIS_DIR"
+ 
+ 
+ # Load ParMGridGen library
+ # ~~~~~~~~~~~~~~~~~~~~~~~~~
+-[ -z "$PARMGRIDGEN_SYSTEM" ] && [ -e $WM_THIRD_PARTY_DIR/packages/ParMGridGen-1.0/platforms/$WM_OPTIONS ] && {
+-    _foamSource $WM_THIRD_PARTY_DIR/packages/ParMGridGen-1.0/platforms/$WM_OPTIONS/etc/ParMGridGen-1.0.sh
+-}
+-[ "$FOAM_VERBOSE" -a "$PS1" ] && echo "    PARMGRIDGEN_DIR is initialized to: $PARMGRIDGEN_DIR"
++if [ "$WM_USE_HOMEBREW" -eq "1" ]
++then
++    export PARMGRIDGEN_DIR=/usr/local/opt/parmgridgen
++    export PARMGRIDGEN_BIN_DIR="$PARMGRIDGEN_DIR/bin"
++    export PARMGRIDGEN_LIB_DIR="$PARMGRIDGEN_DIR/lib"
++    export PARMGRIDGEN_INCLUDE_DIR="$PARMGRIDGEN_DIR/include"
++   
++    _foamEcho "    PARMGRIDGEN_DIR is initialized to: $PARMGRIDGEN_DIR"
++else
++    [ -z "$PARMGRIDGEN_SYSTEM" ] && _foamSource3rdPartyPackage ParMGridGen-1.0
++    _foamEcho "    PARMGRIDGEN_DIR is initialized to: $PARMGRIDGEN_DIR"
++fi
+ 
+ 
+ # Load Libccmio library
+ # ~~~~~~~~~~~~~~~~~~~~~
+-[ -z "$LIBCCMIO_SYSTEM" ] && [ -e $WM_THIRD_PARTY_DIR/packages/libccmio-2.6.1/platforms/$WM_OPTIONS ] && {
+-    _foamSource $WM_THIRD_PARTY_DIR/packages/libccmio-2.6.1/platforms/$WM_OPTIONS/etc/libccmio-2.6.1.sh
+-}
+-[ "$FOAM_VERBOSE" -a "$PS1" ] && echo "    LIBCCMIO_DIR is initialized to: $LIBCCMIO_DIR"
++if [ "$WM_USE_HOMEBREW" -eq "1" ]
++then
++    _foamEcho "    Skipping Libccmio configuration."
++else
++    [ -z "$LIBCCMIO_SYSTEM" ] && _foamSource3rdPartyPackage libccmio-2.6.1
++    _foamEcho "    LIBCCMIO_DIR is initialized to: $LIBCCMIO_DIR"
++fi
+ 
+ 
+ # Load Scotch library
+ # ~~~~~~~~~~~~~~~~~~~
+-[ -z "$SCOTCH_SYSTEM" ] && [ -e $WM_THIRD_PARTY_DIR/packages/scotch-6.0.0/platforms/$WM_OPTIONS ] && {
+-    _foamSource $WM_THIRD_PARTY_DIR/packages/scotch-6.0.0/platforms/$WM_OPTIONS/etc/scotch-6.0.0.sh
+-}
+-[ "$FOAM_VERBOSE" -a "$PS1" ] && echo "    SCOTCH_DIR is initialized to: $SCOTCH_DIR"
++if [ "$WM_USE_HOMEBREW" -eq "1" ]
++then
++    export SCOTCH_DIR=/usr/local/opt/scotch
++    export SCOTCH_BIN_DIR=/usr/local/opt/scotch/bin
++    export SCOTCH_LIB_DIR=/usr/local/opt/scotch/lib
++    export SCOTCH_INCLUDE_DIR=/usr/local/opt/scotch/include
++
++    [ -d "$SCOTCH_BIN_DIR" ] && _foamAddPath $SCOTCH_BIN_DIR
++    [ -d "$SCOTCH_LIB_DIR" ] && _foamAddLib $SCOTCH_LIB_DIR
++else
++    [ -z "$SCOTCH_SYSTEM" ] && _foamSource3rdPartyPackage scotch-6.0.0
++fi
++_foamEcho "    SCOTCH_DIR is initialized to: $SCOTCH_DIR"
+ 
+ 
+ # Load cmake
+ # ~~~~~~~~~~
+-[ -z "$CMAKE_SYSTEM" ] && [ -e $WM_THIRD_PARTY_DIR/packages/cmake-2.8.12/platforms/$WM_OPTIONS ] && {
+-    _foamSource $WM_THIRD_PARTY_DIR/packages/cmake-2.8.12/platforms/$WM_OPTIONS/etc/cmake-2.8.12.sh
+-}
+-[ "$FOAM_VERBOSE" -a "$PS1" ] && echo "    CMAKE_DIR is initialized to: $CMAKE_DIR"
++if [ "$WM_USE_HOMEBREW" -eq "1" ]
++then
++    export CMAKE_DIR=/usr/local/opt/cmake
++    export CMAKE_BIN_DIR=$CMAKE_BIN/bin
++
++    [ -d $CMAKE_BIN_DIR ] && _foamAddPath $CMAKE_BIN_DIR
++else
++    [ -z "$CMAKE_SYSTEM" ] _foamSource3rdPartyPackage cmake-2.8.12 $WM_OPTIONS
++fi
++_foamEcho "    CMAKE_DIR is initialized to: $CMAKE_DIR"
+ 
+ # Load m4
+ # ~~~~~~~~~~
+-[ -z "$M4_SYSTEM" ] && [ -e $WM_THIRD_PARTY_DIR/packages/m4-1.4.16/platforms/$WM_OPTIONS ] && {
+-    _foamSource $WM_THIRD_PARTY_DIR/packages/m4-1.4.16/platforms/$WM_OPTIONS/etc/m4-1.4.16.sh
+-}
+-[ "$FOAM_VERBOSE" -a "$PS1" ] && echo "    M4_DIR is initialized to: $M4_DIR"
++if [ "$WM_USE_HOMEBREW" -eq "1" ]
++then
++    export M4_DIR=/usr
++
++    export M4_BIN_DIR=/usr/bin
++    export M4_LIB_DIR=/usr/lib
++else
++    [ -z "$M4_SYSTEM" ] && _foamSource3rdPartyPackage m4-1.4.16
++fi
++_foamEcho "    M4_DIR is initialized to: $M4_DIR"
+ 
+ # Load bison
+ # ~~~~~~~~~~
+-[ -z "$BISON_SYSTEM" ] && [ -e $WM_THIRD_PARTY_DIR/packages/bison-2.7/platforms/$WM_OPTIONS ] && {
+-    _foamSource $WM_THIRD_PARTY_DIR/packages/bison-2.7/platforms/$WM_OPTIONS/etc/bison-2.7.sh
+-}
+-[ "$FOAM_VERBOSE" -a "$PS1" ] && echo "    BISON_DIR is initialized to: $BISON_DIR"
++if [ "$WM_USE_HOMEBREW" -eq "1" ]
++then
++    export BISON_DIR=/usr/local/opt/bison27
++
++    export BISON_BIN_DIR=$BISON_BIN_DIR/bin
++    export BISON_LIB_BIR=$BISON_LIB_DIR/lib
++
++    [ -d "$BISON_BIN_DIR" ] && _foamAddPath $BISON_BIN_DIR
++    [ -d "$BISON_LIB_DIR" ] && _foamAddLib $BISON_LIB_DIR
++else
++    [ -z "$BISON_SYSTEM" ] && _foamSource3rdPartyPackage bison-2.7 $WM_OPTIONS
++fi
++_foamEcho "    BISON_DIR is initialized to: $BISON_DIR"
+ 
+ # Load flex
+ # ~~~~~~~~~~
+-[ -z "$FLEX_SYSTEM" ] && [ -e $WM_THIRD_PARTY_DIR/packages/flex-2.5.35/platforms/$WM_OPTIONS ] && {
+-    _foamSource $WM_THIRD_PARTY_DIR/packages/flex-2.5.35/platforms/$WM_OPTIONS/etc/flex-2.5.35.sh
+-}
+-[ "$FOAM_VERBOSE" -a "$PS1" ] && echo "    FLEX_DIR is initialized to: $FLEX_DIR"
++if [ "$WM_USE_HOMEBREW" -eq "1" ]
++then
++    export FLEX_DIR=/usr
++    export FLEX_BIN_DIR=/usr/bin
++    export FLEX_LIB_DIR=/usr/lib
++else
++    [ -z "$FLEX_SYSTEM" ] && _foamSource3rdPartyPackage flex-2.5.35 $WM_OPTIONS
++fi
++_foamEcho "    FLEX_DIR is initialized to: $FLEX_DIR"
+ 
+ 
+ # Load zoltan
+ # ~~~~~~~~~~
+-[ -z "$ZOLTAN_SYSTEM" ] && [ -e $WM_THIRD_PARTY_DIR/packages/zoltan_3.5 ] && {
+-    _foamSource $WM_THIRD_PARTY_DIR/packages/zoltan_3.5/platforms/$WM_OPTIONS/etc/zoltan_3.5.sh
+-}
+-[ "$FOAM_VERBOSE" -a "$PS1" ] && echo "    ZOLTAN_DIR is initialized to: $ZOLTAN_DIR"
++if [ "$WM_USE_HOMEBREW" -eq "1" ]
++then
++    _foamEcho "    Skipping Zoltan configuration."
++else
++    [ -z "$ZOLTAN_SYSTEM" ] && _foamSource3rdPartyPackage zoltan_3.5 ""
++    _foamEcho "    ZOLTAN_DIR is initialized to: $ZOLTAN_DIR"
++fi
+ 
+ 
+ # Load Python
+ # ~~~~~~~~~~~
+-[ -z "$PYTHON_SYSTEM" ] && [ -e $WM_THIRD_PARTY_DIR/packages/Python-2.7/platforms/$WM_OPTIONS ] && {
+-    _foamSource $WM_THIRD_PARTY_DIR/packages/Python-2.7/platforms/$WM_OPTIONS/etc/Python-2.7.sh
+-}
+-[ "$FOAM_VERBOSE" -a "$PS1" ] && echo "    PYTHON_DIR is initialized to: $PYTHON_DIR"
++if [ "$WM_USE_HOMEBREW" -eq "1" ]
++then
++    _foamEcho "    Using system Python installation."
++else
++    [ -z "$PYTHON_SYSTEM" ] _foamSource3rdPartyPackage Python-2.7 $WM_OPTIONS
++    _foamEcho "    PYTHON_DIR is initialized to: $PYTHON_DIR"
++fi
+ 
+ # Load PyFoam
+ # ~~~~~~~~~~~
+-[ -z "$PYFOAM_SYSTEM" ] && [ -e $WM_THIRD_PARTY_DIR/packages/PyFoam-0.6.3/platforms/noarch ] && {
+-    _foamSource $WM_THIRD_PARTY_DIR/packages/PyFoam-0.6.3/platforms/noarch/etc/PyFoam-0.6.3.sh
+-}
+-[ "$FOAM_VERBOSE" -a "$PS1" ] && echo "    PYFOAM_DIR is initialized to: $PYFOAM_DIR"
++if [ "$WM_USE_HOMEBREW" -eq "1" ]
++then
++    _foamEcho "    Skipping PyFoam configuration."
++else
++    [ -z "$PYFOAM_SYSTEM" ] && _foamSource3rdPartyPackage PyFoam-0.6.3 noarch
++    _foamEcho "    PYFOAM_DIR is initialized to: $PYFOAM_DIR"
++fi
+ 
+ # Load hwloc
+ # ~~~~~~~~~~~
+-[ -z "$HWLOC_SYSTEM" ] && [ -e $WM_THIRD_PARTY_DIR/packages/hwloc-1.7.2/platforms/$WM_OPTIONS ] && {
+-    _foamSource $WM_THIRD_PARTY_DIR/packages/hwloc-1.7.2/platforms/$WM_OPTIONS/etc/hwloc-1.7.2.sh
+-}
+-[ "$FOAM_VERBOSE" -a "$PS1" ] && echo "    HWLOC_DIR is initialized to: $HWLOC_DIR"
++if [ "$WM_USE_HOMEBREW" -eq "1" ]
++then
++    export HWLOC_DIR=/usr/local/opt/hwloc
++    export HWLOC_BIN_DIR=$hwloc_dir/bin
++
++    [ -d "$HWLOC_BIN_DIR" ] && _foamAddPath $HWLOC_BIN_DIR
++else
++    [ -z "$HWLOC_SYSTEM" ] && _foamSource3rdPartyPackage hwloc-1.7.2 $WM_OPTIONS
++fi
++_foamEcho "    HWLOC_DIR is initialized to: $HWLOC_DIR"
+ 
+ # Load QT
+ # ~~~~~~~
+-[ ! -z "$QT_THIRD_PARTY" ] && [ -e $WM_THIRD_PARTY_DIR/packages/qt-everywhere-opensource-src-4.8.5/platforms/$WM_OPTIONS ] && {
+-    _foamSource $WM_THIRD_PARTY_DIR/packages/qt-everywhere-opensource-src-4.8.5/platforms/$WM_OPTIONS/etc/qt-everywhere-opensource-src-4.8.5.sh
+-}
+-[ "$FOAM_VERBOSE" -a "$PS1" ] && echo "    QT_DIR is initialized to: $QT_DIR"
++if [ "$WM_USE_HOMEBREW" -eq "1" ]
++then
++    _foamEcho "    Skipping QT configuration."
++else
++    [ ! -z "$QT_THIRD_PARTY" ] && \
++        _foamSource3rdPartyPackage qt-everywhere-opensource-src-4.8.5 $WM_OPTIONS
++    _foamEcho "    QT_DIR is initialized to: $QT_DIR"
++fi
+ 
+ 
+ # Load ParaView
+ # ~~~~~~~~~~~~~
+-[ -z "$PARAVIEW_SYSTEM" ] && [ -e $WM_THIRD_PARTY_DIR/packages/ParaView-4.0.1/platforms/$WM_OPTIONS ] && {
+-    _foamSource $WM_THIRD_PARTY_DIR/packages/ParaView-4.0.1/platforms/$WM_OPTIONS/etc/ParaView-4.0.1.sh
+-#[ -z "$PARAVIEW_SYSTEM" ] && [ -e $WM_THIRD_PARTY_DIR/packages/ParaView-3.14.1/platforms/$WM_OPTIONS ] && {
+-#    _foamSource $WM_THIRD_PARTY_DIR/packages/ParaView-3.14.1/platforms/$WM_OPTIONS/etc/ParaView-3.14.1.sh
+-#[ -z "$PARAVIEW_SYSTEM" ] && [ -e $WM_THIRD_PARTY_DIR/packages/ParaView-3.8.1/platforms/$WM_OPTIONS ] && {
+-#    _foamSource $WM_THIRD_PARTY_DIR/packages/ParaView-3.8.1/platforms/$WM_OPTIONS/etc/ParaView-3.8.1.sh
+-}
+-[ "$FOAM_VERBOSE" -a "$PS1" ] && echo "    PARAVIEW_DIR is initialized to: $PARAVIEW_DIR"
+-
++if [ "$(uname -s)" == "Darwin" ]
++then
++    if [ -f "/Applications/paraview.app/Contents/MacOS/paraview" ]
++    then
++        _foamEcho "    Using paraview.app from /Applications."
++        export PARAVIEW_DIR=/Applications/paraview.app/Contents
++        export PARAVIEW_BIN_DIR=$PARAVIEW_DIR/MacOS
++        export PARAVIEW_LIB_DIR=$PARAVIEW_DIR/Libraries
++        export PARAVIEW_INCLUDE_DIR=
++    else
++        _foamEcho "    Please install paraview.app into /Applications."
++    fi
++else
++    [ -z "$PARAVIEW_SYSTEM" ] && _foamSource3rdPartyPackage ParaView-4.0.1 $WM_OPTIONS
++    #[ -z "$PARAVIEW_SYSTEM" ] && [ -e $WM_THIRD_PARTY_DIR/packages/ParaView-3.14.1/platforms/$WM_OPTIONS ] && {
++    #    _foamSource $WM_THIRD_PARTY_DIR/packages/ParaView-3.14.1/platforms/$WM_OPTIONS/etc/ParaView-3.14.1.sh
++    #[ -z "$PARAVIEW_SYSTEM" ] && [ -e $WM_THIRD_PARTY_DIR/packages/ParaView-3.8.1/platforms/$WM_OPTIONS ] && {
++    #    _foamSource $WM_THIRD_PARTY_DIR/packages/ParaView-3.8.1/platforms/$WM_OPTIONS/etc/ParaView-3.8.1.sh
++fi
++_foamEcho "    PARAVIEW_DIR is initialized to: $PARAVIEW_DIR"
++
++# OS X addr2line emulation selection
++if [ "$(uname -s)" == "Darwin" ]; then
++    if $(xcrun --find lldb > /dev/null 2>&1); then
++        export FOAM_ADDR2LINE="lldb"
++    elif $(xcrun --find atos > /dev/null 2>&1); then
++        export FOAM_ADDR2LINE="atos"
++    else
++        export FOAM_ADDR2LINE="py"
++    fi
++fi
+ 
+ # cleanup environment:
+ # ~~~~~~~~~~~~~~~~~~~~
+-unset _foamAddPath _foamAddLib minBufferSize
++unset _foamAddPath _foamAddLib minBufferSize _foamSource3rdPartyPackage \
++    _foam3rdPartyDir
+ 
+ # -----------------------------------------------------------------------------
+diff --git a/src/Allwmake b/src/Allwmake
+index 59c69dd..dbc30de 100755
+--- a/src/Allwmake
++++ b/src/Allwmake
+@@ -19,6 +19,14 @@ wmakeLnInclude meshTools
+ wmakeLnInclude OSspecific/$WM_OSTYPE
+ Pstream/Allwmake
+ 
++if [ "$FOAM_ADDR2LINE" == "lldb" ]; then
++    export FOAM_PRINTSTACK_CFLAGS="-DFOAM_ADDR2LINE_LLDB"
++elif [ "$FOAM_ADDR2LINE" == "atos" ]; then
++    export FOAM_PRINTSTACK_CFLAGS="-DFOAM_ADDR2LINE_ATOS"
++else
++    export FOAM_PRINTSTACK_CFLAGS="-DFOAM_ADDR2LINE_PY"
++fi
++
+ wmake libo  OSspecific/$WM_OSTYPE
+ wmake libso foam
+ 
+diff --git a/src/OSspecific/POSIX/Make/options b/src/OSspecific/POSIX/Make/options
+index e69de29..2eb6ac7 100644
+--- a/src/OSspecific/POSIX/Make/options
++++ b/src/OSspecific/POSIX/Make/options
+@@ -0,0 +1,2 @@
++EXE_INC = \
++    ${FOAM_PRINTSTACK_CFLAGS}
+diff --git a/src/OSspecific/POSIX/printStack.C b/src/OSspecific/POSIX/printStack.C
+index 7b28ef9..8030291 100644
+--- a/src/OSspecific/POSIX/printStack.C
++++ b/src/OSspecific/POSIX/printStack.C
+@@ -1,25 +1,25 @@
+ /*---------------------------------------------------------------------------*\
+   =========                 |
+-  \\      /  F ield         | foam-extend: Open Source CFD
++  \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+    \\    /   O peration     |
+-    \\  /    A nd           | For copyright notice see file Copyright
++    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+      \\/     M anipulation  |
+ -------------------------------------------------------------------------------
+ License
+-    This file is part of foam-extend.
++    This file is part of OpenFOAM.
+ 
+-    foam-extend is free software: you can redistribute it and/or modify it
+-    under the terms of the GNU General Public License as published by the
+-    Free Software Foundation, either version 3 of the License, or (at your
+-    option) any later version.
++    OpenFOAM is free software: you can redistribute it and/or modify it
++    under the terms of the GNU General Public License as published by
++    the Free Software Foundation, either version 3 of the License, or
++    (at your option) any later version.
+ 
+-    foam-extend is distributed in the hope that it will be useful, but
+-    WITHOUT ANY WARRANTY; without even the implied warranty of
+-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+-    General Public License for more details.
++    OpenFOAM is distributed in the hope that it will be useful, but WITHOUT
++    ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
++    FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
++    for more details.
+ 
+     You should have received a copy of the GNU General Public License
+-    along with foam-extend.  If not, see <http://www.gnu.org/licenses/>.
++    along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
+ 
+ \*---------------------------------------------------------------------------*/
+ 
+@@ -28,16 +28,12 @@ License
+ #include "OStringStream.H"
+ #include "OSspecific.H"
+ #include "IFstream.H"
+-#include "readHexLabel.H"
+ 
++#include <stdio.h>
++#include <regex.h>
+ #include <cxxabi.h>
+ #include <execinfo.h>
+ #include <dlfcn.h>
+-#include <string.h>
+-
+-#ifdef darwin
+-#include <mach-o/dyld.h>
+-#endif
+ 
+ // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+ 
+@@ -45,116 +41,162 @@ namespace Foam
+ {
+ 
+ // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+-
+ string pOpen(const string &cmd, label line=0)
+ {
+-    const int MAX = 1000;
++    char *buf = NULL;
++    size_t linecap = 0;
++    ssize_t linelen;
++    string res = "\n";
+ 
+-    FILE *cmdPipe = popen(cmd.c_str(), "r");
++    FILE *pipe = popen(cmd.c_str(), "r");
+ 
+-    if (cmdPipe)
++    if (pipe)
+     {
+         // Read line number of lines
+         for (label cnt = 0; cnt <= line; cnt++)
+         {
+-            char buffer[MAX];
++            linelen = getline(&buf, &linecap, pipe);
+ 
+-            char* s = fgets(buffer, MAX-1, cmdPipe);
+-
+-            if (s == NULL)
+-            {
+-#ifdef darwin
+-                // workaround for the Python-Script
+-                for(int i=0;i<MAX;i++) {
+-                    if(buffer[i]=='\n') {
+-                        buffer[i]='\0';
+-                    }
+-                }
+-                return buffer;
+-#else
+-                return "";
+-#endif
+-            }
++            if (linelen < 0)
++                break;
+ 
+             if (cnt == line)
+             {
+-                string str(buffer);
+-                return str.substr(0, str.size()-1);
++                res = string(buf);
++                break;
+             }
+         }
+-        pclose(cmdPipe);
++
++        if (buf != NULL)
++            free(buf);
++
++        pclose(pipe);
+     }
+ 
+-    return "";
++    return res.substr(0, res.size() - 1);
+ }
+ 
++inline word addr2word(void *p)
++{
++    const size_t WORD_SIZE = 18 + 1; // from (g)libc
++    char buf[WORD_SIZE];
++    snprintf(buf, WORD_SIZE, "%p", p);
+ 
+-// use popen to call addr2line (using bfd.h directly would have
+-// meant relinking everything)
++    return word(buf);
++}
+ 
+ void printSourceFileAndLine
+ (
+     Ostream& os,
+-    const HashTable<label, fileName>& addressMap,
+     const fileName& filename,
+-    const word& address
++    void* address,
++    Dl_info* info
+ )
+ {
+-    word myAddress = address;
++    word myAddress = addr2word(address);
+ 
+ #ifndef darwin
+     if (filename.ext() == "so")
+-#else
+-    if (filename.ext() == "dylib")
+-#endif
+     {
+         // Convert offset into .so into offset into executable.
+ 
+-        void *addr;
+-        sscanf(myAddress.c_str(), "%p",&addr);
+-
+-        Dl_info info;
+-
+-        dladdr(addr, &info);
++        dladdr(address, info);
+ 
+-        unsigned long offset = reinterpret_cast<unsigned long>(info.dli_fbase);
++        unsigned long offset = reinterpret_cast<unsigned long>(info->dli_fbase);
++        void* rel = address - offset;
+ 
+-        IStringStream addressStr(address.substr(2));
+-        label addressValue = readHexLabel(addressStr);
+-        label relativeAddress = addressValue-offset;
+-
+-        // Reconstruct hex word from address
+-        OStringStream nStream;
+-        nStream << "0x" << hex << relativeAddress;
+-        myAddress = nStream.str();
++        myAddress = addr2word(rel);
+     }
++#endif
+ 
+-#ifndef darwin
+     if (filename[0] == '/')
+-#else
+-    if (1)
+-#endif
+     {
+         string line = pOpen
+         (
+ #ifndef darwin
+             "addr2line -f --demangle=auto --exe "
+-#else
+-            "addr2line4Mac.py "
+-#endif
+           + filename
+           + " "
+           + myAddress,
+             1
++#else
++#if defined FOAM_ADDR2LINE_ATOS
++            "xcrun atos -o "
++          + filename 
++          + " -l "
++          + addr2word(info->dli_fbase)
++          + " "
++          + myAddress
++#elif defined FOAM_ADDR2LINE_LLDB
++            "echo 'image lookup -a "
++          + myAddress
++          + " "
++          + filename 
++          + "'"
++          + " | xcrun lldb "
++          + "-O 'target create --no-dependents -a x86_64 "
++          + filename
++          + "' -o '"
++          + "target modules load -f "
++          + filename
++          + " __TEXT "
++          + addr2word(info->dli_fbase)
++          + "'"
++          + " | tail -1"
++#else
++            "addr2line_mac.py"
++          + filename
++          + " "
++          + myAddress
++#endif
++#endif // darwin
+         );
+ 
++#ifdef darwin
++        {
++            const char *buf = line.c_str();
++            regex_t re;
++            regmatch_t mt[3];
++            int st;
++
++#if defined FOAM_ADDR2LINE_ATOS
++            regcomp(&re, ".\\+(in.\\+) (\\(.\\+\\):\\(\\d\\+\\))",
++                REG_ENHANCED);
++#elif defined FOAM_ADDR2LINE_LLDB
++            regcomp(&re, ".\\+at \\(.\\+\\):\\(\\d\\+\\)", REG_ENHANCED);
++#endif
++
++#if defined FOAM_ADDR2LINE_ATOS || defined FOAM_ADDR2LINE_LLDB
++            st = regexec(&re, buf, 3, mt, 0);
++
++            if (st == REG_NOMATCH)
++            {
++                line = "??:0";
++            }
++            else
++            {
++                size_t len = mt[1].rm_eo - mt[1].rm_so;
++                string fname(buf + mt[1].rm_so, len);
++                len = mt[2].rm_eo - mt[2].rm_so;
++                string lnum(buf + mt[2].rm_so, len);
++                line = fname + ":" + lnum;
++            }
++            regfree(&re);
++#endif
++        }
++#endif  // darwin
++
+         if (line == "")
+         {
+             os  << " addr2line failed";
+         }
+         else if (line == "??:0")
+         {
+-            os  << " in " << filename;
++            string line = static_cast<string>(filename);
++            string cwdLine(line.replaceAll(cwd() + '/', ""));
++            string homeLine(cwdLine.replaceAll(home(), '~'));
++
++            os  << " in " << homeLine.c_str();
+         }
+         else
+         {
+@@ -166,224 +208,82 @@ void printSourceFileAndLine
+     }
+ }
+ 
+-
+-void getSymbolForRaw
+-(
+-    Ostream& os,
+-    const string& raw,
+-    const fileName& filename,
+-    const word& address
+-)
++fileName absolutePath(const char* fn)
+ {
+-    if (filename.size() && filename[0] == '/')
++    fileName fname(fn);
++
++    if (fname[0] != '/' && fname[0] != '~')
+     {
+-        string fcnt = pOpen
+-        (
+-#ifndef darwin
+-            "addr2line -f --demangle=auto --exe "
+-#else
+-            "addr2line4Mac.py "
+-#endif
+-          + filename
+-          + " "
+-          + address
+-        );
++        string tmp = pOpen("which " + fname);
+ 
+-        if (fcnt != "")
+-        {
+-            os  << fcnt.c_str();
+-            return;
+-        }
++        if (tmp[0] == '/' || tmp[0] == '~')
++            fname = tmp;
+     }
+-    os  << "Uninterpreted: " << raw.c_str();
++
++    return fname;
+ }
+ 
+-void error::printStack(Ostream& os)
++string demangleSymbol(const char* sn)
+ {
+-    // Do not print anything if FOAM_ABORT is not set
+-    if (!env("FOAM_ABORT"))
++    string res;
++    int st;
++    char* cxx_sname = abi::__cxa_demangle
++    (
++        sn,
++        NULL,
++        0,
++        &st
++    );
++
++    if (st == 0 && cxx_sname)
+     {
+-        return;
++        res = string(cxx_sname);
++        free(cxx_sname);
+     }
+-
+-    // Reads the starting addresses for the dynamically linked libraries
+-    // from the /proc/pid/maps-file
+-    // I'm afraid this works only for Linux 2.6-Kernels (may work on 2.4)
+-    // Note2: the filenames in here will have softlinks resolved so will
+-    // go wrong when having e.g. FOAM installed under a softlink.
+-
+-    HashTable<label, fileName> addressMap;
++    else
+     {
+-        IFstream is("/proc/" + name(pid()) + "/maps");
+-
+-        while (is.good())
+-        {
+-            string line;
+-            is.getLine(line);
+-
+-            string::size_type space = line.rfind(' ') + 1;
+-            fileName libPath = line.substr(space, line.size()-space);
+-
+-            if (libPath.size() && libPath[0] == '/')
+-            {
+-                string offsetString(line.substr(0, line.find('-')));
+-                IStringStream offsetStr(offsetString);
+-                addressMap.insert(libPath, readHexLabel(offsetStr));
+-            }
+-        }
++        res = string(sn);
+     }
+ 
+-    // Get raw stack symbols
+-    void *array[100];
+-    size_t size = backtrace(array, 100);
+-    char **strings = backtrace_symbols(array, size);
+-
+-    // See if they contain function between () e.g. "(__libc_start_main+0xd0)"
+-    // and see if cplus_demangle can make sense of part before +
+-    // HJ, formatting of stack backtrace.  17/Dec/2008
+-    os << nl;
+-    for (size_t i = 0; i < size; i++)
+-    {
+-        string msg(strings[i]);
+-        fileName programFile;
+-        word address;
++    return res;
++}
+ 
+-        os  << '#' << label(i) << "  ";
+-        //os  << "Raw   : " << msg << "\n\t";
+-#ifndef darwin
+-        {
+-            string::size_type lPos = msg.find('[');
+-            string::size_type rPos = msg.find(']');
+ 
+-            if (lPos != string::npos && rPos != string::npos && lPos < rPos)
+-            {
+-                address = msg.substr(lPos+1, rPos-lPos-1);
+-                msg = msg.substr(0, lPos);
+-            }
++void error::printStack(Ostream& os)
++{
++    // Get raw stack symbols
++    const size_t CALLSTACK_SIZE = 128;
+ 
+-            string::size_type bracketPos = msg.find('(');
+-            string::size_type spacePos = msg.find(' ');
+-            if (bracketPos != string::npos || spacePos != string::npos)
+-            {
+-                programFile = msg.substr(0, min(spacePos, bracketPos));
+-
+-                // not an absolute path
+-                if (programFile[0] != '/')
+-                {
+-                    string tmp = pOpen("which " + programFile);
+-                    if (tmp[0] == '/' || tmp[0] == '~')
+-                    {
+-                        programFile = tmp;
+-                    }
+-                }
+-            }
+-        }
++    void *callstack[CALLSTACK_SIZE];
++    size_t size = backtrace(callstack, CALLSTACK_SIZE);
+ 
+-        string::size_type bracketPos = msg.find('(');
+-#else
+-        string::size_type counter=0;
+-        while(msg[counter]!=' ') {
+-            counter++;
+-        }
+-        while(msg[counter]==' ') {
+-            counter++;
+-        }
+-        string::size_type fileStart=counter;
+-        while(msg[counter]!=' ') {
+-            counter++;
+-        }
+-        programFile = msg.substr(fileStart,counter-fileStart);
+-        if(programFile=="???") {
+-            char path[1024];
+-            uint32_t size = sizeof(path);
+-            if (_NSGetExecutablePath(path, &size) == 0) {
+-                programFile=path;
+-            } else {
+-                programFile="unknownFile";
+-            }
+-        }
+-        while(msg[counter]==' ') {
+-            counter++;
+-        }
+-        string::size_type addrStart=counter;
+-        while(msg[counter]!=' ') {
+-            counter++;
+-        }
+-        address = msg.substr(addrStart,counter-addrStart);
+-#endif
+-#ifndef darwin
+-        if (bracketPos != string::npos)
+-        {
+-            string::size_type start = bracketPos+1;
++    Dl_info *info = new Dl_info;
+ 
+-            string::size_type plusPos = msg.find('+', start);
++    fileName fname = "???";
+ 
+-            if (plusPos != string::npos)
+-            {
+-                string cName(msg.substr(start, plusPos-start));
+-#else
+-        if(1){
+-            while(msg[counter]==' ') {
+-                counter++;
+-            }
+-            string::size_type nameStart=counter;
+-            while(msg[counter]!=' ') {
+-                counter++;
+-            }
++    for(size_t i = 0; i < size; i++)
++    {
++        int st = dladdr(callstack[i], info);
+ 
+-            string::size_type start = counter;
++        os << '#' << label(i) << "  ";
++        if (st != 0 && info->dli_fname != NULL && info->dli_fname[0] != '\0')
++        {
++            fname = absolutePath(info->dli_fname);
+ 
+-            if(1) {
+-                string cName(msg.substr(nameStart,counter-nameStart));
+-#endif
+-                int status;
+-                char* cplusNamePtr = abi::__cxa_demangle
+-                (
+-                    cName.c_str(),
+-                    NULL,                   // have it malloc itself
+-                    0,
+-                    &status
+-                );
+-
+-                if (status == 0 && cplusNamePtr)
+-                {
+-                    os  << cplusNamePtr;
+-                    free(cplusNamePtr);
+-                }
+-                else
+-                {
+-                    os  << cName.c_str();
+-                }
+-            }
+-            else
+-            {
+-                string::size_type endBracketPos = msg.find(')', start);
+-
+-                if (endBracketPos != string::npos)
+-                {
+-                    string fullName(msg.substr(start, endBracketPos-start));
+-
+-                    os  << fullName.c_str() << nl;
+-                }
+-                else
+-                {
+-                    // Print raw message
+-                    getSymbolForRaw(os, msg, programFile, address);
+-                }
+-            }
++            os << ((info->dli_sname != NULL) ?
++                demangleSymbol(info->dli_sname) : "?");
+         }
+         else
+         {
+-            // Print raw message
+-            getSymbolForRaw(os, msg, programFile, address);
++            os << "(unresolved)";
+         }
+ 
+-        printSourceFileAndLine(os, addressMap, programFile, address);
++        printSourceFileAndLine(os, fname, callstack[i], info);
+ 
+-        os  << nl;
++        os << nl;
+     }
+ 
+-    free(strings);
++    delete info;
+ }
+ 
+ 
+diff --git a/src/dbns/Make/options b/src/dbns/Make/options
+index 84bb1b8..4e28577 100644
+--- a/src/dbns/Make/options
++++ b/src/dbns/Make/options
+@@ -1,3 +1,15 @@
++ifeq "${WM_USE_HOMEBREW}" "1"
++EXE_INC = -g \
++    -I$(LIB_SRC)/finiteVolume/lnInclude \
++    -I$(LIB_SRC)/meshTools/lnInclude \
++    -I$(LIB_SRC)/thermophysicalModels/basic/lnInclude \
++    -I$(LIB_SRC)/turbulenceModels/compressible/turbulenceModel \
++    -I$(PARMGRIDGEN_INCLUDE_DIR)
++
++LIB_LIBS = \
++    -lfiniteVolume \
++    -L$(PARMGRIDGEN_LIB_DIR) -lIMlib -lmgrid
++else
+ EXE_INC = -g \
+     -I$(LIB_SRC)/finiteVolume/lnInclude \
+     -I$(LIB_SRC)/meshTools/lnInclude \
+@@ -9,3 +21,5 @@ EXE_INC = -g \
+ LIB_LIBS = \
+     -lfiniteVolume \
+     -L$(PARMGRIDGEN_LIB_DIR) -lIMlib -lMGridGen
++endif
++
+diff --git a/src/decompositionMethods/parMetisDecomp/Make/options b/src/decompositionMethods/parMetisDecomp/Make/options
+index 92d249e..068d4c1 100644
+--- a/src/decompositionMethods/parMetisDecomp/Make/options
++++ b/src/decompositionMethods/parMetisDecomp/Make/options
+@@ -3,6 +3,7 @@ include $(RULES)/mplib$(WM_MPLIB)
+ EXE_INC = \
+     $(PFLAGS) $(PINC) \
+     -I$(PARMETIS_INCLUDE_DIR) \
++    -I$(METIS_INCLUDE_DIR) \
+     -I../decompositionMethods/lnInclude \
+     -I../metisDecomp/lnInclude \
+     -I../scotchDecomp/lnInclude
+diff --git a/src/dynamicMesh/meshMotion/Allwmake b/src/dynamicMesh/meshMotion/Allwmake
+index beeef85..3e866c9 100755
+--- a/src/dynamicMesh/meshMotion/Allwmake
++++ b/src/dynamicMesh/meshMotion/Allwmake
+@@ -6,7 +6,7 @@ set -x
+ wmake libso solidBodyMotion
+ wmake libso fvMotionSolver
+ wmake libso RBFMotionSolver
+-wmake libso mesquiteMotionSolver
++[ -n "$MESQUITE_DIR" ] && wmake libso mesquiteMotionSolver
+ wmake libso tetMotionSolver
+ 
+ # ----------------------------------------------------------------- end-of-file
+diff --git a/src/dynamicMesh/meshMotion/AllwmakeLnInclude b/src/dynamicMesh/meshMotion/AllwmakeLnInclude
+index 90b3e84..cd1424b 100755
+--- a/src/dynamicMesh/meshMotion/AllwmakeLnInclude
++++ b/src/dynamicMesh/meshMotion/AllwmakeLnInclude
+@@ -5,4 +5,4 @@ set -x
+ wmakeLnInclude solidBodyMotion
+ wmakeLnInclude fvMotionSolver
+ wmakeLnInclude RBFMotionSolver
+-wmakeLnInclude mesquiteMotionSolver
++[ -n "$MESQUITE_DIR" ] && wmakeLnInclude mesquiteMotionSolver
+diff --git a/src/finiteVolume/fields/fvPatchFields/basic/zeroGradient/zeroGradientFvPatchFields.C b/src/finiteVolume/fields/fvPatchFields/basic/zeroGradient/zeroGradientFvPatchFields.C
+index 6c8aa1c..74d4f2d 100644
+--- a/src/finiteVolume/fields/fvPatchFields/basic/zeroGradient/zeroGradientFvPatchFields.C
++++ b/src/finiteVolume/fields/fvPatchFields/basic/zeroGradient/zeroGradientFvPatchFields.C
+@@ -25,8 +25,8 @@ License
+ 
+ #include "zeroGradientFvPatchFields.H"
+ #include "fvPatchFields.H"
+-#include "addToRunTimeSelectionTable.H"
+ #include "volFields.H"
++#include "addToRunTimeSelectionTable.H"
+ 
+ // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+ 
+diff --git a/src/finiteVolume/fvMatrices/fvMatrix/fvMatrix.C b/src/finiteVolume/fvMatrices/fvMatrix/fvMatrix.C
+index 8f25b62..5e27045 100644
+--- a/src/finiteVolume/fvMatrices/fvMatrix/fvMatrix.C
++++ b/src/finiteVolume/fvMatrices/fvMatrix/fvMatrix.C
+@@ -30,6 +30,13 @@ License
+ #include "coupledFvPatchFields.H"
+ #include "transformField.H"
+ 
++#ifdef WM_USE_NATIVE_CLANG
++// Workaround for "explicit specialization of 'typeName' after
++// instantiation" error if building with native OS X clang++
++template<>
++const Foam::word Foam::zeroGradientFvPatchScalarField::typeName;
++#endif
++
+ // * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
+ 
+ template<class Type>
+diff --git a/src/foam/Make/options b/src/foam/Make/options
+index 5d55cb1..7fbf955 100644
+--- a/src/foam/Make/options
++++ b/src/foam/Make/options
+@@ -1,5 +1,9 @@
++ifeq "${WM_USE_NATIVE_CLANG}" "1"
++EXE_INC =
++else
+ EXE_INC = \
+     -I$(WM_THIRD_PARTY_DIR)/zlib-1.2.3
++endif
+ 
+ LIB_LIBS = \
+     $(FOAM_LIBBIN)/libOSspecific.o \
+diff --git a/src/fvAgglomerationMethods/Allwmake b/src/fvAgglomerationMethods/Allwmake
+index 17118db..d47a569 100755
+--- a/src/fvAgglomerationMethods/Allwmake
++++ b/src/fvAgglomerationMethods/Allwmake
+@@ -2,6 +2,9 @@
+ cd ${0%/*} || exit 1    # run from this directory
+ set -x
+ 
+-wmake libso MGridGenGamgAgglomeration
++if [ -n "$PARMGRIDGEN_DIR" ]
++then
++    wmake libso MGridGenGamgAgglomeration
++fi
+ 
+ # ----------------------------------------------------------------- end-of-file
+diff --git a/src/fvAgglomerationMethods/MGridGenGamgAgglomeration/Make/options b/src/fvAgglomerationMethods/MGridGenGamgAgglomeration/Make/options
+index 15ed337..fa27f38 100644
+--- a/src/fvAgglomerationMethods/MGridGenGamgAgglomeration/Make/options
++++ b/src/fvAgglomerationMethods/MGridGenGamgAgglomeration/Make/options
+@@ -5,6 +5,15 @@ TYPE_REAL=
+ TYPE_REAL=-DTYPE_REAL
+ #endif
+ 
++ifeq "${WM_USE_HOMEBREW}" "1"
++EXE_INC = \
++    -I$(LIB_SRC)/finiteVolume/lnInclude \
++    -I$(PARMGRIDGEN_INCLUDE_DIR) \
++    $(TYPE_REAL)
++
++LIB_LIBS = \
++    -L$(PARMGRIDGEN_LIB_DIR) -lmgrid
++else
+ EXE_INC = \
+     -I$(LIB_SRC)/finiteVolume/lnInclude \
+     -I$(PARMGRIDGEN_INCLUDE_DIR)/Lib    \
+@@ -13,3 +22,4 @@ EXE_INC = \
+ 
+ LIB_LIBS = \
+     -L$(PARMGRIDGEN_LIB_DIR) -lMGridGen
++endif
+diff --git a/src/sampling/sampledSurface/writers/surfaceWriter.C b/src/sampling/sampledSurface/writers/surfaceWriter.C
+index 0fa2e98..0e34eee 100644
+--- a/src/sampling/sampledSurface/writers/surfaceWriter.C
++++ b/src/sampling/sampledSurface/writers/surfaceWriter.C
+@@ -32,6 +32,13 @@ License
+ #include "HashTable.H"
+ #include "word.H"
+ 
++#ifdef WM_USE_NATIVE_CLANG
++template<>
++Foam::surfaceWriter<bool>::wordConstructorTable*
++Foam::surfaceWriter<bool>::wordConstructorTablePtr_;
++#endif
++
++
+ // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
+ 
+ template<class Type>
+diff --git a/wmake/rules/darwinIntel64Clang/c b/wmake/rules/darwinIntel64Clang/c
+index 86f1e14..0c49adc 100644
+--- a/wmake/rules/darwinIntel64Clang/c
++++ b/wmake/rules/darwinIntel64Clang/c
+@@ -7,7 +7,7 @@ cc          = $(WM_CC) -m64   -ftrapping-math
+ 
+ include $(RULES)/c$(WM_COMPILE_OPTION)
+ 
+-cFLAGS      = $(GFLAGS) $(cWARN) $(cOPT) $(cDBUG) $(LIB_HEADER_DIRS) -fPIC -Ddarwin
++cFLAGS      = $(GFLAGS) $(cWARN) $(cOPT) $(cDBUG) $(LIB_HEADER_DIRS) -fPIC -Ddarwin -std=c11
+ 
+ ctoo        = $(WM_SCHEDULER) $(cc) $(cFLAGS) -c $$SOURCE -o $@
+ 
+diff --git a/wmake/rules/darwinIntel64Clang/c++ b/wmake/rules/darwinIntel64Clang/c++
+index 450c970..880db53 100644
+--- a/wmake/rules/darwinIntel64Clang/c++
++++ b/wmake/rules/darwinIntel64Clang/c++
+@@ -1,6 +1,10 @@
+ .SUFFIXES: .C .cxx .cc .cpp
+ 
++ifeq "${WM_USE_NATIVE_CLANG}" "1"
++c++WARN     = -Wall -Wextra -Wno-unused-parameter -Wold-style-cast -Wnon-virtual-dtor -Wno-overloaded-virtual -Wno-unused-comparison -Wno-deprecated-register -Wno-old-style-cast -Wno-undefined-bool-conversion
++else
+ c++WARN     = -Wall -Wextra -Wno-unused-parameter -Wold-style-cast -Wnon-virtual-dtor -Wno-overloaded-virtual -Wno-unused-comparison
++endif
+ 
+ CC          = $(WM_CXX) -m64  -ftrapping-math
+ # -fsignaling-nans
+@@ -9,7 +13,11 @@ include $(RULES)/c++$(WM_COMPILE_OPTION)
+ 
+ ptFLAGS     = -DNoRepository -ftemplate-depth-200
+ 
++ifeq "${WM_USE_NATIVE_CLANG}" "1"
++c++FLAGS    = $(GFLAGS) $(c++WARN) $(c++OPT) $(c++DBUG) $(ptFLAGS) $(LIB_HEADER_DIRS) -fPIC -Ddarwin -std=c++11 -DWM_USE_NATIVE_CLANG
++else
+ c++FLAGS    = $(GFLAGS) $(c++WARN) $(c++OPT) $(c++DBUG) $(ptFLAGS) $(LIB_HEADER_DIRS) -fPIC -Ddarwin -I/opt/local/include
++endif
+ 
+ Ctoo        = $(WM_SCHEDULER) $(CC) $(c++FLAGS) -c $$SOURCE -o $@
+ cxxtoo      = $(Ctoo)
+diff --git a/wmake/rules/darwinIntel64Clang/mplibBREWMPICH2 b/wmake/rules/darwinIntel64Clang/mplibBREWMPICH2
+new file mode 100644
+index 0000000..2742ce5
+--- /dev/null
++++ b/wmake/rules/darwinIntel64Clang/mplibBREWMPICH2
+@@ -0,0 +1,3 @@
++PFLAGS     = -DOMPI_SKIP_MPICXX
++PINC       = -I/usr/local/opt/mpich2/include
++PLIBS      = -L/use/local/opt/mpich2/lib -lmpi -lpmpi
+diff --git a/wmake/rules/darwinIntel64Clang/mplibBREWOPENMPI b/wmake/rules/darwinIntel64Clang/mplibBREWOPENMPI
+new file mode 100644
+index 0000000..e5ea5b0
+--- /dev/null
++++ b/wmake/rules/darwinIntel64Clang/mplibBREWOPENMPI
+@@ -0,0 +1,3 @@
++PFLAGS     = -DOMPI_SKIP_MPICXX
++PINC       = $(shell mpicc --showme:compile)
++PLIBS      = $(shell mpicc --showme:link)

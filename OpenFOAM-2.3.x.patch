@@ -783,10 +783,10 @@ index 104fd76..2af2ba0 100644
  
  # ----------------------------------------------------------------- end-of-file
 diff --git a/etc/config/CGAL.sh b/etc/config/CGAL.sh
-index dc8772d..e05dbbf 100644
+index dc8772d..9cd5f47 100644
 --- a/etc/config/CGAL.sh
 +++ b/etc/config/CGAL.sh
-@@ -29,11 +29,50 @@
+@@ -29,17 +29,56 @@
  #     Sourced from OpenFOAM-<VERSION>/etc/bashrc
  #------------------------------------------------------------------------------
  
@@ -841,6 +841,14 @@ index dc8772d..e05dbbf 100644
  
  if [ "$FOAM_VERBOSE" -a "$PS1" ]
  then
+     echo "Using CGAL and boost"
+-    echo "    $cgal_version at $CGAL_ARCH_PATH"
+-    echo "    $boost_version at $BOOST_ARCH_PATH"
++    echo "    CGAL $cgal_ver at $CGAL_ARCH_PATH"
++    echo "    Boost $boost_ver at $BOOST_ARCH_PATH"
+ fi
+ 
+ if [ -d "$CGAL_ARCH_PATH" ]
 @@ -52,6 +91,22 @@ then
      _foamAddLib $BOOST_ARCH_PATH/lib
  fi
@@ -877,6 +885,34 @@ index 7f120a5..a8d50b2 100644
  
  if [ -n "$WM_PROJECT_SITE" ]
  then
+diff --git a/etc/config/metis.sh b/etc/config/metis.sh
+index af7efde..7cfc767 100644
+--- a/etc/config/metis.sh
++++ b/etc/config/metis.sh
+@@ -33,7 +33,21 @@
+ #     during the wmake process
+ #------------------------------------------------------------------------------
+ 
+-export METIS_VERSION=metis-5.1.0
+-export METIS_ARCH_PATH=$WM_THIRD_PARTY_DIR/platforms/$WM_ARCH$WM_COMPILER/$METIS_VERSION
++# prefix to LD_LIBRARY_PATH
++_foamAddLib()
++{
++    while [ $# -ge 1 ]
++    do
++        export LD_LIBRARY_PATH=$1:$LD_LIBRARY_PATH
++        [ "$(uname -s)" == "Darwin" ] \
++            && export DYLD_LIBRARY_PATH=$1:$DYLD_LIBRARY_PATH
++        shift
++    done
++}
++
++export METIS_VERSION="$(basename "$(readlink /usr/local/opt/metis)")"
++export METIS_ARCH_PATH=/usr/local/opt/metis
++
++_foamAddLib $METIS_ARCH_PATH/lib
+ 
+ # -----------------------------------------------------------------------------
 diff --git a/etc/config/paraview.sh b/etc/config/paraview.sh
 index 667b92a..feeed2c 100644
 --- a/etc/config/paraview.sh
@@ -2770,6 +2806,38 @@ index dcdfd75..9bfbc5f 100644
      }
  
      scalar limiter
+diff --git a/src/fvAgglomerationMethods/Allwmake b/src/fvAgglomerationMethods/Allwmake
+index 4fc3ed6..21f0376 100755
+--- a/src/fvAgglomerationMethods/Allwmake
++++ b/src/fvAgglomerationMethods/Allwmake
+@@ -3,9 +3,9 @@ cd ${0%/*} || exit 1    # run from this directory
+ makeType=${1:-libso}
+ set -x
+ 
+-export ParMGridGen=$WM_THIRD_PARTY_DIR/ParMGridGen-1.0
++export ParMGridGen=/usr/local/opt/parmgridgen
+ 
+-if [ -e "$FOAM_LIBBIN/libMGridGen.so" ]
++if [ -e "$ParMGridGen/lib/libmgrid.a" ]
+ then
+     wmake $makeType MGridGenGamgAgglomeration
+ fi
+diff --git a/src/fvAgglomerationMethods/MGridGenGamgAgglomeration/Make/options b/src/fvAgglomerationMethods/MGridGenGamgAgglomeration/Make/options
+index a58b65f..bfd4486 100644
+--- a/src/fvAgglomerationMethods/MGridGenGamgAgglomeration/Make/options
++++ b/src/fvAgglomerationMethods/MGridGenGamgAgglomeration/Make/options
+@@ -7,9 +7,8 @@ TYPE_REAL=-DTYPE_REAL
+ 
+ EXE_INC = \
+     -I$(LIB_SRC)/finiteVolume/lnInclude \
+-    -I$(ParMGridGen)/MGridGen/Lib/lnInclude \
+-    -I$(ParMGridGen)/MGridGen/IMlib/lnInclude \
++    -I$(ParMGridGen)/include \
+     $(TYPE_REAL)
+ 
+ LIB_LIBS = \
+-    -L$(FOAM_EXT_LIBBIN) -lMGridGen
++    -L$(ParMGridGen)/lib -lmgrid
 diff --git a/src/fvOptions/Make/options b/src/fvOptions/Make/options
 index d4edb59..8e3dc53 100644
 --- a/src/fvOptions/Make/options
@@ -2781,25 +2849,76 @@ index d4edb59..8e3dc53 100644
 -    /*-lsolidThermo*/ \
      -lcompressibleTurbulenceModel
 diff --git a/src/parallel/decompose/Allwmake b/src/parallel/decompose/Allwmake
-index e6d0a1d..632cd81 100755
+index e6d0a1d..2e0fba2 100755
 --- a/src/parallel/decompose/Allwmake
 +++ b/src/parallel/decompose/Allwmake
-@@ -43,13 +43,14 @@ wmakeLnInclude decompositionMethods
+@@ -43,19 +43,17 @@ wmakeLnInclude decompositionMethods
  
  if [ -n "$SCOTCH_ARCH_PATH" ]
  then
 +    SCOTCH_VER_MAJOR=$(echo "$SCOTCH_VERSION" | awk -F. '{print $1}')
      wmake $makeType scotchDecomp
  
-     if [ -d "$FOAM_LIBBIN/$FOAM_MPI" ]
+-    if [ -d "$FOAM_LIBBIN/$FOAM_MPI" ]
++    #- Bit of a hack: ptscotch 6 requires scotch linked as well as. Can be
++    #  removed once ptscotch declares dependency on scotch itself.
++    if [ "$SCOTCH_VER_MAJOR" -eq "6" ]
      then
-         #- Bit of a hack: ptscotch 6 requires scotch linked as well as. Can be
-         #  removed once ptscotch declares dependency on scotch itself.
+-        #- Bit of a hack: ptscotch 6 requires scotch linked as well as. Can be
+-        #  removed once ptscotch declares dependency on scotch itself.
 -        if [ "$SCOTCH_VERSION" = "scotch_6.0.0" ]
-+        if [ "$SCOTCH_VER_MAJOR" -eq "6" ]
-         then
-             export LINK_FLAGS="-lscotch"
-         fi
+-        then
+-            export LINK_FLAGS="-lscotch"
+-        fi
+-
+-        wmakeMpiLib ptscotchDecomp
++        export LINK_FLAGS="-lscotch -lscotcherr -lscotcherrexit"
+     fi
++
++    wmakeMpiLib ptscotchDecomp
+ else
+     echo
+     echo "Skipping scotchDecomp (ptscotchDecomp)"
+@@ -66,7 +64,6 @@ fi
+ # Try and build metisDecomp (has own logic)
+ (cd metisDecomp && ./Allwmake $makeType)
+ 
+-
+ wmake $makeType decompositionMethods
+ 
+ wmake $makeType decompose
+diff --git a/src/parallel/decompose/metisDecomp/Allwmake b/src/parallel/decompose/metisDecomp/Allwmake
+index a97d63a..fd7c09f 100755
+--- a/src/parallel/decompose/metisDecomp/Allwmake
++++ b/src/parallel/decompose/metisDecomp/Allwmake
+@@ -2,12 +2,16 @@
+ cd ${0%/*} || exit 1    # run from this directory
+ makeType=${1:-libso}
+ 
++dylibExt=so
++
++[ "$(uname -s)" == "Darwin" ] && dylibExt=dylib
++
+ # get METIS_VERSION, METIS_ARCH_PATH
+ if settings=`$WM_PROJECT_DIR/bin/foamEtcFile config/metis.sh`
+ then
+     . $settings
+     echo "using METIS_ARCH_PATH=$METIS_ARCH_PATH"
+-    if [ -r $METIS_ARCH_PATH/lib/libmetis.so ]
++    if [ -r "$METIS_ARCH_PATH/lib/libmetis.$dylibExt" ]
+     then
+         wmake $makeType
+     fi
+diff --git a/src/parallel/decompose/metisDecomp/Make/options b/src/parallel/decompose/metisDecomp/Make/options
+index 8acd678..d4dfa96 100644
+--- a/src/parallel/decompose/metisDecomp/Make/options
++++ b/src/parallel/decompose/metisDecomp/Make/options
+@@ -1,5 +1,4 @@
+ EXE_INC = \
+-    /* -DFULLDEBUG -g -O0 */ \
+     -I$(METIS_ARCH_PATH)/include \
+     -I../decompositionMethods/lnInclude
+ 
 diff --git a/src/parallel/decompose/ptscotchDecomp/Make/options b/src/parallel/decompose/ptscotchDecomp/Make/options
 index acdebd8..eb11f02 100644
 --- a/src/parallel/decompose/ptscotchDecomp/Make/options
