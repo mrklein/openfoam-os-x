@@ -17,7 +17,7 @@ can be found in [wiki](https://github.com/mrklein/openfoam-os-x/wiki).
        - corrections in sigFpe.C, so there is no more infinite loop in parallel run (due to print stack functionality in OpenMPI)
 3. Initial foam-extend (commit [ec44c9](https://sourceforge.net/p/openfoam-extend/foam-extend-3.1/ci/ec44c952c9f8841ea5fba2bdb9235a5914c6c1c5/tree/)) patch
    attempt. Installation guide is in [wiki](https://github.com/mrklein/openfoam-os-x/wiki/foam-extend---Homebrew).
-4. Homebrew formulae for Mosquite and ParMGridGen.
+4. Homebrew formulae for Mesquite and ParMGridGen.
 
 Build was tested on
 
