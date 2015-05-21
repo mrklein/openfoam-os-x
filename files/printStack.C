@@ -1,25 +1,25 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
-  \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+  \\      /  F ield         | foam-extend: Open Source CFD
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | For copyright notice see file Copyright
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
-    This file is part of OpenFOAM.
+    This file is part of foam-extend.
 
-    OpenFOAM is free software: you can redistribute it and/or modify it
-    under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
+    foam-extend is free software: you can redistribute it and/or modify it
+    under the terms of the GNU General Public License as published by the
+    Free Software Foundation, either version 3 of the License, or (at your
+    option) any later version.
 
-    OpenFOAM is distributed in the hope that it will be useful, but WITHOUT
-    ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-    FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
-    for more details.
+    foam-extend is distributed in the hope that it will be useful, but
+    WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+    General Public License for more details.
 
     You should have received a copy of the GNU General Public License
-    along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
+    along with foam-extend.  If not, see <http://www.gnu.org/licenses/>.
 
 \*---------------------------------------------------------------------------*/
 
@@ -154,19 +154,21 @@ void printSourceFileAndLine
 
 #ifdef darwin
         {
+#if defined(FOAM_ADDR2LINE_ATOS) || defined(FOAM_ADDR2LINE_LLDB)
             const char *buf = line.c_str();
             regex_t re;
             regmatch_t mt[3];
             int st;
+#endif
 
-#if defined FOAM_ADDR2LINE_ATOS
+#if defined(FOAM_ADDR2LINE_ATOS)
             regcomp(&re, ".\\+(in.\\+) (\\(.\\+\\):\\(\\d\\+\\))",
                 REG_ENHANCED);
-#elif defined FOAM_ADDR2LINE_LLDB
+#elif defined(FOAM_ADDR2LINE_LLDB)
             regcomp(&re, ".\\+at \\(.\\+\\):\\(\\d\\+\\)", REG_ENHANCED);
 #endif
 
-#if defined FOAM_ADDR2LINE_ATOS || defined FOAM_ADDR2LINE_LLDB
+#if defined(FOAM_ADDR2LINE_ATOS) || defined(FOAM_ADDR2LINE_LLDB)
             st = regexec(&re, buf, 3, mt, 0);
 
             if (st == REG_NOMATCH)
