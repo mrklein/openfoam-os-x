@@ -87,11 +87,25 @@ of231 () {
     ofxxx '2.3.1'
 }
 
+export -f of231
+
 of23x () {
     ofxxx '2.3.x'
 }
 
 export -f of23x
+
+of240 () {
+	ofxxx '2.4.0'
+}
+
+export -f of240
+
+of24x () {
+	ofxxx '2.4.x'
+}
+
+export -f of24x
 
 fe31 () {
     fexxx '3.1'
