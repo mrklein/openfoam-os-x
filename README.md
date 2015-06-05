@@ -18,7 +18,7 @@ flags. The following appears after addition of the flags:
 3. Lots of "unused variable" warnings. These are due to love of developers to
    do thing like `#include "readTimeControls.H"` in the beginning of the
    solver, though not all created variables are used. Solved the problem by
-   introducing readInitialTimeControls.H file and partially pruning unused
+   introducing `readInitialTimeControls.H` file and partially pruning unused
    chunks of code.
 4. Quite a lot of hidden virtual functions warnings. These are due to mess in
    return types and method parameters (`postProcessing/functionObjects` library
