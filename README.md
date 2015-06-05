@@ -31,7 +31,7 @@ flags. The following appears after addition of the flags:
    if condition should always be true), or boolean returning function checking
    validity of the pointer.
 6. Corrected loop condition in readKivaGrid.H, though since it is there from
-   version 1.1 (according to Bruno Santos), guess ether this incorrect look
+   version 1.1 (according to Bruno Santos), guess ether this incorrect loop
    exit condition never lead to any problems, or nobody converts Kiva meshes.
 7. Removed trailing white-space in several places.
 8. Added of240 and of24x environment setup functions to openfoam-env-setup.sh.
