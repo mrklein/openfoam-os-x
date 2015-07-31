@@ -107,10 +107,20 @@ of24x () {
 
 export -f of24x
 
+ofdev() {
+	ofxxx 'dev'
+}
+
+export -f ofdev
+
 fe31 () {
     fexxx '3.1'
 }
 
 export -f fe31
+
+pf () {
+	paraFoam > /dev/null 2>&1 &
+}
 
 main
