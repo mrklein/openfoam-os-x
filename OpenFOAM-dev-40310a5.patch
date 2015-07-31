@@ -14961,6 +14961,29 @@ index 1672e53..8878a40 100644
  )
  {
      notImplemented
+diff --git a/src/parallel/decompose/metisDecomp/Allwmake b/src/parallel/decompose/metisDecomp/Allwmake
+index 549e422..c155df2 100755
+--- a/src/parallel/decompose/metisDecomp/Allwmake
++++ b/src/parallel/decompose/metisDecomp/Allwmake
+@@ -1,6 +1,9 @@
+ #!/bin/sh
+ cd ${0%/*} || exit 1    # Run from this directory
+ 
++dylibExt=so
++[ "$(uname -s)" == "Darwin" ] && dylibExt=dylib
++
+ # Parse arguments for library compilation
+ targetType=libso
+ . $WM_PROJECT_DIR/wmake/scripts/AllwmakeParseArguments
+@@ -10,7 +13,7 @@ if settings=`$WM_PROJECT_DIR/bin/foamEtcFile config/metis.sh`
+ then
+     . $settings
+     echo "using METIS_ARCH_PATH=$METIS_ARCH_PATH"
+-    if [ -r $METIS_ARCH_PATH/lib/libmetis.so ]
++    if [ -r "$METIS_ARCH_PATH/lib/libmetis.$dylibExt" ]
+     then
+         wmake $targetType
+     fi
 diff --git a/src/parallel/decompose/ptscotchDecomp/Make/options b/src/parallel/decompose/ptscotchDecomp/Make/options
 index 25ca6e9..412db11 100644
 --- a/src/parallel/decompose/ptscotchDecomp/Make/options
