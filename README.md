@@ -16,17 +16,20 @@ The patch is a continuation of an attempt to build OpenFOAM with `-Wall -Wextra
 2. Still lots of unused parameter warnings. Commented them out (sometimes it is
    convenient to keep name of parameter since it a bit of documentation,
    sometimes parameters have names like `p`, yet for consistency I have decided
-   to use comments everywhere).
-3. Boost and CGAL both have unused parameters and tautological comparison
+   to use comments everywhere). Patch was submitted upstream.
+4. printStack functionality uses only lldb. So implementation became simplified compared to 2.(3|4).x version.
+5. Boost and CGAL both have unused parameters and tautological comparison
    warnings, added pragmas around include lines to ignore them.
-4. Scotch decomposition method is disabled when OpenFOAM is build with
+6. Scotch decomposition method is disabled when OpenFOAM is build with
    WM_LABEL_SIZE=64, since it requires recompilation of Scoth. Maybe later
    I will create special Homebrew formula for this version.
-5. Clang on OS X does not want to do certain implicit conversions, so long.H
+7. Clang on OS X does not want to do certain implicit conversions, so long.H
    and ulong.H headers were added to explicitly create Ostream methods for long
    and unsigned long types.
-6. Miscellaneous bugs where revealed due to no implicit type coercion (like
-   `if (mag(A > B))` instead of `if (mag(A) > B)`), they were fixed.
+8. Miscellaneous bugs where revealed due to no implicit type coercion (like
+   `if (mag(A > B))` instead of `if (mag(A) > B)`), they were fixed. Patches are submitted upstream.
+
+Since the patch is a fresh start compared to 2.3.x and 2.4.x versions, there could be certain bugs, which were not revealed by quick tutorials check. Use github Issues functionality to report them.
 
 ## June 5, 2015
 
