@@ -3,6 +3,34 @@
 Patches for OpenFOAM compilation on OS X. Detailed installation instructions
 can be found in [wiki](https://github.com/mrklein/openfoam-os-x/wiki).
 
+## September 5, 2015
+
+Updated patches for 2.3.x and 2.4.x versions. This time decided not to be too
+invasive, so ended up with 50k patches (with stats). There were 3 general types
+of modifications:
+
+1. OS X specifics in OSspecis folder. These are again has two types: additions
+   of certain OS X headers (like sys/time.h in clockTime.H) and
+   reimplementation of functionality (like chunks in printStack.C, POSIX.C, and
+   sigFpe.H)
+2. Clang's cpp does not fully support "traditional mode", so it does not
+   understand continuations after comments. There were two variants: remove
+   these comments or install traditional cpp. Chosen the first variant.
+3. Warnings. First type comes from OpenFOAM's desire to take address of the
+   reference and the other one comes from third party software (updated CGAL).
+   First problem could be solved by -Wno-... flag, yet I have chosen
+   reinterpret_cast way. The second problem is solved by conditional
+   compilation and pragmas.
+
+Cause these patches were "fresh start", finally paid attention to and
+implemented SetNaN functionality; simplified sigFpe code; implemented dlLoaded
+function. Also printStack.C was a little bit revised to contract HOME and PWD
+in library file names (in previous version HOME and PWD paths was replaced only
+in resolved source files). 
+
+And since most of the corrections are in old files, hope creation of patches
+for new versions will become much easier.
+
 ## July 31, 2015
 
 Added patch for OpenFOAM-dev (commit 40310a5). Though this time patch is less

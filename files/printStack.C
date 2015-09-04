@@ -1,23 +1,44 @@
 /*---------------------------------------------------------------------------*\
-  File is based on OpenFOAM printStack.C. Since OS X is not (and will not) be 
-  supported by OpenFOAM and foam-extend's code base is rather different, it is
-  impossible to tailor the file for both projects.
+  =========                 |
+  \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+   \\    /   O peration     |
+    \\  /    A nd           | Copyright (C) 2011-2015 OpenFOAM Foundation
+     \\/     M anipulation  |
+-------------------------------------------------------------------------------
+License
+    This file is part of OpenFOAM.
 
-  Copyright (C) 2011-2015 OpenFOAM Foundation
-  (with modification for OS X by Alexey Matveichev)
+    OpenFOAM is free software: you can redistribute it and/or modify it
+    under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    OpenFOAM is distributed in the hope that it will be useful, but WITHOUT
+    ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+    FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+    for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
+
 \*---------------------------------------------------------------------------*/
 
+#if defined(darwin64)
+#include "ulong.H"
+#endif
 #include "error.H"
-#include "IStringStream.H"
 #include "OStringStream.H"
 #include "OSspecific.H"
 #include "IFstream.H"
 
-#include <stdio.h>
-#include <regex.h>
+#include <inttypes.h>
 #include <cxxabi.h>
 #include <execinfo.h>
 #include <dlfcn.h>
+#if defined(darwin64)
+// To parse lldb output
+#include <regex.h>
+#endif
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -25,24 +46,28 @@ namespace Foam
 {
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
 string pOpen(const string &cmd, label line=0)
 {
-    char *buf = NULL;
-    size_t linecap = 0;
-    ssize_t linelen;
     string res = "\n";
 
-    FILE *pipe = popen(cmd.c_str(), "r");
+    FILE *cmdPipe = popen(cmd.c_str(), "r");
 
-    if (pipe)
+    if (cmdPipe)
     {
+        char *buf = NULL;
+
         // Read line number of lines
         for (label cnt = 0; cnt <= line; cnt++)
         {
-            linelen = getline(&buf, &linecap, pipe);
+            size_t linecap = 0;
+            ssize_t linelen;
+            linelen = getline(&buf, &linecap, cmdPipe);
 
             if (linelen < 0)
+            {
                 break;
+            }
 
             if (cnt == line)
             {
@@ -52,44 +77,43 @@ string pOpen(const string &cmd, label line=0)
         }
 
         if (buf != NULL)
+        {
             free(buf);
+        }
 
-        pclose(pipe);
+        pclose(cmdPipe);
     }
 
     return res.substr(0, res.size() - 1);
 }
 
-inline word addr2word(void *p)
-{
-    const size_t WORD_SIZE = 18 + 1; // from (g)libc
-    char buf[WORD_SIZE];
-    snprintf(buf, WORD_SIZE, "%p", p);
 
-    return word(buf);
+inline word addressToWord(const uintptr_t addr)
+{
+    OStringStream nStream;
+    nStream << "0x" << hex << addr;
+    return nStream.str();
 }
+
 
 void printSourceFileAndLine
 (
     Ostream& os,
     const fileName& filename,
-    void* address,
-    Dl_info* info
+    Dl_info *info,
+    void *addr
 )
 {
-    word myAddress = addr2word(address);
+    uintptr_t address = uintptr_t(addr);
+    word myAddress = addressToWord(address);
 
-#ifndef darwin
+#if ! defined(darwin64)
     if (filename.ext() == "so")
     {
-        // Convert offset into .so into offset into executable.
-
-        dladdr(address, info);
-
-        unsigned long offset = reinterpret_cast<unsigned long>(info->dli_fbase);
-        void* rel = address - offset;
-
-        myAddress = addr2word(rel);
+        // Convert address into offset into dynamic library
+        uintptr_t offset = uintptr_t(info->dli_fbase);
+        intptr_t relativeAddress = address - offset;
+        myAddress = addressToWord(relativeAddress);
     }
 #endif
 
@@ -97,25 +121,17 @@ void printSourceFileAndLine
     {
         string line = pOpen
         (
-#ifndef darwin
+#if ! defined(darwin64)
             "addr2line -f --demangle=auto --exe "
           + filename
           + " "
           + myAddress,
             1
 #else
-#if defined FOAM_ADDR2LINE_ATOS
-            "xcrun atos -o "
-          + filename 
-          + " -l "
-          + addr2word(info->dli_fbase)
-          + " "
-          + myAddress
-#elif defined FOAM_ADDR2LINE_LLDB
             "echo 'image lookup -a "
           + myAddress
           + " "
-          + filename 
+          + filename
           + "'"
           + " | xcrun lldb "
           + "-O 'target create --no-dependents -a x86_64 "
@@ -124,35 +140,20 @@ void printSourceFileAndLine
           + "target modules load -f "
           + filename
           + " __TEXT "
-          + addr2word(info->dli_fbase)
+          + addressToWord(reinterpret_cast<const uintptr_t>(info->dli_fbase))
           + "'"
           + " | tail -1"
-#else
-            "addr2line_mac.py"
-          + filename
-          + " "
-          + myAddress
 #endif
-#endif // darwin
         );
 
-#ifdef darwin
+#if defined(darwin64)
         {
-#if defined(FOAM_ADDR2LINE_ATOS) || defined(FOAM_ADDR2LINE_LLDB)
             const char *buf = line.c_str();
             regex_t re;
             regmatch_t mt[3];
             int st;
-#endif
 
-#if defined(FOAM_ADDR2LINE_ATOS)
-            regcomp(&re, ".\\+(in.\\+) (\\(.\\+\\):\\(\\d\\+\\))",
-                REG_ENHANCED);
-#elif defined(FOAM_ADDR2LINE_LLDB)
             regcomp(&re, ".\\+at \\(.\\+\\):\\(\\d\\+\\)", REG_ENHANCED);
-#endif
-
-#if defined(FOAM_ADDR2LINE_ATOS) || defined(FOAM_ADDR2LINE_LLDB)
             st = regexec(&re, buf, 3, mt, 0);
 
             if (st == REG_NOMATCH)
@@ -168,9 +169,8 @@ void printSourceFileAndLine
                 line = fname + ":" + lnum;
             }
             regfree(&re);
-#endif
         }
-#endif  // darwin
+#endif
 
         if (line == "")
         {
@@ -178,7 +178,7 @@ void printSourceFileAndLine
         }
         else if (line == "??:0")
         {
-            string line = static_cast<string>(filename);
+            line = filename;
             string cwdLine(line.replaceAll(cwd() + '/', ""));
             string homeLine(cwdLine.replaceAll(home(), '~'));
 
@@ -194,7 +194,59 @@ void printSourceFileAndLine
     }
 }
 
-void error::safePrintStack(std::ostream& os)
+
+fileName absolutePath(const char* fn)
+{
+    fileName fname(fn);
+
+    if (fname[0] != '/' && fname[0] != '~')
+    {
+        string tmp = pOpen("which " + fname);
+
+        if (tmp[0] == '/' || tmp[0] == '~')
+        {
+            fname = tmp;
+        }
+    }
+
+    return fname;
+}
+
+
+word demangleSymbol(const char* sn)
+{
+    word res;
+    int st;
+    char* cxx_sname = abi::__cxa_demangle
+    (
+        sn,
+        NULL,
+        0,
+        &st
+    );
+
+    if (st == 0 && cxx_sname)
+    {
+        res = word(cxx_sname);
+        free(cxx_sname);
+    }
+    else
+    {
+        res = word(sn);
+    }
+
+    return res;
+}
+
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+} // End namespace Foam
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+
+void Foam::error::safePrintStack(std::ostream& os)
 {
     // Get raw stack symbols
     void *array[100];
@@ -213,48 +265,8 @@ void error::safePrintStack(std::ostream& os)
     }
 }
 
-fileName absolutePath(const char* fn)
-{
-    fileName fname(fn);
 
-    if (fname[0] != '/' && fname[0] != '~')
-    {
-        string tmp = pOpen("which " + fname);
-
-        if (tmp[0] == '/' || tmp[0] == '~')
-            fname = tmp;
-    }
-
-    return fname;
-}
-
-string demangleSymbol(const char* sn)
-{
-    string res;
-    int st;
-    char* cxx_sname = abi::__cxa_demangle
-    (
-        sn,
-        NULL,
-        0,
-        &st
-    );
-
-    if (st == 0 && cxx_sname)
-    {
-        res = string(cxx_sname);
-        free(cxx_sname);
-    }
-    else
-    {
-        res = string(sn);
-    }
-
-    return res;
-}
-
-
-void error::printStack(Ostream& os)
+void Foam::error::printStack(Ostream& os)
 {
     // Get raw stack symbols
     const size_t CALLSTACK_SIZE = 128;
@@ -265,8 +277,9 @@ void error::printStack(Ostream& os)
     Dl_info *info = new Dl_info;
 
     fileName fname = "???";
+    word address;
 
-    for(size_t i = 0; i < size; i++)
+    for(size_t i=0; i<size; i++)
     {
         int st = dladdr(callstack[i], info);
 
@@ -275,25 +288,24 @@ void error::printStack(Ostream& os)
         {
             fname = absolutePath(info->dli_fname);
 
-            os << ((info->dli_sname != NULL) ?
-                demangleSymbol(info->dli_sname) : "?");
+            os <<
+            (
+                (info->dli_sname != NULL)
+              ? demangleSymbol(info->dli_sname)
+              : "?"
+            );
         }
         else
         {
-            os << "(unresolved)";
+            os << "?";
         }
 
-        printSourceFileAndLine(os, fname, callstack[i], info);
-
+        printSourceFileAndLine(os, fname, info, callstack[i]);
         os << nl;
     }
 
     delete info;
 }
 
-
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-
-} // End namespace Foam
 
 // ************************************************************************* //
