@@ -44,17 +44,53 @@ The patch is a continuation of an attempt to build OpenFOAM with `-Wall -Wextra
 2. Still lots of unused parameter warnings. Commented them out (sometimes it is
    convenient to keep name of parameter since it a bit of documentation,
    sometimes parameters have names like `p`, yet for consistency I have decided
-   to use comments everywhere).
-3. Boost and CGAL both have unused parameters and tautological comparison
+   to use comments everywhere). Patch was submitted upstream.
+4. printStack functionality uses only lldb. So implementation became simplified compared to 2.(3|4).x version.
+5. Boost and CGAL both have unused parameters and tautological comparison
    warnings, added pragmas around include lines to ignore them.
-4. Scotch decomposition method is disabled when OpenFOAM is build with
+6. Scotch decomposition method is disabled when OpenFOAM is build with
    WM_LABEL_SIZE=64, since it requires recompilation of Scoth. Maybe later
    I will create special Homebrew formula for this version.
-5. Clang on OS X does not want to do certain implicit conversions, so long.H
+7. Clang on OS X does not want to do certain implicit conversions, so long.H
    and ulong.H headers were added to explicitly create Ostream methods for long
    and unsigned long types.
-6. Miscellaneous bugs where revealed due to no implicit type coercion (like
-   `if (mag(A > B))` instead of `if (mag(A) > B)`), they were fixed.
+8. Miscellaneous bugs where revealed due to no implicit type coercion (like
+   `if (mag(A > B))` instead of `if (mag(A) > B)`), they were fixed. Patches are submitted upstream.
+
+Since the patch is a fresh start compared to 2.3.x and 2.4.x versions, there could be certain bugs, which were not revealed by quick tutorials check. Use github Issues functionality to report them.
+
+Build process was tested on:
+
+```sh
+alexey at daphne in ~$ sw_vers 
+ProductName:	Mac OS X
+ProductVersion:	10.10.4
+BuildVersion:	14E46
+```
+
+with the following compiler
+
+```sh
+alexey at daphne in ~$ clang --version
+Apple LLVM version 6.1.0 (clang-602.0.53) (based on LLVM 3.6.0svn)
+Target: x86_64-apple-darwin14.4.0
+Thread model: posix
+```
+
+and with the following third party package versions:
+
+```sh
+alexey at daphne in ~$ brew list --versions
+boost 1.57.0
+cgal 4.6
+gmp 6.0.0a
+metis 5.1.0
+mpfr 3.1.2-p11
+open-mpi 1.8.4_1
+parmetis 4.0.3
+parmgridgen 0.0.1
+scotch 6.0.4_1
+```
 
 ## June 5, 2015
 
