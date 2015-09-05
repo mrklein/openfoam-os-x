@@ -5,17 +5,18 @@ can be found in [wiki](https://github.com/mrklein/openfoam-os-x/wiki).
 
 ## September 5, 2015
 
-Updated patches for 2.3.x and 2.4.x versions. This time decided not to be too
+Updated patches for 2.3.x (OpenFOAM-2.3.x-2f9138f.patch) and 2.4.x
+(OpenFOAM-2.4.x-8685344.patch) versions. This time decided not to be too
 invasive, so ended up with 50k patches (with stats). There were 3 general types
 of modifications:
 
-1. OS X specifics in OSspecis folder. These are again has two types: additions
-   of certain OS X headers (like sys/time.h in clockTime.H) and
+1. OS X specifics in OSspecific/POSIX folder. These are again has two types:
+   additions of certain OS X headers (like sys/time.h in clockTime.H) and
    reimplementation of functionality (like chunks in printStack.C, POSIX.C, and
-   sigFpe.H)
+   sigFpe.?)
 2. Clang's cpp does not fully support "traditional mode", so it does not
    understand continuations after comments. There were two variants: remove
-   these comments or install traditional cpp. Chosen the first variant.
+   these comments or install traditional cpp. Chose the first variant.
 3. Warnings. First type comes from OpenFOAM's desire to take address of the
    reference and the other one comes from third party software (updated CGAL).
    First problem could be solved by -Wno-... flag, yet I have chosen
@@ -28,8 +29,41 @@ function. Also printStack.C was a little bit revised to contract HOME and PWD
 in library file names (in previous version HOME and PWD paths was replaced only
 in resolved source files). 
 
-And since most of the corrections are in old files, hope creation of patches
+And since the corrections are mostly in the old files, hope creation of patches
 for new versions will become much easier.
+
+Build was tested on:
+
+```
+alexey at daphne in ~$ sw_vers 
+ProductName:	Mac OS X
+ProductVersion:	10.10.5
+BuildVersion:	14F27
+```
+
+with the following compiler
+
+```
+alexey at daphne in ~$ clang --version
+Apple LLVM version 6.1.0 (clang-602.0.53) (based on LLVM 3.6.0svn)
+Target: x86_64-apple-darwin14.5.0
+Thread model: posix
+```
+
+and the following third party packages:
+
+```
+alexey at daphne in ~$ brew list --versions
+boost 1.58.0
+cgal 4.6.1
+gmp 6.0.0a
+libmpc 1.0.3
+metis 5.1.0
+mpfr 3.1.3
+open-mpi 1.8.4_1
+parmetis 4.0.3
+parmgridgen 0.0.1
+```
 
 ## July 31, 2015
 
