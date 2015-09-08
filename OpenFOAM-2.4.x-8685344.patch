@@ -27,11 +27,12 @@
  src/OSspecific/POSIX/POSIX.C                       | 23 ++++++
  src/OSspecific/POSIX/clockTime/clockTime.H         |  3 +
  src/OSspecific/POSIX/fileStat.C                    |  2 +
- src/OSspecific/POSIX/printStack.C                  | 60 +++++++++++++-
+ src/OSspecific/POSIX/printStack.C                  | 68 ++++++++++++++--
  src/OSspecific/POSIX/signals/sigFpe.C              | 91 ++++++++++++++++++++--
  src/OSspecific/POSIX/signals/sigFpe.H              | 22 +++++-
  src/OpenFOAM/db/IOstreams/Pstreams/gatherScatter.C |  4 +
  .../functionEntries/codeStream/codeStream.C        |  3 +
+ .../db/dynamicLibrary/dynamicCode/dynamicCode.C    |  4 +
  src/OpenFOAM/fields/Fields/Field/Field.C           |  4 +-
  .../meshes/meshShapes/cellShape/cellShapeIO.C      |  2 +-
  src/OpenFOAM/meshes/polyMesh/polyMesh.C            |  8 +-
@@ -46,6 +47,8 @@
  .../fixedFluxPressureFvPatchScalarField.C          |  2 +-
  .../uniformInletOutletFvPatchField.C               |  2 +-
  .../fvPatchFields/fvPatchField/fvPatchField.C      |  4 +-
+ src/fvAgglomerationMethods/Allwmake                | 16 +++-
+ .../MGridGenGamgAgglomeration/Make/options         | 10 +++
  src/fvOptions/Make/options                         |  1 -
  src/parallel/decompose/Allwmake                    |  6 +-
  src/parallel/decompose/metisDecomp/Allwmake        |  8 +-
@@ -70,7 +73,7 @@
  wmake/rules/darwin64Clang/cOpt                     |  2 +
  wmake/rules/darwin64Clang/cProf                    |  2 +
  wmake/rules/darwin64Clang/general                  |  8 ++
- 72 files changed, 531 insertions(+), 115 deletions(-)
+ 75 files changed, 561 insertions(+), 123 deletions(-)
 
 diff --git a/.gitignore b/.gitignore
 index ec46862..ead2d97 100644
@@ -760,7 +763,7 @@ index bf04835..8a3c796 100644
  // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
  
 diff --git a/src/OSspecific/POSIX/printStack.C b/src/OSspecific/POSIX/printStack.C
-index c90aca8..dbcc19f 100644
+index c90aca8..7a57373 100644
 --- a/src/OSspecific/POSIX/printStack.C
 +++ b/src/OSspecific/POSIX/printStack.C
 @@ -23,16 +23,22 @@ License
@@ -871,6 +874,33 @@ index c90aca8..dbcc19f 100644
          }
          else
          {
+@@ -157,9 +213,9 @@ fileName absolutePath(const char* fn)
+ }
+ 
+ 
+-word demangleSymbol(const char* sn)
++string demangleSymbol(const char* sn)
+ {
+-    word res;
++    string res;
+     int st;
+     char* cxx_sname = abi::__cxa_demangle
+     (
+@@ -171,12 +227,12 @@ word demangleSymbol(const char* sn)
+ 
+     if (st == 0 && cxx_sname)
+     {
+-        res = word(cxx_sname);
++        res = string(cxx_sname);
+         free(cxx_sname);
+     }
+     else
+     {
+-        res = word(sn);
++        res = string(sn);
+     }
+ 
+     return res;
 diff --git a/src/OSspecific/POSIX/signals/sigFpe.C b/src/OSspecific/POSIX/signals/sigFpe.C
 index 19861c8..302f0d3 100644
 --- a/src/OSspecific/POSIX/signals/sigFpe.C
@@ -1123,6 +1153,22 @@ index 380f5df..aadeff7 100644
  #include "codeStream.H"
  #include "addToMemberFunctionSelectionTable.H"
  #include "IStringStream.H"
+diff --git a/src/OpenFOAM/db/dynamicLibrary/dynamicCode/dynamicCode.C b/src/OpenFOAM/db/dynamicLibrary/dynamicCode/dynamicCode.C
+index 2f97577..026519c 100644
+--- a/src/OpenFOAM/db/dynamicLibrary/dynamicCode/dynamicCode.C
++++ b/src/OpenFOAM/db/dynamicLibrary/dynamicCode/dynamicCode.C
+@@ -334,7 +334,11 @@ Foam::fileName Foam::dynamicCode::codeRelPath() const
+ 
+ Foam::fileName Foam::dynamicCode::libRelPath() const
+ {
++#if defined(darwin64)
++    return codeRelPath()/libSubDir_/"lib" + codeName_ + ".dylib";
++#else
+     return codeRelPath()/libSubDir_/"lib" + codeName_ + ".so";
++#endif
+ }
+ 
+ 
 diff --git a/src/OpenFOAM/fields/Fields/Field/Field.C b/src/OpenFOAM/fields/Fields/Field/Field.C
 index 118de04..2451552 100644
 --- a/src/OpenFOAM/fields/Fields/Field/Field.C
@@ -1355,6 +1401,59 @@ index 23d3ef9..5eecaff 100644
           && mapper.directAddressing().size()
          )
          {
+diff --git a/src/fvAgglomerationMethods/Allwmake b/src/fvAgglomerationMethods/Allwmake
+index 4fc3ed6..e412e5b 100755
+--- a/src/fvAgglomerationMethods/Allwmake
++++ b/src/fvAgglomerationMethods/Allwmake
+@@ -3,11 +3,19 @@ cd ${0%/*} || exit 1    # run from this directory
+ makeType=${1:-libso}
+ set -x
+ 
+-export ParMGridGen=$WM_THIRD_PARTY_DIR/ParMGridGen-1.0
++if [ "$(uname -s)" != "Darwin" ]; then
++	export ParMGridGen=$WM_THIRD_PARTY_DIR/ParMGridGen-1.0
+ 
+-if [ -e "$FOAM_LIBBIN/libMGridGen.so" ]
+-then
+-    wmake $makeType MGridGenGamgAgglomeration
++	if [ -e "$FOAM_LIBBIN/libMGridGen.so" ]
++	then
++		wmake $makeType MGridGenGamgAgglomeration
++	fi
++else
++	export ParMGridGen=/usr/local/opt/parmgridgen
++	if [ -e "$ParMGridGen/lib/libmgrid.a" ]
++	then
++		wmake $makeType MGridGenGamgAgglomeration
++	fi
+ fi
+ 
+ wmake $makeType pairPatchAgglomeration
+diff --git a/src/fvAgglomerationMethods/MGridGenGamgAgglomeration/Make/options b/src/fvAgglomerationMethods/MGridGenGamgAgglomeration/Make/options
+index a58b65f..44bbdcb 100644
+--- a/src/fvAgglomerationMethods/MGridGenGamgAgglomeration/Make/options
++++ b/src/fvAgglomerationMethods/MGridGenGamgAgglomeration/Make/options
+@@ -5,6 +5,15 @@ TYPE_REAL=
+ TYPE_REAL=-DTYPE_REAL
+ #endif
+ 
++#if defined(darwin64)
++EXE_INC = \
++    -I$(LIB_SRC)/finiteVolume/lnInclude \
++    -I$(ParMGridGen)/include \
++    $(TYPE_REAL)
++
++LIB_LIBS = \
++    -L$(ParMGridGen)/lib -lmgrid
++#else
+ EXE_INC = \
+     -I$(LIB_SRC)/finiteVolume/lnInclude \
+     -I$(ParMGridGen)/MGridGen/Lib/lnInclude \
+@@ -13,3 +22,4 @@ EXE_INC = \
+ 
+ LIB_LIBS = \
+     -L$(FOAM_EXT_LIBBIN) -lMGridGen
++#endif
 diff --git a/src/fvOptions/Make/options b/src/fvOptions/Make/options
 index d4edb59..8e3dc53 100644
 --- a/src/fvOptions/Make/options
