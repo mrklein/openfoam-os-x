@@ -3,6 +3,15 @@
 Patches for OpenFOAM compilation on OS X. Detailed installation instructions
 can be found in [wiki](https://github.com/mrklein/openfoam-os-x/wiki).
 
+## September 8, 2015
+
+Updated patches for 2.3.x and 2.4.x (forgot certain things). Added patches for
+2.2.x and 2.1.x (reinterpret_cast solution for seems to solve memory corruption
+problem).
+
+Test platform and third party software versions did not change since
+September 5.
+
 ## September 5, 2015
 
 Updated patches for 2.3.x (OpenFOAM-2.3.x-2f9138f.patch) and 2.4.x
