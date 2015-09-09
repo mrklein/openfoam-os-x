@@ -3,6 +3,10 @@
 Patches for OpenFOAM compilation on OS X. Detailed installation instructions
 can be found in [wiki](https://github.com/mrklein/openfoam-os-x/wiki).
 
+## September 9, 2015
+
+Update patches for OpenFOAM 2.3.1 and 2.4.0.
+
 ## September 8, 2015
 
 Updated patches for 2.3.x and 2.4.x (forgot certain things). Added patches for
