@@ -10,7 +10,7 @@ Update patches for OpenFOAM 2.3.1 and 2.4.0.
 ## September 8, 2015
 
 Updated patches for 2.3.x and 2.4.x (forgot certain things). Added patches for
-2.2.x and 2.1.x (reinterpret_cast solution for seems to solve memory corruption
+2.2.x and 2.1.x (`reinterpret_cast<const void*>` solution for reference address seems to solve memory corruption
 problem).
 
 Test platform and third party software versions did not change since
