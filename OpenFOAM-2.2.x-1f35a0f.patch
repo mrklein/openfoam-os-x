@@ -7,50 +7,116 @@
  .../miscellaneous/foamDebugSwitches/Make/options   |   2 -
  .../dataConversion/foamToEnsight/Make/options      |   1 -
  .../surface/surfaceFeatureExtract/Allwmake         |  30 +-
- .../surfaceFeatureExtract/surfaceFeatureExtract.C  |   2 +-
+ .../surfaceFeatureExtract/surfaceFeatureExtract.C  |   3 +-
  bin/paraFoam                                       |  10 +-
+ bin/tools/replaceAllShellSun                       |   2 +-
  etc/bashrc                                         | 111 ++++---
  etc/config/paraview-osx.sh                         |  15 +
  etc/config/scotch.sh                               |   9 +-
- etc/config/settings.sh                             |  40 ++-
+ etc/config/settings.sh                             |  39 ++-
  src/Allwmake                                       |  12 +-
  src/OSspecific/POSIX/POSIX.C                       |  23 ++
  src/OSspecific/POSIX/clockTime/clockTime.H         |   3 +
  src/OSspecific/POSIX/fileStat.C                    |   2 +
  src/OSspecific/POSIX/printStack.C                  | 332 ++++++++++-----------
- src/OSspecific/POSIX/signals/sigFpe.C              |  83 +++++-
+ src/OSspecific/POSIX/signals/sigFpe.C              |  87 +++++-
  src/OSspecific/POSIX/signals/sigFpe.H              |  20 +-
+ .../Lists/CompactListList/CompactListListI.H       |   2 +-
+ .../containers/Lists/FixedList/FixedListI.H        |   2 +-
+ src/OpenFOAM/containers/Lists/List/ListI.H         |   2 +-
+ src/OpenFOAM/containers/Lists/SubList/SubListI.H   |   2 +-
+ src/OpenFOAM/containers/Lists/UList/UList.H        |   1 +
+ src/OpenFOAM/containers/Lists/UList/UListI.H       |   2 +-
  src/OpenFOAM/db/IOstreams/Pstreams/gatherScatter.C |   3 +
  .../functionEntries/codeStream/codeStream.C        |   3 +
  .../db/dynamicLibrary/dynamicCode/dynamicCode.C    |   4 +
+ .../db/objectRegistry/objectRegistryTemplates.C    |   2 +-
+ .../DimensionedField/DimensionedFieldI.H           |   2 +-
+ .../DimensionedField/SubDimensionedFieldI.H        |   2 +-
  src/OpenFOAM/fields/Fields/Field/Field.C           |   4 +-
+ src/OpenFOAM/fields/Fields/Field/Field.H           |   2 +-
+ src/OpenFOAM/fields/Fields/Field/SubFieldI.H       |   2 +-
+ .../GeometricField/GeometricFieldI.H               |   2 +-
+ src/OpenFOAM/global/foamDoc.H                      |   2 +-
+ src/OpenFOAM/global/global.Cver                    |   2 +
+ src/OpenFOAM/matrices/Matrix/MatrixI.H             |   2 +-
+ src/OpenFOAM/memory/Xfer/XferI.H                   |   4 +-
  .../meshes/meshShapes/cellShape/cellShapeIO.C      |   2 +-
  src/OpenFOAM/meshes/polyMesh/polyMesh.C            |   8 +-
  src/OpenFOAM/primitives/Scalar/doubleFloat.H       |   9 +
+ src/OpenFOAM/primitives/nullObject/nullObject.C    |  34 +++
+ src/OpenFOAM/primitives/nullObject/nullObject.H    | 110 +++++++
+ src/OpenFOAM/primitives/nullObject/nullObjectI.H   |  65 ++++
  src/conversion/ensight/part/ensightPartCells.C     |   2 +-
  src/conversion/ensight/part/ensightPartIO.C        |   2 +-
+ src/dummyThirdParty/metisDecomp/metis.h            |  18 +-
  src/edgeMesh/edgeMesh.C                            |   4 +-
+ .../DarcyForchheimer/DarcyForchheimer.C            |   4 +-
+ .../DarcyForchheimer/DarcyForchheimer.H            |   2 +-
+ .../general/porosityModel/fixedCoeff/fixedCoeff.C  |   4 +-
+ .../general/porosityModel/fixedCoeff/fixedCoeff.H  |   2 +-
+ .../porosityModel/porosityModel/porosityModel.C    |   2 +-
+ .../porosityModel/porosityModelList.C              |   2 +-
+ .../general/porosityModel/powerLaw/powerLaw.C      |   4 +-
+ .../general/porosityModel/powerLaw/powerLaw.H      |   2 +-
+ .../fixedGradient/fixedGradientFvPatchField.H      |   2 +-
+ .../flowRateInletVelocityFvPatchVectorField.H      |   2 +-
+ ...inletOutletTotalTemperatureFvPatchScalarField.H |   2 +-
+ .../mappedFixedValueFvPatchField.H                 |   4 +-
+ ...essureDirectedInletVelocityFvPatchVectorField.H |   2 +-
+ ...PressureInletOutletVelocityFvPatchVectorField.H |   4 +-
+ .../rotatingTotalPressureFvPatchScalarField.H      |   4 +-
+ .../rotatingWallVelocityFvPatchVectorField.H       |   4 +-
+ .../supersonicFreestreamFvPatchVectorField.H       |   2 +-
  .../fvPatchFields/fvPatchField/fvPatchField.C      |   6 +-
  src/fvAgglomerationMethods/Allwmake                |  17 +-
  .../MGridGenGamgAgglomeration/Make/options         |  10 +
  src/fvOptions/Make/options                         |   1 -
+ .../COxidationHurtMitchell.H                       |   2 +-
  .../distributionModels/uniform/uniform.C           |   3 +-
  .../distributionModels/uniform/uniform.H           |   2 +-
+ .../InjectionModel/InjectionModelList.H            |   2 +-
+ .../BreakupModel/PilchErdman/PilchErdman.H         |   2 +-
+ .../momentOfInertia/volumeIntegration/volInt.c     |  28 +-
  src/parallel/decompose/Allwmake                    |   8 +-
  src/parallel/decompose/ptscotchDecomp/Make/options |  10 +-
  src/parallel/decompose/scotchDecomp/Make/options   |   8 +-
+ .../field/fieldValues/faceSource/faceSource.H      |   4 +-
+ .../pyrolysisModel/pyrolysisModelCollection.C      |   2 +-
+ .../pyrolysisModel/pyrolysisModelNew.C             |   2 +-
+ .../thermalBaffleModels/noThermo/noThermo.C        |   2 +-
  src/renumber/SloanRenumber/Make/options            |   9 +-
  src/sampling/cuttingPlane/cuttingPlane.C           |   6 +-
  .../sampledSurface/sampledPatch/sampledPatch.C     |   2 +-
+ .../writers/nastran/nastranSurfaceWriter.C         |   2 +-
  src/surfMesh/MeshedSurface/MeshedSurface.C         |  20 +-
  src/surfMesh/MeshedSurface/MeshedSurface.H         |   2 +-
  .../MeshedSurfaceIOAllocator.C                     |   8 +-
  .../UnsortedMeshedSurface/UnsortedMeshedSurface.C  |   6 +-
  src/surfMesh/surfMesh/surfMesh.C                   |   2 +-
  .../chemistryReaders/chemkinReader/chemkinReader.C |   9 +
+ .../specie/reaction/Reactions/Reaction/Reaction.C  |   6 +-
+ .../compressible/LES/DESModel/DESModelDoc.H        |   2 +-
+ .../compressible/LES/GenEddyVisc/GenEddyVisc.H     |   2 +-
+ .../compressible/LES/GenSGSStress/GenSGSStress.H   |   4 +-
+ .../compressible/LES/LESModel/LESModelDoc.H        |   2 +-
+ .../compressible/RAS/RASModel/RASModelDoc.H        |   2 +-
+ ...gLengthDissipationRateInletFvPatchScalarField.H |   2 +-
+ ...tMixingLengthFrequencyInletFvPatchScalarField.H |   2 +-
+ .../turbulenceModel/turbulenceModelDoc.H           |   2 +-
+ .../incompressible/LES/DESModel/DESModelDoc.H      |   2 +-
+ .../incompressible/LES/GenEddyVisc/GenEddyVisc.H   |   2 +-
+ .../incompressible/LES/GenSGSStress/GenSGSStress.H |   6 +-
+ .../incompressible/LES/LESModel/LESModelDoc.H      |   2 +-
+ .../incompressible/RAS/RASModel/RASModelDoc.H      |   2 +-
+ ...tmBoundaryLayerInletEpsilonFvPatchScalarField.H |   2 +-
+ ...urbulentHeatFluxTemperatureFvPatchScalarField.H |   2 +-
+ ...gLengthDissipationRateInletFvPatchScalarField.H |   2 +-
+ ...tMixingLengthFrequencyInletFvPatchScalarField.H |   2 +-
+ .../turbulenceModel/turbulenceModelDoc.H           |   2 +-
  wmake/Makefile                                     |   4 +
  wmake/rules/darwin64Clang/c                        |  16 +
- wmake/rules/darwin64Clang/c++                      |  31 ++
+ wmake/rules/darwin64Clang/c++                      |  29 ++
  wmake/rules/darwin64Clang/c++Debug                 |   2 +
  wmake/rules/darwin64Clang/c++Opt                   |   3 +
  wmake/rules/darwin64Clang/c++Prof                  |   2 +
@@ -58,7 +124,7 @@
  wmake/rules/darwin64Clang/cOpt                     |   2 +
  wmake/rules/darwin64Clang/cProf                    |   2 +
  wmake/rules/darwin64Clang/general                  |   8 +
- 60 files changed, 653 insertions(+), 337 deletions(-)
+ 126 files changed, 964 insertions(+), 432 deletions(-)
 
 diff --git a/.gitignore b/.gitignore
 index 7c8bce0..039c370 100644
@@ -264,15 +330,16 @@ index 2b9a927..d39ea0e 100755
      echo
      echo "Compiling surfaceFeatureExtract without CGAL curvature support"
 diff --git a/applications/utilities/surface/surfaceFeatureExtract/surfaceFeatureExtract.C b/applications/utilities/surface/surfaceFeatureExtract/surfaceFeatureExtract.C
-index 87350c4..9d6eeab 100644
+index 87350c4..5fc99be 100644
 --- a/applications/utilities/surface/surfaceFeatureExtract/surfaceFeatureExtract.C
 +++ b/applications/utilities/surface/surfaceFeatureExtract/surfaceFeatureExtract.C
-@@ -82,7 +82,7 @@ scalarField calcCurvature(const triSurface& surf)
+@@ -82,7 +82,8 @@ scalarField calcCurvature(const triSurface& surf)
          Vertex_PM_type;
      typedef T_PolyhedralSurf_rings<Polyhedron, Vertex_PM_type > Poly_rings;
  
 -    typedef CGAL::Monge_via_jet_fitting<Kernel>         Monge_via_jet_fitting;
-+    typedef CGAL::Monge_via_jet_fitting<Kernel, LocalKerner, SvdTraits> Monge_via_jet_fitting;
++#   define CGAL_EIGEN3_ENABLED
++    typedef CGAL::Monge_via_jet_fitting<Kernel> Monge_via_jet_fitting;
      typedef Monge_via_jet_fitting::Monge_form           Monge_form;
  
      std::vector<Point_3> in_points;  //container for data points
@@ -298,6 +365,18 @@ index d288e3f..6e46cdd 100755
  
  # parse options
  while [ "$#" -gt 0 ]
+diff --git a/bin/tools/replaceAllShellSun b/bin/tools/replaceAllShellSun
+index d5a0d8d..b57271e 100755
+--- a/bin/tools/replaceAllShellSun
++++ b/bin/tools/replaceAllShellSun
+@@ -1,6 +1,6 @@
+ #!/usr/xpg4/bin/sh
+ 
+-# Replace all shell script headers with 
++# Replace all shell script headers with
+ if [ $# -ne 1 -o ! -d "$1" ]
+ then
+     echo "Usage: ${0##*/} <dir>"
 diff --git a/etc/bashrc b/etc/bashrc
 index 0f0ff50..29ee710 100644
 --- a/etc/bashrc
@@ -522,7 +601,7 @@ index 1ee06e8..71a9560 100644
  
  # -----------------------------------------------------------------------------
 diff --git a/etc/config/settings.sh b/etc/config/settings.sh
-index 5a77479..a79a1b3 100644
+index 5a77479..cafa19b 100644
 --- a/etc/config/settings.sh
 +++ b/etc/config/settings.sh
 @@ -46,6 +46,8 @@ _foamAddLib()
@@ -557,12 +636,11 @@ index 5a77479..a79a1b3 100644
  
  # site-specific directory
  siteDir="${WM_PROJECT_SITE:-$WM_PROJECT_INST_DIR/site}"
-@@ -221,7 +230,12 @@ unset siteDir
+@@ -221,7 +230,11 @@ unset siteDir
  
  _foamAddPath $FOAM_USER_APPBIN:$FOAM_SITE_APPBIN:$FOAM_APPBIN
  # Make sure to pick up dummy versions of external libraries last
 -_foamAddLib  $FOAM_USER_LIBBIN:$FOAM_SITE_LIBBIN:$FOAM_LIBBIN:$FOAM_EXT_LIBBIN:$FOAM_LIBBIN/dummy
-+_foamAddLib  
 +if [ "$(uname -s)" != "Darwin" ]; then
 +	_foamAddLib $FOAM_USER_LIBBIN:$FOAM_SITE_LIBBIN:$FOAM_LIBBIN:$FOAM_EXT_LIBBIN:$FOAM_LIBBIN/dummy
 +else
@@ -571,7 +649,7 @@ index 5a77479..a79a1b3 100644
  
  # Compiler settings
  # ~~~~~~~~~~~~~~~~~
-@@ -362,11 +376,21 @@ fi
+@@ -362,11 +375,21 @@ fi
  # boost and CGAL
  # ~~~~~~~~~~~~~~
  
@@ -597,7 +675,7 @@ index 5a77479..a79a1b3 100644
  
  # enabled if CGAL is available
  if [ "$FOAM_VERBOSE" -a "$PS1" ]
-@@ -572,7 +596,9 @@ esac
+@@ -572,7 +595,9 @@ esac
  # dummy MPI already added to LD_LIBRARY_PATH and has no external libraries
  if [ "$FOAM_MPI" != dummy ]
  then
@@ -632,7 +710,7 @@ index 55b8981..8c59a57 100755
  set -x
  
 diff --git a/src/OSspecific/POSIX/POSIX.C b/src/OSspecific/POSIX/POSIX.C
-index 9207781..a572d5b 100644
+index 9207781..f39d8ed 100644
 --- a/src/OSspecific/POSIX/POSIX.C
 +++ b/src/OSspecific/POSIX/POSIX.C
 @@ -53,7 +53,11 @@ Description
@@ -659,7 +737,7 @@ index 9207781..a572d5b 100644
 +    {
 +        libs.append(_dyld_get_image_name(cnt));
 +    }
-+    
++
 +    if (POSIX::debug)
 +    {
 +        std::cout
@@ -1172,7 +1250,7 @@ index 4a3859d..7a57373 100644
 -
  // ************************************************************************* //
 diff --git a/src/OSspecific/POSIX/signals/sigFpe.C b/src/OSspecific/POSIX/signals/sigFpe.C
-index 501ff95..05a2995 100644
+index 501ff95..8f503d6 100644
 --- a/src/OSspecific/POSIX/signals/sigFpe.C
 +++ b/src/OSspecific/POSIX/signals/sigFpe.C
 @@ -44,12 +44,43 @@ License
@@ -1211,7 +1289,7 @@ index 501ff95..05a2995 100644
 +    result = oldMallocHook_(zone, size);
 +
 +    UList<scalar> lst(reinterpret_cast<scalar*>(result), size/sizeof(scalar));
-+    lst = std::numeric_limits<scalar>::signaling_NaN(); 
++    lst = std::numeric_limits<scalar>::signaling_NaN();
 +
 +    return result;
 +}
@@ -1228,7 +1306,7 @@ index 501ff95..05a2995 100644
  
  void Foam::sigFpe::sigHandler(int)
  {
-@@ -134,7 +165,7 @@ Foam::sigFpe::~sigFpe()
+@@ -134,10 +165,14 @@ Foam::sigFpe::~sigFpe()
  {
      if (env("FOAM_SIGFPE"))
      {
@@ -1236,8 +1314,15 @@ index 501ff95..05a2995 100644
 +#       if defined(LINUX_GNUC) || defined(__APPLE__)
  
          // Reset signal
++#       if defined(__APPLE__)
++        if (oldAction_.sa_handler && sigaction(SIGFPE, NULL, NULL) < 0)
++#       else
          if (oldAction_.sa_handler && sigaction(SIGFPE, &oldAction_, NULL) < 0)
-@@ -160,6 +191,20 @@ Foam::sigFpe::~sigFpe()
++#       endif
+         {
+             FatalErrorIn
+             (
+@@ -160,6 +195,20 @@ Foam::sigFpe::~sigFpe()
          }
  
  #       endif
@@ -1258,7 +1343,7 @@ index 501ff95..05a2995 100644
      }
  }
  
-@@ -181,21 +226,31 @@ void Foam::sigFpe::set(const bool verbose)
+@@ -181,21 +230,31 @@ void Foam::sigFpe::set(const bool verbose)
      {
          bool supported = false;
  
@@ -1291,7 +1376,7 @@ index 501ff95..05a2995 100644
          {
              FatalErrorIn
              (
-@@ -258,6 +313,28 @@ void Foam::sigFpe::set(const bool verbose)
+@@ -258,6 +317,28 @@ void Foam::sigFpe::set(const bool verbose)
  
  #       endif
  
@@ -1316,12 +1401,12 @@ index 501ff95..05a2995 100644
 +                }
 +            }
 +        }
-+#       endif        
++#       endif
  
          if (verbose)
          {
 diff --git a/src/OSspecific/POSIX/signals/sigFpe.H b/src/OSspecific/POSIX/signals/sigFpe.H
-index b7fdec8..3ab778f 100644
+index b7fdec8..c36885b 100644
 --- a/src/OSspecific/POSIX/signals/sigFpe.H
 +++ b/src/OSspecific/POSIX/signals/sigFpe.H
 @@ -53,6 +53,10 @@ SourceFiles
@@ -1345,7 +1430,7 @@ index b7fdec8..3ab778f 100644
 +                struct _malloc_zone_t *zone,
 +                size_t size
 +            );
-+    
++
 +            static void *nanMallocHook_
 +            (
 +                struct _malloc_zone_t *zone,
@@ -1361,6 +1446,83 @@ index b7fdec8..3ab778f 100644
  
          //- Handler for caught signals
          static void sigHandler(int);
+diff --git a/src/OpenFOAM/containers/Lists/CompactListList/CompactListListI.H b/src/OpenFOAM/containers/Lists/CompactListList/CompactListListI.H
+index 91987ac..9691c49 100644
+--- a/src/OpenFOAM/containers/Lists/CompactListList/CompactListListI.H
++++ b/src/OpenFOAM/containers/Lists/CompactListList/CompactListListI.H
+@@ -79,7 +79,7 @@ template<class T, class Container>
+ inline const Foam::CompactListList<T, Container>&
+ Foam::CompactListList<T, Container>::null()
+ {
+-    return *reinterpret_cast< CompactListList<T, Container>* >(0);
++    return NullObjectRef<CompactListList<T, Container> >();
+ }
+ 
+ 
+diff --git a/src/OpenFOAM/containers/Lists/FixedList/FixedListI.H b/src/OpenFOAM/containers/Lists/FixedList/FixedListI.H
+index 6538319..af877eb 100644
+--- a/src/OpenFOAM/containers/Lists/FixedList/FixedListI.H
++++ b/src/OpenFOAM/containers/Lists/FixedList/FixedListI.H
+@@ -107,7 +107,7 @@ Foam::FixedList<T, Size>::clone() const
+ template<class T, unsigned Size>
+ inline const Foam::FixedList<T, Size>& Foam::FixedList<T, Size>::null()
+ {
+-    return *reinterpret_cast< FixedList<T, Size>* >(0);
++    return NullObjectRef<FixedList<T, Size> >();
+ }
+ 
+ 
+diff --git a/src/OpenFOAM/containers/Lists/List/ListI.H b/src/OpenFOAM/containers/Lists/List/ListI.H
+index 26c65bd..2c759b4 100644
+--- a/src/OpenFOAM/containers/Lists/List/ListI.H
++++ b/src/OpenFOAM/containers/Lists/List/ListI.H
+@@ -42,7 +42,7 @@ inline Foam::autoPtr<Foam::List<T> > Foam::List<T>::clone() const
+ template<class T>
+ inline const Foam::List<T>& Foam::List<T>::null()
+ {
+-    return *reinterpret_cast< List<T>* >(0);
++    return NullObjectRef<List<T> >();
+ }
+ 
+ 
+diff --git a/src/OpenFOAM/containers/Lists/SubList/SubListI.H b/src/OpenFOAM/containers/Lists/SubList/SubListI.H
+index 36fc5a4..09b40d8 100644
+--- a/src/OpenFOAM/containers/Lists/SubList/SubListI.H
++++ b/src/OpenFOAM/containers/Lists/SubList/SubListI.H
+@@ -74,7 +74,7 @@ inline Foam::SubList<T>::SubList
+ template<class T>
+ inline const Foam::SubList<T>& Foam::SubList<T>::null()
+ {
+-    return *reinterpret_cast< SubList<T>* >(0);
++    return NullObjectRef<SubList<T> >();
+ }
+ 
+ 
+diff --git a/src/OpenFOAM/containers/Lists/UList/UList.H b/src/OpenFOAM/containers/Lists/UList/UList.H
+index 06ef4cb..1e782e0 100644
+--- a/src/OpenFOAM/containers/Lists/UList/UList.H
++++ b/src/OpenFOAM/containers/Lists/UList/UList.H
+@@ -42,6 +42,7 @@ SourceFiles
+ #ifndef UList_H
+ #define UList_H
+ 
++#include "nullObject.H"
+ #include "bool.H"
+ #include "label.H"
+ #include "uLabel.H"
+diff --git a/src/OpenFOAM/containers/Lists/UList/UListI.H b/src/OpenFOAM/containers/Lists/UList/UListI.H
+index 3994b3d..a1c92bc 100644
+--- a/src/OpenFOAM/containers/Lists/UList/UListI.H
++++ b/src/OpenFOAM/containers/Lists/UList/UListI.H
+@@ -50,7 +50,7 @@ inline Foam::UList<T>::UList(T* __restrict__ v, label size)
+ template<class T>
+ inline const Foam::UList<T>& Foam::UList<T>::null()
+ {
+-    return *reinterpret_cast< UList<T>* >(0);
++    return NullObjectRef<UList<T> >();
+ }
+ 
+ 
 diff --git a/src/OpenFOAM/db/IOstreams/Pstreams/gatherScatter.C b/src/OpenFOAM/db/IOstreams/Pstreams/gatherScatter.C
 index 33c7581..5fd597e 100644
 --- a/src/OpenFOAM/db/IOstreams/Pstreams/gatherScatter.C
@@ -1405,8 +1567,47 @@ index 2f97577..026519c 100644
  }
  
  
+diff --git a/src/OpenFOAM/db/objectRegistry/objectRegistryTemplates.C b/src/OpenFOAM/db/objectRegistry/objectRegistryTemplates.C
+index 483e1c2..3d495af 100644
+--- a/src/OpenFOAM/db/objectRegistry/objectRegistryTemplates.C
++++ b/src/OpenFOAM/db/objectRegistry/objectRegistryTemplates.C
+@@ -170,7 +170,7 @@ const Type& Foam::objectRegistry::lookupObject(const word& name) const
+             << abort(FatalError);
+     }
+ 
+-    return *reinterpret_cast< const Type* >(0);
++    return NullObjectRef<Type>();
+ }
+ 
+ 
+diff --git a/src/OpenFOAM/fields/DimensionedFields/DimensionedField/DimensionedFieldI.H b/src/OpenFOAM/fields/DimensionedFields/DimensionedField/DimensionedFieldI.H
+index 05a8a31..6d3c9a1 100644
+--- a/src/OpenFOAM/fields/DimensionedFields/DimensionedField/DimensionedFieldI.H
++++ b/src/OpenFOAM/fields/DimensionedFields/DimensionedField/DimensionedFieldI.H
+@@ -34,7 +34,7 @@ template<class Type, class GeoMesh>
+ inline const DimensionedField<Type, GeoMesh>&
+ DimensionedField<Type, GeoMesh>::null()
+ {
+-    return *reinterpret_cast< DimensionedField<Type, GeoMesh>* >(0);
++    return NullObjectRef<DimensionedField<Type, GeoMesh> >();
+ }
+ 
+ 
+diff --git a/src/OpenFOAM/fields/DimensionedFields/DimensionedField/SubDimensionedFieldI.H b/src/OpenFOAM/fields/DimensionedFields/DimensionedField/SubDimensionedFieldI.H
+index 7cfdc97..9f75b5f 100644
+--- a/src/OpenFOAM/fields/DimensionedFields/DimensionedField/SubDimensionedFieldI.H
++++ b/src/OpenFOAM/fields/DimensionedFields/DimensionedField/SubDimensionedFieldI.H
+@@ -80,7 +80,7 @@ template<class Type, class GeoMesh>
+ inline const SubDimensionedField<Type, GeoMesh>&
+ SubDimensionedField<Type, GeoMesh>::null()
+ {
+-    return *reinterpret_cast< SubDimensionedField<Type, GeoMesh>* >(0);
++    return NullObjectRef<SubDimensionedField<Type, GeoMesh> >();
+ }
+ 
+ 
 diff --git a/src/OpenFOAM/fields/Fields/Field/Field.C b/src/OpenFOAM/fields/Fields/Field/Field.C
-index 334eba8..fa0c95e 100644
+index 334eba8..3e7d1dd 100644
 --- a/src/OpenFOAM/fields/Fields/Field/Field.C
 +++ b/src/OpenFOAM/fields/Fields/Field/Field.C
 @@ -402,7 +402,7 @@ void Foam::Field<Type>::map
@@ -1414,7 +1615,7 @@ index 334eba8..fa0c95e 100644
      (
          mapper.direct()
 -     && &mapper.directAddressing()
-+     && reinterpret_cast<const void*>(&mapper.directAddressing())
++     && notNull(mapper.directAddressing())
       && mapper.directAddressing().size()
      )
      {
@@ -1423,12 +1624,110 @@ index 334eba8..fa0c95e 100644
          (
              mapper.direct()
 -         && &mapper.directAddressing()
-+         && reinterpret_cast<const void*>(&mapper.directAddressing())
++         && notNull(mapper.directAddressing())
           && mapper.directAddressing().size()
          )
       || (!mapper.direct() && mapper.addressing().size())
+diff --git a/src/OpenFOAM/fields/Fields/Field/Field.H b/src/OpenFOAM/fields/Fields/Field/Field.H
+index 9b4088a..f56170e 100644
+--- a/src/OpenFOAM/fields/Fields/Field/Field.H
++++ b/src/OpenFOAM/fields/Fields/Field/Field.H
+@@ -100,7 +100,7 @@ public:
+         //- Return a null field
+         inline static const Field<Type>& null()
+         {
+-            return *reinterpret_cast< Field<Type>* >(0);
++            return NullObjectRef<Field<Type> >();
+         }
+ 
+ 
+diff --git a/src/OpenFOAM/fields/Fields/Field/SubFieldI.H b/src/OpenFOAM/fields/Fields/Field/SubFieldI.H
+index d6c28d0..e2326cc 100644
+--- a/src/OpenFOAM/fields/Fields/Field/SubFieldI.H
++++ b/src/OpenFOAM/fields/Fields/Field/SubFieldI.H
+@@ -84,7 +84,7 @@ inline Foam::SubField<Type>::SubField
+ template<class Type>
+ inline const Foam::SubField<Type>& Foam::SubField<Type>::null()
+ {
+-    return *reinterpret_cast< SubField<Type>* >(0);
++    return NullObjectRef<SubField<Type> >();
+ }
+ 
+ 
+diff --git a/src/OpenFOAM/fields/GeometricFields/GeometricField/GeometricFieldI.H b/src/OpenFOAM/fields/GeometricFields/GeometricField/GeometricFieldI.H
+index 49fd3c8..12ce96a 100644
+--- a/src/OpenFOAM/fields/GeometricFields/GeometricField/GeometricFieldI.H
++++ b/src/OpenFOAM/fields/GeometricFields/GeometricField/GeometricFieldI.H
+@@ -29,7 +29,7 @@ template<class Type, template<class> class PatchField, class GeoMesh>
+ inline const Foam::GeometricField<Type, PatchField, GeoMesh>&
+ Foam::GeometricField<Type, PatchField, GeoMesh>::null()
+ {
+-    return *reinterpret_cast< GeometricField<Type, PatchField, GeoMesh>* >(0);
++    return NullObjectRef<GeometricField<Type, PatchField, GeoMesh> >();
+ }
+ 
+ 
+diff --git a/src/OpenFOAM/global/foamDoc.H b/src/OpenFOAM/global/foamDoc.H
+index 1dbd19f..f3b4b28 100644
+--- a/src/OpenFOAM/global/foamDoc.H
++++ b/src/OpenFOAM/global/foamDoc.H
+@@ -46,7 +46,7 @@ License
+     - applications:
+         collections of library functionality wrapped up into applications,
+         such as solvers and utilities
+-        
++
+     - tutorials:
+         a suite of test cases that highlight a broad cross-section of
+         OpenFOAM's capabilities
+diff --git a/src/OpenFOAM/global/global.Cver b/src/OpenFOAM/global/global.Cver
+index ea711ef..b898715 100644
+--- a/src/OpenFOAM/global/global.Cver
++++ b/src/OpenFOAM/global/global.Cver
+@@ -42,6 +42,8 @@ const char* const Foam::FOAMbuild = "BUILD_STRING";
+ 
+ #include "new.C"
+ 
++#include "nullObject.C"
++
+ // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+ // Global IO streams
+ 
+diff --git a/src/OpenFOAM/matrices/Matrix/MatrixI.H b/src/OpenFOAM/matrices/Matrix/MatrixI.H
+index a3604b2..49aa369 100644
+--- a/src/OpenFOAM/matrices/Matrix/MatrixI.H
++++ b/src/OpenFOAM/matrices/Matrix/MatrixI.H
+@@ -47,7 +47,7 @@ clone() const
+ template<class Form, class Type>
+ inline const Foam::Matrix<Form, Type>& Foam::Matrix<Form, Type>::null()
+ {
+-    return *reinterpret_cast< Matrix<Form, Type>* >(0);
++    return NullObjectRef<Matrix<Form, Type> >();
+ }
+ 
+ 
+diff --git a/src/OpenFOAM/memory/Xfer/XferI.H b/src/OpenFOAM/memory/Xfer/XferI.H
+index 3cb5077..490ee69 100644
+--- a/src/OpenFOAM/memory/Xfer/XferI.H
++++ b/src/OpenFOAM/memory/Xfer/XferI.H
+@@ -23,12 +23,14 @@ License
+ 
+ \*---------------------------------------------------------------------------*/
+ 
++#include "nullObject.H"
++
+ // * * * * * * * * * * * * Static Member Functions * * * * * * * * * * * * * //
+ 
+ template<class T>
+ inline const Foam::Xfer<T>& Foam::Xfer<T>::null()
+ {
+-    return *reinterpret_cast< Xfer<T>* >(0);
++    return NullObjectRef<Xfer<T> >();
+ }
+ 
+ 
 diff --git a/src/OpenFOAM/meshes/meshShapes/cellShape/cellShapeIO.C b/src/OpenFOAM/meshes/meshShapes/cellShape/cellShapeIO.C
-index 2733291..fef1e10 100644
+index 2733291..25528fc 100644
 --- a/src/OpenFOAM/meshes/meshShapes/cellShape/cellShapeIO.C
 +++ b/src/OpenFOAM/meshes/meshShapes/cellShape/cellShapeIO.C
 @@ -128,7 +128,7 @@ Ostream& operator<<(Ostream& os, const InfoProxy<cellShape>& ip)
@@ -1436,12 +1735,12 @@ index 2733291..fef1e10 100644
      const cellShape& cs = ip.t_;
  
 -    if (!(&cs.model()))
-+    if (!(reinterpret_cast<const void*>(&cs.model())))
++    if (isNull(cs.model()))
      {
          os  << "    cellShape has no model!\n";
      }
 diff --git a/src/OpenFOAM/meshes/polyMesh/polyMesh.C b/src/OpenFOAM/meshes/polyMesh/polyMesh.C
-index 9b0d11a..a86bf59 100644
+index 9b0d11a..aad7729 100644
 --- a/src/OpenFOAM/meshes/polyMesh/polyMesh.C
 +++ b/src/OpenFOAM/meshes/polyMesh/polyMesh.C
 @@ -675,23 +675,23 @@ void Foam::polyMesh::resetPrimitives
@@ -1449,26 +1748,26 @@ index 9b0d11a..a86bf59 100644
      // Take over new primitive data.
      // Optimized to avoid overwriting data at all
 -    if (&points)
-+    if (reinterpret_cast<const void*>(&points))
++    if (notNull(points))
      {
          points_.transfer(points());
          bounds_ = boundBox(points_, validBoundary);
      }
  
 -    if (&faces)
-+    if (reinterpret_cast<const void*>(&faces))
++    if (notNull(faces))
      {
          faces_.transfer(faces());
      }
  
 -    if (&owner)
-+    if (reinterpret_cast<const void*>(&owner))
++    if (notNull(owner))
      {
          owner_.transfer(owner());
      }
  
 -    if (&neighbour)
-+    if (reinterpret_cast<const void*>(&neighbour))
++    if (notNull(neighbour))
      {
          neighbour_.transfer(neighbour());
      }
@@ -1492,8 +1791,235 @@ index 57373e0..69ce1a5 100644
  // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
  
  namespace Foam
+diff --git a/src/OpenFOAM/primitives/nullObject/nullObject.C b/src/OpenFOAM/primitives/nullObject/nullObject.C
+new file mode 100644
+index 0000000..cfcbfdf
+--- /dev/null
++++ b/src/OpenFOAM/primitives/nullObject/nullObject.C
+@@ -0,0 +1,34 @@
++/*---------------------------------------------------------------------------*\
++  =========                 |
++  \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
++   \\    /   O peration     |
++    \\  /    A nd           | Copyright (C) 2014 OpenFOAM Foundation
++     \\/     M anipulation  |
++-------------------------------------------------------------------------------
++License
++    This file is part of OpenFOAM.
++
++    OpenFOAM is free software: you can redistribute it and/or modify it
++    under the terms of the GNU General Public License as published by
++    the Free Software Foundation, either version 3 of the License, or
++    (at your option) any later version.
++
++    OpenFOAM is distributed in the hope that it will be useful, but WITHOUT
++    ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
++    FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
++    for more details.
++
++    You should have received a copy of the GNU General Public License
++    along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
++
++\*---------------------------------------------------------------------------*/
++
++#include "nullObject.H"
++
++// * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
++
++const Foam::NullObject Foam::NullObject::nullObject;
++const Foam::NullObject* Foam::nullObjectPtr = &Foam::NullObject::nullObject;
++
++
++// ************************************************************************* //
+diff --git a/src/OpenFOAM/primitives/nullObject/nullObject.H b/src/OpenFOAM/primitives/nullObject/nullObject.H
+new file mode 100644
+index 0000000..d324a92
+--- /dev/null
++++ b/src/OpenFOAM/primitives/nullObject/nullObject.H
+@@ -0,0 +1,110 @@
++/*---------------------------------------------------------------------------*\
++  =========                 |
++  \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
++   \\    /   O peration     |
++    \\  /    A nd           | Copyright (C) 2014 OpenFOAM Foundation
++     \\/     M anipulation  |
++-------------------------------------------------------------------------------
++License
++    This file is part of OpenFOAM.
++
++    OpenFOAM is free software: you can redistribute it and/or modify it
++    under the terms of the GNU General Public License as published by
++    the Free Software Foundation, either version 3 of the License, or
++    (at your option) any later version.
++
++    OpenFOAM is distributed in the hope that it will be useful, but WITHOUT
++    ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
++    FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
++    for more details.
++
++    You should have received a copy of the GNU General Public License
++    along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
++
++Class
++    Foam::nullObject
++
++Description
++    Singleton null-object class and instance
++
++SourceFiles
++    nullObjectI.H
++    nullObject.C
++
++\*---------------------------------------------------------------------------*/
++
++#ifndef nullObject_H
++#define nullObject_H
++
++// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
++
++namespace Foam
++{
++
++/*---------------------------------------------------------------------------*\
++                         Class nullObject Declaration
++\*---------------------------------------------------------------------------*/
++
++class NullObject
++{
++    //- Private constructor
++    NullObject()
++    {}
++
++    //- Prevent copy-construction
++    NullObject(const NullObject&);
++
++    //- Prevent assignment
++    NullObject& operator=(const NullObject&);
++
++public:
++
++    //- The unique null object
++    static const NullObject nullObject;
++};
++
++
++//- Pointer to the unique nullObject
++extern const NullObject* nullObjectPtr;
++
++
++//- Return reference to the nullObject of type T
++template <class T>
++inline const T& NullObjectRef();
++
++//- Return pointer to the nullObject of type T
++template <class T>
++inline const T* NullObjectPtr();
++
++
++//- Return true if t is a reference to the nullObject of type T
++template <class T>
++inline bool isNull(const T& t);
++
++//- Return true if t is not a reference to the nullObject of type T
++template <class T>
++inline bool notNull(const T& t);
++
++
++//- Return true if t is a pointer to the nullObject of type T
++template <class T>
++inline bool isNull(const T* t);
++
++//- Return true if t is not a pointer to the nullObject of type T
++template <class T>
++inline bool notNull(const T* t);
++
++
++// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
++
++} // End namespace Foam
++
++// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
++
++#include "nullObjectI.H"
++
++// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
++
++#endif
++
++// ************************************************************************* //
+diff --git a/src/OpenFOAM/primitives/nullObject/nullObjectI.H b/src/OpenFOAM/primitives/nullObject/nullObjectI.H
+new file mode 100644
+index 0000000..4f8fbc1
+--- /dev/null
++++ b/src/OpenFOAM/primitives/nullObject/nullObjectI.H
+@@ -0,0 +1,65 @@
++/*---------------------------------------------------------------------------*\
++  =========                 |
++  \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
++   \\    /   O peration     |
++    \\  /    A nd           | Copyright (C) 2014 OpenFOAM Foundation
++     \\/     M anipulation  |
++-------------------------------------------------------------------------------
++License
++    This file is part of OpenFOAM.
++
++    OpenFOAM is free software: you can redistribute it and/or modify it
++    under the terms of the GNU General Public License as published by
++    the Free Software Foundation, either version 3 of the License, or
++    (at your option) any later version.
++
++    OpenFOAM is distributed in the hope that it will be useful, but WITHOUT
++    ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
++    FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
++    for more details.
++
++    You should have received a copy of the GNU General Public License
++    along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
++
++\*---------------------------------------------------------------------------*/
++
++template <class T>
++inline const T& Foam::NullObjectRef()
++{
++    return *reinterpret_cast<const T*>(nullObjectPtr);
++}
++
++template <class T>
++inline const T* Foam::NullObjectPtr()
++{
++    return reinterpret_cast<const T*>(nullObjectPtr);
++}
++
++
++template <class T>
++inline bool Foam::isNull(const T& t)
++{
++    return &t == NullObjectPtr<T>();
++}
++
++template <class T>
++inline bool Foam::notNull(const T& t)
++{
++    return &t != NullObjectPtr<T>();
++}
++
++
++template <class T>
++inline bool Foam::isNull(const T* t)
++{
++    return t == NullObjectPtr<T>();
++}
++
++template <class T>
++inline bool Foam::notNull(const T* t)
++{
++    return t != NullObjectPtr<T>();
++}
++
++
++// ************************************************************************* //
 diff --git a/src/conversion/ensight/part/ensightPartCells.C b/src/conversion/ensight/part/ensightPartCells.C
-index 80f0cdc..d3c05ad 100644
+index 80f0cdc..beb2d54 100644
 --- a/src/conversion/ensight/part/ensightPartCells.C
 +++ b/src/conversion/ensight/part/ensightPartCells.C
 @@ -67,7 +67,7 @@ void Foam::ensightPartCells::classify
@@ -1501,12 +2027,12 @@ index 80f0cdc..d3c05ad 100644
  
      bool limited = false;
 -    if (&idList)
-+    if (reinterpret_cast<const void*>(&idList))
++    if (notNull(idList))
      {
          limited = true;
          size_ = idList.size();
 diff --git a/src/conversion/ensight/part/ensightPartIO.C b/src/conversion/ensight/part/ensightPartIO.C
-index 7fe2e6e..30b778c 100644
+index 7fe2e6e..6d827d7 100644
 --- a/src/conversion/ensight/part/ensightPartIO.C
 +++ b/src/conversion/ensight/part/ensightPartIO.C
 @@ -59,7 +59,7 @@ void Foam::ensightPart::writeFieldList
@@ -1514,12 +2040,51 @@ index 7fe2e6e..30b778c 100644
  ) const
  {
 -    if (&idList)
-+    if (reinterpret_cast<const void*>(&idList))
++    if (notNull(idList))
      {
          forAll(idList, i)
          {
+diff --git a/src/dummyThirdParty/metisDecomp/metis.h b/src/dummyThirdParty/metisDecomp/metis.h
+index 7b6ca31..c5adaad 100644
+--- a/src/dummyThirdParty/metisDecomp/metis.h
++++ b/src/dummyThirdParty/metisDecomp/metis.h
+@@ -11,7 +11,7 @@
+ #define IDXTYPEWIDTH 32
+ 
+ /*------------------------------------------------------------------------
+-* Undefine the following #define in order to use short idxtype as the idxtype 
++* Undefine the following #define in order to use short idxtype as the idxtype
+ *-------------------------------------------------------------------------*/
+ #if IDXTYPEWIDTH == 32
+   #define SCNIDX  SCNd32
+@@ -29,17 +29,17 @@
+ 
+ 
+ void METIS_WPartGraphRecursive(idxtype *nvtxs, idxtype *xadj, idxtype *adjncy, idxtype *vwgt,
+-                   idxtype *adjwgt, idxtype *wgtflag, idxtype *numflag, idxtype *nparts, float *tpwgts, 
++                   idxtype *adjwgt, idxtype *wgtflag, idxtype *numflag, idxtype *nparts, float *tpwgts,
+                    idxtype *options, idxtype *edgecut, idxtype *part);
+ void METIS_PartGraphRecursive(idxtype *nvtxs, idxtype *xadj, idxtype *adjncy, idxtype *vwgt,
+-                   idxtype *adjwgt, idxtype *wgtflag, idxtype *numflag, idxtype *nparts, idxtype *options, 
++                   idxtype *adjwgt, idxtype *wgtflag, idxtype *numflag, idxtype *nparts, idxtype *options,
++                   idxtype *edgecut, idxtype *part);
++void METIS_WPartGraphKway(idxtype *nvtxs, idxtype *xadj, idxtype *adjncy, idxtype *vwgt,
++                   idxtype *adjwgt, idxtype *wgtflag, idxtype *numflag, idxtype *nparts, float *tpwgts,
++                   idxtype *options, idxtype *edgecut, idxtype *part);
++void METIS_PartGraphKway(idxtype *nvtxs, idxtype *xadj, idxtype *adjncy, idxtype *vwgt,
++                   idxtype *adjwgt, idxtype *wgtflag, idxtype *numflag, idxtype *nparts, idxtype *options,
+                    idxtype *edgecut, idxtype *part);
+-void METIS_WPartGraphKway(idxtype *nvtxs, idxtype *xadj, idxtype *adjncy, idxtype *vwgt, 
+-                   idxtype *adjwgt, idxtype *wgtflag, idxtype *numflag, idxtype *nparts, float *tpwgts, 
+-                   idxtype *options, idxtype *edgecut, idxtype *part); 
+-void METIS_PartGraphKway(idxtype *nvtxs, idxtype *xadj, idxtype *adjncy, idxtype *vwgt, 
+-                   idxtype *adjwgt, idxtype *wgtflag, idxtype *numflag, idxtype *nparts, idxtype *options, 
+-                   idxtype *edgecut, idxtype *part); 
+ 
+ 
+ 
 diff --git a/src/edgeMesh/edgeMesh.C b/src/edgeMesh/edgeMesh.C
-index 7e2a397..8f67289 100644
+index 7e2a397..fa00fe7 100644
 --- a/src/edgeMesh/edgeMesh.C
 +++ b/src/edgeMesh/edgeMesh.C
 @@ -182,12 +182,12 @@ void Foam::edgeMesh::reset
@@ -1527,16 +2092,296 @@ index 7e2a397..8f67289 100644
      // Take over new primitive data.
      // Optimized to avoid overwriting data at all
 -    if (&pointLst)
-+    if (reinterpret_cast<const void*>(&pointLst))
++    if (notNull(pointLst))
      {
          points_.transfer(pointLst());
      }
  
 -    if (&edgeLst)
-+    if (reinterpret_cast<const void*>(&edgeLst))
++    if (notNull(edgeLst))
      {
          edges_.transfer(edgeLst());
  
+diff --git a/src/finiteVolume/cfdTools/general/porosityModel/DarcyForchheimer/DarcyForchheimer.C b/src/finiteVolume/cfdTools/general/porosityModel/DarcyForchheimer/DarcyForchheimer.C
+index d70c040..0374f95 100644
+--- a/src/finiteVolume/cfdTools/general/porosityModel/DarcyForchheimer/DarcyForchheimer.C
++++ b/src/finiteVolume/cfdTools/general/porosityModel/DarcyForchheimer/DarcyForchheimer.C
+@@ -150,7 +150,7 @@ void Foam::porosityModels::DarcyForchheimer::correct
+     const scalarField& V = mesh_.V();
+     scalarField& Udiag = UEqn.diag();
+     vectorField& Usource = UEqn.source();
+- 
++
+     if (UEqn.dimensions() == dimForce)
+     {
+         const volScalarField& rho =
+@@ -181,7 +181,7 @@ void Foam::porosityModels::DarcyForchheimer::correct
+     const scalarField& V = mesh_.V();
+     scalarField& Udiag = UEqn.diag();
+     vectorField& Usource = UEqn.source();
+- 
++
+     apply(Udiag, Usource, V, rho, mu, U);
+ }
+ 
+diff --git a/src/finiteVolume/cfdTools/general/porosityModel/DarcyForchheimer/DarcyForchheimer.H b/src/finiteVolume/cfdTools/general/porosityModel/DarcyForchheimer/DarcyForchheimer.H
+index 5110792..2f6f00b 100644
+--- a/src/finiteVolume/cfdTools/general/porosityModel/DarcyForchheimer/DarcyForchheimer.H
++++ b/src/finiteVolume/cfdTools/general/porosityModel/DarcyForchheimer/DarcyForchheimer.H
+@@ -170,7 +170,7 @@ public:
+         virtual void correct
+         (
+             const fvVectorMatrix& UEqn,
+-            volTensorField& AU            
++            volTensorField& AU
+         ) const;
+ 
+ 
+diff --git a/src/finiteVolume/cfdTools/general/porosityModel/fixedCoeff/fixedCoeff.C b/src/finiteVolume/cfdTools/general/porosityModel/fixedCoeff/fixedCoeff.C
+index bcc8554..e63b203 100644
+--- a/src/finiteVolume/cfdTools/general/porosityModel/fixedCoeff/fixedCoeff.C
++++ b/src/finiteVolume/cfdTools/general/porosityModel/fixedCoeff/fixedCoeff.C
+@@ -202,7 +202,7 @@ void Foam::porosityModels::fixedCoeff::correct
+     const scalarField& V = mesh_.V();
+     scalarField& Udiag = UEqn.diag();
+     vectorField& Usource = UEqn.source();
+- 
++
+     scalar rho = 1.0;
+     if (UEqn.dimensions() == dimForce)
+     {
+@@ -230,7 +230,7 @@ void Foam::porosityModels::fixedCoeff::correct
+     {
+         coeffs_.lookup("rhoRef") >> rho;
+     }
+- 
++
+     apply(Udiag, Usource, V, U, rho);
+ }
+ 
+diff --git a/src/finiteVolume/cfdTools/general/porosityModel/fixedCoeff/fixedCoeff.H b/src/finiteVolume/cfdTools/general/porosityModel/fixedCoeff/fixedCoeff.H
+index 1581318..345f0b6 100644
+--- a/src/finiteVolume/cfdTools/general/porosityModel/fixedCoeff/fixedCoeff.H
++++ b/src/finiteVolume/cfdTools/general/porosityModel/fixedCoeff/fixedCoeff.H
+@@ -147,7 +147,7 @@ public:
+         virtual void correct
+         (
+             const fvVectorMatrix& UEqn,
+-            volTensorField& AU            
++            volTensorField& AU
+         ) const;
+ 
+ 
+diff --git a/src/finiteVolume/cfdTools/general/porosityModel/porosityModel/porosityModel.C b/src/finiteVolume/cfdTools/general/porosityModel/porosityModel/porosityModel.C
+index f940ff2..5aacf6f 100644
+--- a/src/finiteVolume/cfdTools/general/porosityModel/porosityModel/porosityModel.C
++++ b/src/finiteVolume/cfdTools/general/porosityModel/porosityModel/porosityModel.C
+@@ -187,7 +187,7 @@ void Foam::porosityModel::addResistance
+ (
+     const fvVectorMatrix& UEqn,
+     volTensorField& AU,
+-    bool correctAUprocBC         
++    bool correctAUprocBC
+ ) const
+ {
+     if (cellZoneIds_.empty())
+diff --git a/src/finiteVolume/cfdTools/general/porosityModel/porosityModel/porosityModelList.C b/src/finiteVolume/cfdTools/general/porosityModel/porosityModel/porosityModelList.C
+index df30285..ca38255 100644
+--- a/src/finiteVolume/cfdTools/general/porosityModel/porosityModel/porosityModelList.C
++++ b/src/finiteVolume/cfdTools/general/porosityModel/porosityModel/porosityModelList.C
+@@ -153,7 +153,7 @@ void Foam::porosityModelList::addResistance
+ (
+     const fvVectorMatrix& UEqn,
+     volTensorField& AU,
+-    bool correctAUprocBC         
++    bool correctAUprocBC
+ ) const
+ {
+     forAll(*this, i)
+diff --git a/src/finiteVolume/cfdTools/general/porosityModel/powerLaw/powerLaw.C b/src/finiteVolume/cfdTools/general/porosityModel/powerLaw/powerLaw.C
+index 485f0be..b3134ec 100644
+--- a/src/finiteVolume/cfdTools/general/porosityModel/powerLaw/powerLaw.C
++++ b/src/finiteVolume/cfdTools/general/porosityModel/powerLaw/powerLaw.C
+@@ -91,7 +91,7 @@ void Foam::porosityModels::powerLaw::correct
+     const vectorField& U = UEqn.psi();
+     const scalarField& V = mesh_.V();
+     scalarField& Udiag = UEqn.diag();
+- 
++
+     if (UEqn.dimensions() == dimForce)
+     {
+         const volScalarField& rho =
+@@ -116,7 +116,7 @@ void Foam::porosityModels::powerLaw::correct
+     const vectorField& U = UEqn.psi();
+     const scalarField& V = mesh_.V();
+     scalarField& Udiag = UEqn.diag();
+- 
++
+     apply(Udiag, V, rho, U);
+ }
+ 
+diff --git a/src/finiteVolume/cfdTools/general/porosityModel/powerLaw/powerLaw.H b/src/finiteVolume/cfdTools/general/porosityModel/powerLaw/powerLaw.H
+index 299335b..64fe5ff 100644
+--- a/src/finiteVolume/cfdTools/general/porosityModel/powerLaw/powerLaw.H
++++ b/src/finiteVolume/cfdTools/general/porosityModel/powerLaw/powerLaw.H
+@@ -151,7 +151,7 @@ public:
+         virtual void correct
+         (
+             const fvVectorMatrix& UEqn,
+-            volTensorField& AU            
++            volTensorField& AU
+         ) const;
+ 
+ 
+diff --git a/src/finiteVolume/fields/fvPatchFields/basic/fixedGradient/fixedGradientFvPatchField.H b/src/finiteVolume/fields/fvPatchFields/basic/fixedGradient/fixedGradientFvPatchField.H
+index 3d00735..6b9d2a5 100644
+--- a/src/finiteVolume/fields/fvPatchFields/basic/fixedGradient/fixedGradientFvPatchField.H
++++ b/src/finiteVolume/fields/fvPatchFields/basic/fixedGradient/fixedGradientFvPatchField.H
+@@ -47,7 +47,7 @@ Description
+ 
+     \table
+         Property     | Description             | Required    | Default value
+-        gradient     | gradient                | yes         | 
++        gradient     | gradient                | yes         |
+     \endtable
+ 
+     Example of the boundary condition specification:
+diff --git a/src/finiteVolume/fields/fvPatchFields/derived/flowRateInletVelocity/flowRateInletVelocityFvPatchVectorField.H b/src/finiteVolume/fields/fvPatchFields/derived/flowRateInletVelocity/flowRateInletVelocityFvPatchVectorField.H
+index 8051261..de5e29d 100644
+--- a/src/finiteVolume/fields/fvPatchFields/derived/flowRateInletVelocity/flowRateInletVelocityFvPatchVectorField.H
++++ b/src/finiteVolume/fields/fvPatchFields/derived/flowRateInletVelocity/flowRateInletVelocityFvPatchVectorField.H
+@@ -71,7 +71,7 @@ Description
+         rhoInlet            1.0;
+     }
+     \endverbatim
+-    
++
+     The \c flowRate entry is a \c DataEntry type, meaning that it can be
+     specified as constant, a polynomial fuction of time, and ...
+ 
+diff --git a/src/finiteVolume/fields/fvPatchFields/derived/inletOutletTotalTemperature/inletOutletTotalTemperatureFvPatchScalarField.H b/src/finiteVolume/fields/fvPatchFields/derived/inletOutletTotalTemperature/inletOutletTotalTemperatureFvPatchScalarField.H
+index 430ee1e..a0923e0 100644
+--- a/src/finiteVolume/fields/fvPatchFields/derived/inletOutletTotalTemperature/inletOutletTotalTemperatureFvPatchScalarField.H
++++ b/src/finiteVolume/fields/fvPatchFields/derived/inletOutletTotalTemperature/inletOutletTotalTemperatureFvPatchScalarField.H
+@@ -58,7 +58,7 @@ Description
+         value           uniform 0;
+     }
+     \endverbatim
+-   
++
+ SeeAlso
+     Foam::inletOutletFvPatchField
+ 
+diff --git a/src/finiteVolume/fields/fvPatchFields/derived/mappedFixedValue/mappedFixedValueFvPatchField.H b/src/finiteVolume/fields/fvPatchFields/derived/mappedFixedValue/mappedFixedValueFvPatchField.H
+index 011ec5b..fdf1caa 100644
+--- a/src/finiteVolume/fields/fvPatchFields/derived/mappedFixedValue/mappedFixedValueFvPatchField.H
++++ b/src/finiteVolume/fields/fvPatchFields/derived/mappedFixedValue/mappedFixedValueFvPatchField.H
+@@ -29,11 +29,11 @@ Group
+ 
+ Description
+     This boundary condition maps the value at a set of cells or patch faces
+-    back to *this.  
++    back to *this.
+ 
+     The sample mode is set by the underlying mapping engine, provided by the
+     mappedPatchBase class.
+-    
++
+     \heading Patch usage
+ 
+     \table
+diff --git a/src/finiteVolume/fields/fvPatchFields/derived/pressureDirectedInletVelocity/pressureDirectedInletVelocityFvPatchVectorField.H b/src/finiteVolume/fields/fvPatchFields/derived/pressureDirectedInletVelocity/pressureDirectedInletVelocityFvPatchVectorField.H
+index c98ad30..de65249 100644
+--- a/src/finiteVolume/fields/fvPatchFields/derived/pressureDirectedInletVelocity/pressureDirectedInletVelocityFvPatchVectorField.H
++++ b/src/finiteVolume/fields/fvPatchFields/derived/pressureDirectedInletVelocity/pressureDirectedInletVelocityFvPatchVectorField.H
+@@ -54,7 +54,7 @@ Description
+     \endverbatim
+ 
+ Note
+-    If reverse flow is possible or expected use the 
++    If reverse flow is possible or expected use the
+     pressureDirectedInletOutletVelocityFvPatchVectorField condition instead.
+ 
+ 
+diff --git a/src/finiteVolume/fields/fvPatchFields/derived/rotatingPressureInletOutletVelocity/rotatingPressureInletOutletVelocityFvPatchVectorField.H b/src/finiteVolume/fields/fvPatchFields/derived/rotatingPressureInletOutletVelocity/rotatingPressureInletOutletVelocityFvPatchVectorField.H
+index cc114d7..5bb4074 100644
+--- a/src/finiteVolume/fields/fvPatchFields/derived/rotatingPressureInletOutletVelocity/rotatingPressureInletOutletVelocityFvPatchVectorField.H
++++ b/src/finiteVolume/fields/fvPatchFields/derived/rotatingPressureInletOutletVelocity/rotatingPressureInletOutletVelocityFvPatchVectorField.H
+@@ -39,7 +39,7 @@ Description
+         Property     | Description             | Required    | Default value
+         phi          | flux field name         | no          | phi
+         tangentialVelocity | tangential velocity field | no  |
+-        omega        | angular velocty of the frame [rad/s] | yes    | 
++        omega        | angular velocty of the frame [rad/s] | yes    |
+     \endtable
+ 
+     Example of the boundary condition specification:
+@@ -49,7 +49,7 @@ Description
+         type            rotatingPressureInletOutletVelocity;
+         phi             phi;
+         tangentialVelocity uniform (0 0 0);
+-        omega           100;        
++        omega           100;
+     }
+     \endverbatim
+ 
+diff --git a/src/finiteVolume/fields/fvPatchFields/derived/rotatingTotalPressure/rotatingTotalPressureFvPatchScalarField.H b/src/finiteVolume/fields/fvPatchFields/derived/rotatingTotalPressure/rotatingTotalPressureFvPatchScalarField.H
+index 22d806c..53f16ff 100644
+--- a/src/finiteVolume/fields/fvPatchFields/derived/rotatingTotalPressure/rotatingTotalPressureFvPatchScalarField.H
++++ b/src/finiteVolume/fields/fvPatchFields/derived/rotatingTotalPressure/rotatingTotalPressureFvPatchScalarField.H
+@@ -41,7 +41,7 @@ Description
+         psi          | compressibility field name | no       | none
+         gamma        | ratio of specific heats (Cp/Cv) | yes |
+         p0           | static pressure reference | yes       |
+-        omega        | angular velocty of the frame [rad/s] | yes    | 
++        omega        | angular velocty of the frame [rad/s] | yes    |
+     \endtable
+ 
+     Example of the boundary condition specification:
+@@ -55,7 +55,7 @@ Description
+         psi             psi;
+         gamma           1.4;
+         p0              uniform 1e5;
+-        omega           100;        
++        omega           100;
+     }
+     \endverbatim
+ 
+diff --git a/src/finiteVolume/fields/fvPatchFields/derived/rotatingWallVelocity/rotatingWallVelocityFvPatchVectorField.H b/src/finiteVolume/fields/fvPatchFields/derived/rotatingWallVelocity/rotatingWallVelocityFvPatchVectorField.H
+index a3d5d56..cba0050 100644
+--- a/src/finiteVolume/fields/fvPatchFields/derived/rotatingWallVelocity/rotatingWallVelocityFvPatchVectorField.H
++++ b/src/finiteVolume/fields/fvPatchFields/derived/rotatingWallVelocity/rotatingWallVelocityFvPatchVectorField.H
+@@ -36,7 +36,7 @@ Description
+         Property     | Description             | Required    | Default value
+         origin       | origin of rotation in Cartesian co-ordinates | yes|
+         axis         | axis of rotation        | yes         |
+-        omega        | angular velocty of the frame [rad/s] | yes    | 
++        omega        | angular velocty of the frame [rad/s] | yes    |
+     \endtable
+ 
+     Example of the boundary condition specification:
+@@ -52,7 +52,7 @@ Description
+ 
+     The \c omega entry is a DataEntry type, able to describe time varying
+     functions.
+-    
++
+ SeeAlso
+     Foam::DataEntry
+     Foam::fixedValueFvPatchField
+diff --git a/src/finiteVolume/fields/fvPatchFields/derived/supersonicFreestream/supersonicFreestreamFvPatchVectorField.H b/src/finiteVolume/fields/fvPatchFields/derived/supersonicFreestream/supersonicFreestreamFvPatchVectorField.H
+index 6f6ea27..a00814c 100644
+--- a/src/finiteVolume/fields/fvPatchFields/derived/supersonicFreestream/supersonicFreestreamFvPatchVectorField.H
++++ b/src/finiteVolume/fields/fvPatchFields/derived/supersonicFreestream/supersonicFreestreamFvPatchVectorField.H
+@@ -46,7 +46,7 @@ Description
+         UInf         | free-stream velocity    | yes         |
+         pInf         | free-stream pressure    | yes         |
+         TInf         | free-stream temperature | yes         |
+-        gamma        | heat capacity ratio (cp/Cv) | yes     | 
++        gamma        | heat capacity ratio (cp/Cv) | yes     |
+     \endtable
+ 
+     Example of the boundary condition specification:
 diff --git a/src/finiteVolume/fields/fvPatchFields/fvPatchField/fvPatchField.C b/src/finiteVolume/fields/fvPatchFields/fvPatchField/fvPatchField.C
 index e9c5790..1784439 100644
 --- a/src/finiteVolume/fields/fvPatchFields/fvPatchField/fvPatchField.C
@@ -1631,6 +2476,19 @@ index a98e673..e8de5c7 100644
      -lmeshTools \
 -    /*-lsolidThermo*/ \
      -lcompressibleTurbulenceModel
+diff --git a/src/lagrangian/coalCombustion/submodels/surfaceReactionModel/COxidationHurtMitchell/COxidationHurtMitchell.H b/src/lagrangian/coalCombustion/submodels/surfaceReactionModel/COxidationHurtMitchell/COxidationHurtMitchell.H
+index cd78003..dcf71cc 100644
+--- a/src/lagrangian/coalCombustion/submodels/surfaceReactionModel/COxidationHurtMitchell/COxidationHurtMitchell.H
++++ b/src/lagrangian/coalCombustion/submodels/surfaceReactionModel/COxidationHurtMitchell/COxidationHurtMitchell.H
+@@ -41,7 +41,7 @@ Description
+     Model validity:
+         Gas temperature: Tc > 1500 K
+         Particle sizes:  75 um -> 200 um
+-        Pox > 0.3 atm        
++        Pox > 0.3 atm
+ 
+ \*---------------------------------------------------------------------------*/
+ 
 diff --git a/src/lagrangian/distributionModels/uniform/uniform.C b/src/lagrangian/distributionModels/uniform/uniform.C
 index 4d1504b..c268166 100644
 --- a/src/lagrangian/distributionModels/uniform/uniform.C
@@ -1658,6 +2516,125 @@ index 5a8f665..524a86f 100644
  
  
  public:
+diff --git a/src/lagrangian/intermediate/submodels/Kinematic/InjectionModel/InjectionModel/InjectionModelList.H b/src/lagrangian/intermediate/submodels/Kinematic/InjectionModel/InjectionModel/InjectionModelList.H
+index 22213e2..6875779 100644
+--- a/src/lagrangian/intermediate/submodels/Kinematic/InjectionModel/InjectionModel/InjectionModelList.H
++++ b/src/lagrangian/intermediate/submodels/Kinematic/InjectionModel/InjectionModel/InjectionModelList.H
+@@ -89,7 +89,7 @@ public:
+ 
+             //- Return the maximum end-of-injection time
+             scalar timeEnd() const;
+- 
++
+             //- Volume of parcels to introduce relative to SOI
+             scalar volumeToInject(const scalar time0, const scalar time1);
+ 
+diff --git a/src/lagrangian/spray/submodels/BreakupModel/PilchErdman/PilchErdman.H b/src/lagrangian/spray/submodels/BreakupModel/PilchErdman/PilchErdman.H
+index 69190de..09d1f3f 100644
+--- a/src/lagrangian/spray/submodels/BreakupModel/PilchErdman/PilchErdman.H
++++ b/src/lagrangian/spray/submodels/BreakupModel/PilchErdman/PilchErdman.H
+@@ -51,7 +51,7 @@ Description
+     The authors suggest that:
+         compressible flow   : B1 = 0.75*1.0; B2 = 3*0.116
+         incompressible flow : B1 = 0.75*0.5; B2 = 3*0.0758
+-        
++
+ 
+ \*---------------------------------------------------------------------------*/
+ 
+diff --git a/src/meshTools/momentOfInertia/volumeIntegration/volInt.c b/src/meshTools/momentOfInertia/volumeIntegration/volInt.c
+index 7601655..9e8db56 100644
+--- a/src/meshTools/momentOfInertia/volumeIntegration/volInt.c
++++ b/src/meshTools/momentOfInertia/volumeIntegration/volInt.c
+@@ -34,8 +34,8 @@
+ 			Thanks to Zoran Popovic for catching this one.
+ 
+ 	27 May 1997     Corrected sign error in translation of inertia
+-	                product terms to center of mass frame.  Changes 
+-			confined to function main().  Thanks to 
++	                product terms to center of mass frame.  Changes
++			confined to function main().  Thanks to
+ 			Chris Hecker.
+ */
+ 
+@@ -123,16 +123,16 @@ void readPolyhedron(char *name, POLYHEDRON *p)
+   double dx1, dy1, dz1, dx2, dy2, dz2, nx, ny, nz, len;
+   FACE *f;
+ 
+-  
++
+   if (!(fp = fopen(name, "r"))) {
+     printf("i/o error\n");
+     exit(1);
+   }
+-  
++
+   fscanf(fp, "%d", &p->numVerts);
+   printf("Reading in %d vertices\n", p->numVerts);
+   for (i = 0; i < p->numVerts; i++)
+-    fscanf(fp, "%lf %lf %lf", 
++    fscanf(fp, "%lf %lf %lf",
+ 	   &p->verts[i][X], &p->verts[i][Y], &p->verts[i][Z]);
+ 
+   fscanf(fp, "%d", &p->numFaces);
+@@ -196,7 +196,7 @@ void compProjectionIntegrals(FACE *f)
+     db = b1 - b0;
+     a0_2 = a0 * a0; a0_3 = a0_2 * a0; a0_4 = a0_3 * a0;
+     b0_2 = b0 * b0; b0_3 = b0_2 * b0; b0_4 = b0_3 * b0;
+-    a1_2 = a1 * a1; a1_3 = a1_2 * a1; 
++    a1_2 = a1 * a1; a1_3 = a1_2 * a1;
+     b1_2 = b1 * b1; b1_3 = b1_2 * b1;
+ 
+     C1 = a1 + a0;
+@@ -253,7 +253,7 @@ compFaceIntegrals(FACE *f)
+ 
+   Faaa = k1 * Paaa;
+   Fbbb = k1 * Pbbb;
+-  Fccc = -k4 * (CUBE(n[A])*Paaa + 3*SQR(n[A])*n[B]*Paab 
++  Fccc = -k4 * (CUBE(n[A])*Paaa + 3*SQR(n[A])*n[B]*Paab
+ 	   + 3*n[A]*SQR(n[B])*Pabb + CUBE(n[B])*Pbbb
+ 	   + 3*w*(SQR(n[A])*Paa + 2*n[A]*n[B]*Pab + SQR(n[B])*Pbb)
+ 	   + w*w*(3*(n[A]*Pa + n[B]*Pb) + w*P1));
+@@ -270,8 +270,8 @@ void compVolumeIntegrals(POLYHEDRON *p)
+   double nx, ny, nz;
+   int i;
+ 
+-  T0 = T1[X] = T1[Y] = T1[Z] 
+-     = T2[X] = T2[Y] = T2[Z] 
++  T0 = T1[X] = T1[Y] = T1[Z]
++     = T2[X] = T2[Y] = T2[Z]
+      = TP[X] = TP[Y] = TP[Z] = 0;
+ 
+   for (i = 0; i < p->numFaces; i++) {
+@@ -336,7 +336,7 @@ int main(int argc, char *argv[])
+   printf("Tx =   %+20.6f\n", T1[X]);
+   printf("Ty =   %+20.6f\n", T1[Y]);
+   printf("Tz =   %+20.6f\n\n", T1[Z]);
+-  
++
+   printf("Txx =  %+20.6f\n", T2[X]);
+   printf("Tyy =  %+20.6f\n", T2[Y]);
+   printf("Tzz =  %+20.6f\n\n", T2[Z]);
+@@ -366,9 +366,9 @@ int main(int argc, char *argv[])
+   J[X][X] -= mass * (r[Y]*r[Y] + r[Z]*r[Z]);
+   J[Y][Y] -= mass * (r[Z]*r[Z] + r[X]*r[X]);
+   J[Z][Z] -= mass * (r[X]*r[X] + r[Y]*r[Y]);
+-  J[X][Y] = J[Y][X] += mass * r[X] * r[Y]; 
+-  J[Y][Z] = J[Z][Y] += mass * r[Y] * r[Z]; 
+-  J[Z][X] = J[X][Z] += mass * r[Z] * r[X]; 
++  J[X][Y] = J[Y][X] += mass * r[X] * r[Y];
++  J[Y][Z] = J[Z][Y] += mass * r[Y] * r[Z];
++  J[Z][X] = J[X][Z] += mass * r[Z] * r[X];
+ 
+   printf("center of mass:  (%+12.6f,%+12.6f,%+12.6f)\n\n", r[X], r[Y], r[Z]);
+ 
+@@ -376,5 +376,5 @@ int main(int argc, char *argv[])
+   printf("%+15.6f  %+15.6f  %+15.6f\n", J[X][X], J[X][Y], J[X][Z]);
+   printf("%+15.6f  %+15.6f  %+15.6f\n", J[Y][X], J[Y][Y], J[Y][Z]);
+   printf("%+15.6f  %+15.6f  %+15.6f\n\n", J[Z][X], J[Z][Y], J[Z][Z]);
+-  
++
+ }
 diff --git a/src/parallel/decompose/Allwmake b/src/parallel/decompose/Allwmake
 index 5cea1fb..2d37549 100755
 --- a/src/parallel/decompose/Allwmake
@@ -1718,6 +2695,66 @@ index 3bb11fb..23701f5 100644
 +ifneq ($(shell uname -s),Darwin)
 +LIB_LIBS += -lrt
 +endif
+diff --git a/src/postProcessing/functionObjects/field/fieldValues/faceSource/faceSource.H b/src/postProcessing/functionObjects/field/fieldValues/faceSource/faceSource.H
+index 15efc23..785fcd0 100644
+--- a/src/postProcessing/functionObjects/field/fieldValues/faceSource/faceSource.H
++++ b/src/postProcessing/functionObjects/field/fieldValues/faceSource/faceSource.H
+@@ -211,14 +211,14 @@ private:
+         //- Set faces according to sampledSurface
+         void sampledSurfaceFaces(const dictionary&);
+ 
+-        //- Combine mesh faces and points from multiple processors 
++        //- Combine mesh faces and points from multiple processors
+         void combineMeshGeometry
+         (
+             faceList& faces,
+             pointField& points
+         ) const;
+ 
+-        //- Combine surface faces and points from multiple processors 
++        //- Combine surface faces and points from multiple processors
+         void combineSurfaceGeometry
+         (
+             faceList& faces,
+diff --git a/src/regionModels/pyrolysisModels/pyrolysisModel/pyrolysisModelCollection.C b/src/regionModels/pyrolysisModels/pyrolysisModel/pyrolysisModelCollection.C
+index d11f2d1..6d0a148 100644
+--- a/src/regionModels/pyrolysisModels/pyrolysisModel/pyrolysisModelCollection.C
++++ b/src/regionModels/pyrolysisModels/pyrolysisModel/pyrolysisModelCollection.C
+@@ -53,7 +53,7 @@ namespace pyrolysisModels
+ pyrolysisModelCollection::pyrolysisModelCollection(const fvMesh& mesh)
+ :
+     PtrList<pyrolysisModel>()
+-    
++
+ {
+     IOdictionary pyrolysisZonesDict
+     (
+diff --git a/src/regionModels/pyrolysisModels/pyrolysisModel/pyrolysisModelNew.C b/src/regionModels/pyrolysisModels/pyrolysisModel/pyrolysisModelNew.C
+index 0e1a507..223405f 100644
+--- a/src/regionModels/pyrolysisModels/pyrolysisModel/pyrolysisModelNew.C
++++ b/src/regionModels/pyrolysisModels/pyrolysisModel/pyrolysisModelNew.C
+@@ -115,7 +115,7 @@ autoPtr<pyrolysisModel> pyrolysisModel::New
+     (
+         cstrIter()
+         (
+-            modelType, 
++            modelType,
+             mesh,
+             dict,
+             regionType
+diff --git a/src/regionModels/thermalBaffleModels/noThermo/noThermo.C b/src/regionModels/thermalBaffleModels/noThermo/noThermo.C
+index e5205db..d603203 100644
+--- a/src/regionModels/thermalBaffleModels/noThermo/noThermo.C
++++ b/src/regionModels/thermalBaffleModels/noThermo/noThermo.C
+@@ -151,7 +151,7 @@ const solidThermo& noThermo::thermo() const
+     FatalErrorIn("const volScalarField& noThermo::T() const")
+         << "T field not available for " << type()
+         << abort(FatalError);
+-    return *reinterpret_cast<const solidThermo*>(NULL);
++    return NullObjectRef<solidThermo>();
+ }
+ 
+ 
 diff --git a/src/renumber/SloanRenumber/Make/options b/src/renumber/SloanRenumber/Make/options
 index 492a3ae..f22a1e6 100644
 --- a/src/renumber/SloanRenumber/Make/options
@@ -1743,7 +2780,7 @@ index 492a3ae..f22a1e6 100644
 +LIB_LIBS += -lboost_thread
 +endif
 diff --git a/src/sampling/cuttingPlane/cuttingPlane.C b/src/sampling/cuttingPlane/cuttingPlane.C
-index 87f004a..66eac24 100644
+index 87f004a..03f29dd 100644
 --- a/src/sampling/cuttingPlane/cuttingPlane.C
 +++ b/src/sampling/cuttingPlane/cuttingPlane.C
 @@ -51,7 +51,7 @@ void Foam::cuttingPlane::calcCutCells
@@ -1751,7 +2788,7 @@ index 87f004a..66eac24 100644
  
      label listSize = cellEdges.size();
 -    if (&cellIdLabels)
-+    if (reinterpret_cast<const void*>(&cellIdLabels))
++    if (notNull(cellIdLabels))
      {
          listSize = cellIdLabels.size();
      }
@@ -1760,7 +2797,7 @@ index 87f004a..66eac24 100644
      {
          label cellI = listI;
 -        if (&cellIdLabels)
-+        if (reinterpret_cast<const void*>(&cellIdLabels))
++        if (notNull(cellIdLabels))
          {
              cellI = cellIdLabels[listI];
          }
@@ -1769,12 +2806,12 @@ index 87f004a..66eac24 100644
  {
      // recalculate the cells cut
 -    if (&faceMap && faceMap.size())
-+    if (reinterpret_cast<const void*>(&faceMap) && faceMap.size())
++    if (notNull(faceMap) && faceMap.size())
      {
          MeshStorage::remapFaces(faceMap);
  
 diff --git a/src/sampling/sampledSurface/sampledPatch/sampledPatch.C b/src/sampling/sampledSurface/sampledPatch/sampledPatch.C
-index da2d90c..9b0cb7b 100644
+index da2d90c..bbf6290 100644
 --- a/src/sampling/sampledSurface/sampledPatch/sampledPatch.C
 +++ b/src/sampling/sampledSurface/sampledPatch/sampledPatch.C
 @@ -203,7 +203,7 @@ bool Foam::sampledPatch::update()
@@ -1782,12 +2819,25 @@ index da2d90c..9b0cb7b 100644
  {
      // recalculate the cells cut
 -    if (&faceMap && faceMap.size())
-+    if (reinterpret_cast<const void*>(&faceMap) && faceMap.size())
++    if (notNull(faceMap) && faceMap.size())
      {
          MeshStorage::remapFaces(faceMap);
          patchFaceLabels_ = labelList
+diff --git a/src/sampling/sampledSurface/writers/nastran/nastranSurfaceWriter.C b/src/sampling/sampledSurface/writers/nastran/nastranSurfaceWriter.C
+index eaa16fe..f18c8f1 100644
+--- a/src/sampling/sampledSurface/writers/nastran/nastranSurfaceWriter.C
++++ b/src/sampling/sampledSurface/writers/nastran/nastranSurfaceWriter.C
+@@ -111,7 +111,7 @@ void Foam::nastranSurfaceWriter::writeCoord
+             os.unsetf(ios_base::left);
+             os.setf(ios_base::right);
+             os  << setw(8) << pointI + 1
+-                << "        " 
++                << "        "
+                 << setw(8) << p.x()
+                 << setw(8) << p.y()
+                 << setw(8) << p.z()
 diff --git a/src/surfMesh/MeshedSurface/MeshedSurface.C b/src/surfMesh/MeshedSurface/MeshedSurface.C
-index 43719de..5de9c5e 100644
+index 43719de..c053662 100644
 --- a/src/surfMesh/MeshedSurface/MeshedSurface.C
 +++ b/src/surfMesh/MeshedSurface/MeshedSurface.C
 @@ -433,7 +433,7 @@ void Foam::MeshedSurface<Face>::remapFaces
@@ -1795,7 +2845,7 @@ index 43719de..5de9c5e 100644
  {
      // recalculate the zone start/size
 -    if (&faceMap && faceMap.size())
-+    if (reinterpret_cast<const void*>(&faceMap) && faceMap.size())
++    if (notNull(faceMap) && faceMap.size())
      {
          surfZoneList& zones = storedZones();
  
@@ -1804,19 +2854,19 @@ index 43719de..5de9c5e 100644
      // Take over new primitive data.
      // Optimized to avoid overwriting data at all
 -    if (&pointLst)
-+    if (reinterpret_cast<const void*>(&pointLst))
++    if (notNull(pointLst))
      {
          storedPoints().transfer(pointLst());
      }
  
 -    if (&faceLst)
-+    if (reinterpret_cast<const void*>(&faceLst))
++    if (notNull(faceLst))
      {
          storedFaces().transfer(faceLst());
      }
  
 -    if (&zoneLst)
-+    if (reinterpret_cast<const void*>(&zoneLst))
++    if (notNull(zoneLst))
      {
          storedZones().transfer(zoneLst());
      }
@@ -1825,19 +2875,19 @@ index 43719de..5de9c5e 100644
      // Take over new primitive data.
      // Optimized to avoid overwriting data at all
 -    if (&pointLst)
-+    if (reinterpret_cast<const void*>(&pointLst))
++    if (notNull(pointLst))
      {
          storedPoints().transfer(pointLst());
      }
  
 -    if (&faceLst)
-+    if (reinterpret_cast<const void*>(&faceLst))
++    if (notNull(faceLst))
      {
          storedFaces().transfer(faceLst());
      }
  
 -    if (&zoneLst)
-+    if (reinterpret_cast<const void*>(&zoneLst))
++    if (notNull(zoneLst))
      {
          storedZones().transfer(zoneLst());
      }
@@ -1869,7 +2919,7 @@ index 43719de..5de9c5e 100644
          faceMapOut.transfer(faceMap);
      }
 diff --git a/src/surfMesh/MeshedSurface/MeshedSurface.H b/src/surfMesh/MeshedSurface/MeshedSurface.H
-index 2170781..0042484 100644
+index 2170781..f52ca82 100644
 --- a/src/surfMesh/MeshedSurface/MeshedSurface.H
 +++ b/src/surfMesh/MeshedSurface/MeshedSurface.H
 @@ -469,7 +469,7 @@ inline label MeshedSurface<triFace>::triangulate()
@@ -1877,12 +2927,12 @@ index 2170781..0042484 100644
  inline label MeshedSurface<triFace>::triangulate(List<label>& faceMap)
  {
 -    if (&faceMap)
-+    if (reinterpret_cast<const void*>(&faceMap))
++    if (notNull(faceMap))
      {
          faceMap.clear();
      }
 diff --git a/src/surfMesh/MeshedSurfaceAllocator/MeshedSurfaceIOAllocator.C b/src/surfMesh/MeshedSurfaceAllocator/MeshedSurfaceIOAllocator.C
-index 1a97d5d..f541a23 100644
+index 1a97d5d..c8ca9b7 100644
 --- a/src/surfMesh/MeshedSurfaceAllocator/MeshedSurfaceIOAllocator.C
 +++ b/src/surfMesh/MeshedSurfaceAllocator/MeshedSurfaceIOAllocator.C
 @@ -88,12 +88,12 @@ void Foam::MeshedSurfaceIOAllocator::resetFaces
@@ -1890,13 +2940,13 @@ index 1a97d5d..f541a23 100644
  )
  {
 -    if (&faces)
-+    if (reinterpret_cast<const void*>(&faces))
++    if (notNull(faces))
      {
          faces_.transfer(faces());
      }
  
 -    if (&zones)
-+    if (reinterpret_cast<const void*>(&zones))
++    if (notNull(zones))
      {
          zones_.transfer(zones());
      }
@@ -1905,7 +2955,7 @@ index 1a97d5d..f541a23 100644
      // Take over new primitive data.
      // Optimized to avoid overwriting data at all
 -    if (&points)
-+    if (reinterpret_cast<const void*>(&points))
++    if (notNull(points))
      {
          points_.transfer(points());
      }
@@ -1914,12 +2964,12 @@ index 1a97d5d..f541a23 100644
      // Take over new primitive data.
      // Optimized to avoid overwriting data at all
 -    if (&points)
-+    if (reinterpret_cast<const void*>(&points))
++    if (notNull(points))
      {
          points_.transfer(points());
      }
 diff --git a/src/surfMesh/UnsortedMeshedSurface/UnsortedMeshedSurface.C b/src/surfMesh/UnsortedMeshedSurface/UnsortedMeshedSurface.C
-index 7f6de73..0fe802e 100644
+index 7f6de73..8c562ef 100644
 --- a/src/surfMesh/UnsortedMeshedSurface/UnsortedMeshedSurface.C
 +++ b/src/surfMesh/UnsortedMeshedSurface/UnsortedMeshedSurface.C
 @@ -401,7 +401,7 @@ void Foam::UnsortedMeshedSurface<Face>::remapFaces
@@ -1927,7 +2977,7 @@ index 7f6de73..0fe802e 100644
  {
      // re-assign the zone Ids
 -    if (&faceMap && faceMap.size())
-+    if (reinterpret_cast<const void*>(&faceMap) && faceMap.size())
++    if (notNull(faceMap) && faceMap.size())
      {
          if (zoneToc_.empty())
          {
@@ -1936,7 +2986,7 @@ index 7f6de73..0fe802e 100644
      );
  
 -    if (&zoneIds)
-+    if (reinterpret_cast<const void*>(&zoneIds))
++    if (notNull(zoneIds))
      {
          zoneIds_.transfer(zoneIds());
      }
@@ -1945,12 +2995,12 @@ index 7f6de73..0fe802e 100644
      );
  
 -    if (&zoneIds)
-+    if (reinterpret_cast<const void*>(&zoneIds))
++    if (notNull(zoneIds))
      {
          zoneIds_.transfer(zoneIds());
      }
 diff --git a/src/surfMesh/surfMesh/surfMesh.C b/src/surfMesh/surfMesh/surfMesh.C
-index 88a7427..0e43142 100644
+index 88a7427..4740948 100644
 --- a/src/surfMesh/surfMesh/surfMesh.C
 +++ b/src/surfMesh/surfMesh/surfMesh.C
 @@ -209,7 +209,7 @@ Foam::surfMesh::surfMesh
@@ -1958,7 +3008,7 @@ index 88a7427..0e43142 100644
  
      // We can also send Xfer<..>::null just to initialize without allocating
 -    if (&surf)
-+    if (reinterpret_cast<const void*>(&surf))
++    if (notNull(surf))
      {
          transfer(surf());
      }
@@ -1989,6 +3039,280 @@ index 63dd057..f18daf0 100644
          }
      }
  }
+diff --git a/src/thermophysicalModels/specie/reaction/Reactions/Reaction/Reaction.C b/src/thermophysicalModels/specie/reaction/Reactions/Reaction/Reaction.C
+index 2a8a5ca..16df3ae 100644
+--- a/src/thermophysicalModels/specie/reaction/Reactions/Reaction/Reaction.C
++++ b/src/thermophysicalModels/specie/reaction/Reactions/Reaction/Reaction.C
+@@ -503,7 +503,7 @@ const Foam::speciesTable& Foam::Reaction<ReactionThermo>::gasSpecies() const
+         "const speciesTable& gasSpecies() const"
+         " for this reaction"
+     );
+-    return *reinterpret_cast<speciesTable*>(0);
++    return NullObjectRef<speciesTable>();
+ }
+ 
+ 
+@@ -516,7 +516,7 @@ Foam::Reaction<ReactionThermo>::glhs() const
+         "inline const List<typename Reaction<ReactionThermo>::specieCoeffs>&"
+         "Reaction<ReactionThermo>::glhs()"
+     );
+-    return *reinterpret_cast<List<specieCoeffs>*>(0);
++    return NullObjectRef<List<specieCoeffs> >();
+ }
+ 
+ 
+@@ -529,7 +529,7 @@ Foam::Reaction<ReactionThermo>::grhs() const
+         "inline const List<typename Reaction<ReactionThermo>::specieCoeffs>&"
+         "Reaction<ReactionThermo>::grhs()"
+     );
+-    return *reinterpret_cast<List<specieCoeffs>*>(0);
++    return NullObjectRef<List<specieCoeffs> >();
+ }
+ 
+ // ************************************************************************* //
+diff --git a/src/turbulenceModels/compressible/LES/DESModel/DESModelDoc.H b/src/turbulenceModels/compressible/LES/DESModel/DESModelDoc.H
+index e9deb32..e7bb541 100644
+--- a/src/turbulenceModels/compressible/LES/DESModel/DESModelDoc.H
++++ b/src/turbulenceModels/compressible/LES/DESModel/DESModelDoc.H
+@@ -28,5 +28,5 @@ License
+     \ingroup grpCmpTurbulence
+     This group contains compressible DES models.
+ @}
+-    
++
+ \*---------------------------------------------------------------------------*/
+diff --git a/src/turbulenceModels/compressible/LES/GenEddyVisc/GenEddyVisc.H b/src/turbulenceModels/compressible/LES/GenEddyVisc/GenEddyVisc.H
+index d4af6e5..68ce924 100644
+--- a/src/turbulenceModels/compressible/LES/GenEddyVisc/GenEddyVisc.H
++++ b/src/turbulenceModels/compressible/LES/GenEddyVisc/GenEddyVisc.H
+@@ -116,7 +116,7 @@ public:
+                 new volScalarField
+                 (
+                     IOobject
+-                    (   
++                    (
+                         "epsilon",
+                         runTime_.timeName(),
+                         mesh_,
+diff --git a/src/turbulenceModels/compressible/LES/GenSGSStress/GenSGSStress.H b/src/turbulenceModels/compressible/LES/GenSGSStress/GenSGSStress.H
+index 44eef6d..1e84390 100644
+--- a/src/turbulenceModels/compressible/LES/GenSGSStress/GenSGSStress.H
++++ b/src/turbulenceModels/compressible/LES/GenSGSStress/GenSGSStress.H
+@@ -117,7 +117,7 @@ public:
+                 new volScalarField
+                 (
+                     IOobject
+-                    (   
++                    (
+                         "k",
+                         runTime_.timeName(),
+                         mesh_,
+@@ -139,7 +139,7 @@ public:
+                 new volScalarField
+                 (
+                     IOobject
+-                    (   
++                    (
+                         "epsilon",
+                         runTime_.timeName(),
+                         mesh_,
+diff --git a/src/turbulenceModels/compressible/LES/LESModel/LESModelDoc.H b/src/turbulenceModels/compressible/LES/LESModel/LESModelDoc.H
+index ac8c52e..3f1d1c1 100644
+--- a/src/turbulenceModels/compressible/LES/LESModel/LESModelDoc.H
++++ b/src/turbulenceModels/compressible/LES/LESModel/LESModelDoc.H
+@@ -28,5 +28,5 @@ License
+     \ingroup grpCmpTurbulence
+     This group contains compressible LES models.
+ @}
+-    
++
+ \*---------------------------------------------------------------------------*/
+diff --git a/src/turbulenceModels/compressible/RAS/RASModel/RASModelDoc.H b/src/turbulenceModels/compressible/RAS/RASModel/RASModelDoc.H
+index 53757f8..300be13 100644
+--- a/src/turbulenceModels/compressible/RAS/RASModel/RASModelDoc.H
++++ b/src/turbulenceModels/compressible/RAS/RASModel/RASModelDoc.H
+@@ -28,5 +28,5 @@ License
+     \ingroup grpCmpTurbulence
+     This group contains compressible RAS models.
+ @}
+-    
++
+ \*---------------------------------------------------------------------------*/
+diff --git a/src/turbulenceModels/compressible/RAS/derivedFvPatchFields/turbulentMixingLengthDissipationRateInlet/turbulentMixingLengthDissipationRateInletFvPatchScalarField.H b/src/turbulenceModels/compressible/RAS/derivedFvPatchFields/turbulentMixingLengthDissipationRateInlet/turbulentMixingLengthDissipationRateInletFvPatchScalarField.H
+index 63aa24b..4d0d5f3 100644
+--- a/src/turbulenceModels/compressible/RAS/derivedFvPatchFields/turbulentMixingLengthDissipationRateInlet/turbulentMixingLengthDissipationRateInletFvPatchScalarField.H
++++ b/src/turbulenceModels/compressible/RAS/derivedFvPatchFields/turbulentMixingLengthDissipationRateInlet/turbulentMixingLengthDissipationRateInletFvPatchScalarField.H
+@@ -36,7 +36,7 @@ Description
+         \f[
+             \epsilon_p = \frac{C_{\mu}^{0.75} k^{1.5}}{L}
+         \f]
+-   
++
+     where
+ 
+     \vartable
+diff --git a/src/turbulenceModels/compressible/RAS/derivedFvPatchFields/turbulentMixingLengthFrequencyInlet/turbulentMixingLengthFrequencyInletFvPatchScalarField.H b/src/turbulenceModels/compressible/RAS/derivedFvPatchFields/turbulentMixingLengthFrequencyInlet/turbulentMixingLengthFrequencyInletFvPatchScalarField.H
+index cafd2d9..0f3484c 100644
+--- a/src/turbulenceModels/compressible/RAS/derivedFvPatchFields/turbulentMixingLengthFrequencyInlet/turbulentMixingLengthFrequencyInletFvPatchScalarField.H
++++ b/src/turbulenceModels/compressible/RAS/derivedFvPatchFields/turbulentMixingLengthFrequencyInlet/turbulentMixingLengthFrequencyInletFvPatchScalarField.H
+@@ -35,7 +35,7 @@ Description
+         \f[
+             \omega_p = \frac{k^{0.5}}{C_{\mu}^{0.25} L}
+         \f]
+-   
++
+     where
+ 
+     \vartable
+diff --git a/src/turbulenceModels/compressible/turbulenceModel/turbulenceModelDoc.H b/src/turbulenceModels/compressible/turbulenceModel/turbulenceModelDoc.H
+index 17bc210..b3bd051 100644
+--- a/src/turbulenceModels/compressible/turbulenceModel/turbulenceModelDoc.H
++++ b/src/turbulenceModels/compressible/turbulenceModel/turbulenceModelDoc.H
+@@ -27,5 +27,5 @@ License
+ @{
+     This group contains compressible turbulence models.
+ @}
+-    
++
+ \*---------------------------------------------------------------------------*/
+diff --git a/src/turbulenceModels/incompressible/LES/DESModel/DESModelDoc.H b/src/turbulenceModels/incompressible/LES/DESModel/DESModelDoc.H
+index 5311d09..d100318 100644
+--- a/src/turbulenceModels/incompressible/LES/DESModel/DESModelDoc.H
++++ b/src/turbulenceModels/incompressible/LES/DESModel/DESModelDoc.H
+@@ -28,5 +28,5 @@ License
+     \ingroup grpIcoTurbulence
+     This group contains incompressible DES models.
+ @}
+-    
++
+ \*---------------------------------------------------------------------------*/
+diff --git a/src/turbulenceModels/incompressible/LES/GenEddyVisc/GenEddyVisc.H b/src/turbulenceModels/incompressible/LES/GenEddyVisc/GenEddyVisc.H
+index e1dc9c2..0cd340a 100644
+--- a/src/turbulenceModels/incompressible/LES/GenEddyVisc/GenEddyVisc.H
++++ b/src/turbulenceModels/incompressible/LES/GenEddyVisc/GenEddyVisc.H
+@@ -112,7 +112,7 @@ public:
+                 new volScalarField
+                 (
+                     IOobject
+-                    (   
++                    (
+                         "epsilon",
+                         runTime_.timeName(),
+                         mesh_,
+diff --git a/src/turbulenceModels/incompressible/LES/GenSGSStress/GenSGSStress.H b/src/turbulenceModels/incompressible/LES/GenSGSStress/GenSGSStress.H
+index 4f24f79..8d94ed1 100644
+--- a/src/turbulenceModels/incompressible/LES/GenSGSStress/GenSGSStress.H
++++ b/src/turbulenceModels/incompressible/LES/GenSGSStress/GenSGSStress.H
+@@ -112,7 +112,7 @@ public:
+                 new volScalarField
+                 (
+                     IOobject
+-                    (   
++                    (
+                         "k",
+                         runTime_.timeName(),
+                         mesh_,
+@@ -128,13 +128,13 @@ public:
+         virtual tmp<volScalarField> epsilon() const
+         {
+             const volScalarField K(k());
+-            
++
+             return tmp<volScalarField>
+             (
+                 new volScalarField
+                 (
+                     IOobject
+-                    (   
++                    (
+                         "epsilon",
+                         runTime_.timeName(),
+                         mesh_,
+diff --git a/src/turbulenceModels/incompressible/LES/LESModel/LESModelDoc.H b/src/turbulenceModels/incompressible/LES/LESModel/LESModelDoc.H
+index 9b400e2..8784545 100644
+--- a/src/turbulenceModels/incompressible/LES/LESModel/LESModelDoc.H
++++ b/src/turbulenceModels/incompressible/LES/LESModel/LESModelDoc.H
+@@ -28,5 +28,5 @@ License
+     \ingroup grpIcoTurbulence
+     This group contains incompressible LES models.
+ @}
+-    
++
+ \*---------------------------------------------------------------------------*/
+diff --git a/src/turbulenceModels/incompressible/RAS/RASModel/RASModelDoc.H b/src/turbulenceModels/incompressible/RAS/RASModel/RASModelDoc.H
+index 2161656..f1bd133 100644
+--- a/src/turbulenceModels/incompressible/RAS/RASModel/RASModelDoc.H
++++ b/src/turbulenceModels/incompressible/RAS/RASModel/RASModelDoc.H
+@@ -28,5 +28,5 @@ License
+     \ingroup grpIcoTurbulence
+     This group contains incompressible RAS models.
+ @}
+-    
++
+ \*---------------------------------------------------------------------------*/
+diff --git a/src/turbulenceModels/incompressible/RAS/derivedFvPatchFields/atmBoundaryLayerInletEpsilon/atmBoundaryLayerInletEpsilonFvPatchScalarField.H b/src/turbulenceModels/incompressible/RAS/derivedFvPatchFields/atmBoundaryLayerInletEpsilon/atmBoundaryLayerInletEpsilonFvPatchScalarField.H
+index b94500a..b5f7c71 100644
+--- a/src/turbulenceModels/incompressible/RAS/derivedFvPatchFields/atmBoundaryLayerInletEpsilon/atmBoundaryLayerInletEpsilonFvPatchScalarField.H
++++ b/src/turbulenceModels/incompressible/RAS/derivedFvPatchFields/atmBoundaryLayerInletEpsilon/atmBoundaryLayerInletEpsilonFvPatchScalarField.H
+@@ -45,7 +45,7 @@ Description
+         z_0     | surface roughness length [m]
+         z_g     | minimum vlaue in z direction [m]
+     \endvartable
+- 
++
+     and:
+ 
+         \f[
+diff --git a/src/turbulenceModels/incompressible/RAS/derivedFvPatchFields/turbulentHeatFluxTemperature/turbulentHeatFluxTemperatureFvPatchScalarField.H b/src/turbulenceModels/incompressible/RAS/derivedFvPatchFields/turbulentHeatFluxTemperature/turbulentHeatFluxTemperatureFvPatchScalarField.H
+index 59b8106..68b6b2c 100644
+--- a/src/turbulenceModels/incompressible/RAS/derivedFvPatchFields/turbulentHeatFluxTemperature/turbulentHeatFluxTemperatureFvPatchScalarField.H
++++ b/src/turbulenceModels/incompressible/RAS/derivedFvPatchFields/turbulentHeatFluxTemperature/turbulentHeatFluxTemperatureFvPatchScalarField.H
+@@ -57,7 +57,7 @@ Note
+     - it is assumed that the units of \c alphaEff are [kg/m/s]
+     - the specific heat capcaity is read from the transport dictionary entry
+       \c Cp0
+-    
++
+ SourceFiles
+     turbulentHeatFluxTemperatureFvPatchScalarField.C
+ 
+diff --git a/src/turbulenceModels/incompressible/RAS/derivedFvPatchFields/turbulentMixingLengthDissipationRateInlet/turbulentMixingLengthDissipationRateInletFvPatchScalarField.H b/src/turbulenceModels/incompressible/RAS/derivedFvPatchFields/turbulentMixingLengthDissipationRateInlet/turbulentMixingLengthDissipationRateInletFvPatchScalarField.H
+index 1349631..db0e865 100644
+--- a/src/turbulenceModels/incompressible/RAS/derivedFvPatchFields/turbulentMixingLengthDissipationRateInlet/turbulentMixingLengthDissipationRateInletFvPatchScalarField.H
++++ b/src/turbulenceModels/incompressible/RAS/derivedFvPatchFields/turbulentMixingLengthDissipationRateInlet/turbulentMixingLengthDissipationRateInletFvPatchScalarField.H
+@@ -36,7 +36,7 @@ Description
+         \f[
+             \epsilon_p = \frac{C_{\mu}^{0.75} k^{1.5}}{L}
+         \f]
+-   
++
+     where
+ 
+     \vartable
+diff --git a/src/turbulenceModels/incompressible/RAS/derivedFvPatchFields/turbulentMixingLengthFrequencyInlet/turbulentMixingLengthFrequencyInletFvPatchScalarField.H b/src/turbulenceModels/incompressible/RAS/derivedFvPatchFields/turbulentMixingLengthFrequencyInlet/turbulentMixingLengthFrequencyInletFvPatchScalarField.H
+index 9fdff8d..249e3af 100644
+--- a/src/turbulenceModels/incompressible/RAS/derivedFvPatchFields/turbulentMixingLengthFrequencyInlet/turbulentMixingLengthFrequencyInletFvPatchScalarField.H
++++ b/src/turbulenceModels/incompressible/RAS/derivedFvPatchFields/turbulentMixingLengthFrequencyInlet/turbulentMixingLengthFrequencyInletFvPatchScalarField.H
+@@ -35,7 +35,7 @@ Description
+         \f[
+             \omega_p = \frac{k^{0.5}}{C_{\mu}^{0.25} L}
+         \f]
+-   
++
+     where
+ 
+     \vartable
+diff --git a/src/turbulenceModels/incompressible/turbulenceModel/turbulenceModelDoc.H b/src/turbulenceModels/incompressible/turbulenceModel/turbulenceModelDoc.H
+index f9751dc..739af73 100644
+--- a/src/turbulenceModels/incompressible/turbulenceModel/turbulenceModelDoc.H
++++ b/src/turbulenceModels/incompressible/turbulenceModel/turbulenceModelDoc.H
+@@ -27,5 +27,5 @@ License
+ @{
+     This group contains incompressible turbulence models.
+ @}
+-    
++
+ \*---------------------------------------------------------------------------*/
 diff --git a/wmake/Makefile b/wmake/Makefile
 index 96e1885..7de8c1a 100644
 --- a/wmake/Makefile
@@ -2029,16 +3353,17 @@ index 0000000..9a3e872
 +LINKEXE     = $(cc) -Xlinker -execute
 diff --git a/wmake/rules/darwin64Clang/c++ b/wmake/rules/darwin64Clang/c++
 new file mode 100644
-index 0000000..a4c9fc4
+index 0000000..b50faed
 --- /dev/null
 +++ b/wmake/rules/darwin64Clang/c++
-@@ -0,0 +1,31 @@
+@@ -0,0 +1,29 @@
 +.SUFFIXES: .C .cxx .cc .cpp
 +
 +c++WARN     = -Wall -Wextra -Wno-unused-parameter -Wno-overloaded-virtual \
-+              -Wno-c++11-extensions -Wno-unused-variable
++              -Wno-c++11-extensions -Wno-unused-variable \
++	      -Wno-unused-local-typedef
 +
-+CC          = xcrun clang++ -m64
++CC          = xcrun clang++ -arch x86_64
 +
 +include $(RULES)/c++$(WM_COMPILE_OPTION)
 +
@@ -2054,16 +3379,13 @@ index 0000000..a4c9fc4
 +LINK_LIBS   = $(c++DBUG)
 +
 +LINKLIBSO   = $(CC) $(c++FLAGS) -Xlinker -dylib \
++				-Xlinker -flat_namespace \
 +				-Xlinker -undefined \
-+				-Xlinker dynamic_lookup \
-+				-Xlinker -arch \
-+				-Xlinker x86_64
++				-Xlinker suppress
 +
 +LINKEXE     = $(CC) $(c++FLAGS) -Xlinker -execute \
 +				-Xlinker -undefined \
-+				-Xlinker dynamic_lookup \
-+				-Xlinker -arch \
-+				-Xlinker x86_64
++				-Xlinker dynamic_lookup
 diff --git a/wmake/rules/darwin64Clang/c++Debug b/wmake/rules/darwin64Clang/c++Debug
 new file mode 100644
 index 0000000..1c63335
