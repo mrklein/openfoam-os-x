@@ -45,7 +45,7 @@ parmgridgen 0.0.1
 
 ## September 9, 2015
 
-Update patches for OpenFOAM 2.3.1 and 2.4.0.
+Updated patches for OpenFOAM 2.3.1 and 2.4.0.
 
 ## September 8, 2015
 
