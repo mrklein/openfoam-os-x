@@ -3,6 +3,46 @@
 Patches for OpenFOAM compilation on OS X. Detailed installation instructions
 can be found in [wiki](https://github.com/mrklein/openfoam-os-x/wiki).
 
+## September 20, 2015
+
+Being upset by sigSegv in renumberMesh (guess segmentation violations happen in
+other places as well, yet I found it in renumberMesh), copied NullObject
+concept from -dev repository. Now everything seems to be OK (at least
+renumberMesh works).
+
+Made additional cosmetic corrections (like SloanRenumber build script, so it
+checks for library with dylib extension instead of so).
+
+Build process was tested on
+
+```
+alexey at daphne in openfoam-os-x$ sw_vers
+ProductName:	Mac OS X
+ProductVersion:	10.10.5
+BuildVersion:	14F27
+```
+
+with the following compiler:
+
+```
+alexey at daphne in openfoam-os-x$ clang --version
+Apple LLVM version 7.0.0 (clang-700.0.72)
+Target: x86_64-apple-darwin14.5.0
+Thread model: posix
+```
+
+and these third party packages:
+
+```
+alexey at daphne in openfoam-os-x$ brew list --versions
+boost 1.58.0
+cgal 4.6.1
+metis 5.1.0
+open-mpi 1.8.4_1
+parmetis 4.0.3
+parmgridgen 0.0.1
+```
+
 ## September 9, 2015
 
 Update patches for OpenFOAM 2.3.1 and 2.4.0.
@@ -40,7 +80,7 @@ Cause these patches were "fresh start", finally paid attention to and
 implemented SetNaN functionality; simplified sigFpe code; implemented dlLoaded
 function. Also printStack.C was a little bit revised to contract HOME and PWD
 in library file names (in previous version HOME and PWD paths was replaced only
-in resolved source files). 
+in resolved source files).
 
 And since the corrections are mostly in the old files, hope creation of patches
 for new versions will become much easier.
@@ -48,7 +88,7 @@ for new versions will become much easier.
 Build was tested on:
 
 ```
-alexey at daphne in ~$ sw_vers 
+alexey at daphne in ~$ sw_vers
 ProductName:	Mac OS X
 ProductVersion:	10.10.5
 BuildVersion:	14F27
@@ -109,7 +149,7 @@ Since the patch is a fresh start compared to 2.3.x and 2.4.x versions, there cou
 Build process was tested on:
 
 ```sh
-alexey at daphne in ~$ sw_vers 
+alexey at daphne in ~$ sw_vers
 ProductName:	Mac OS X
 ProductVersion:	10.10.4
 BuildVersion:	14E46
@@ -177,7 +217,7 @@ flags. The following appears after addition of the flags:
 As usual, build was tested on:
 
 ```
-alexey at daphne in ~$ sw_vers 
+alexey at daphne in ~$ sw_vers
 ProductName:	Mac OS X
 ProductVersion:	10.10.3
 BuildVersion:	14D136
@@ -225,7 +265,7 @@ scotch 6.0.4_1
 Build was tested on
 
 ```sh
-alexey at daphne in ~$ sw_vers 
+alexey at daphne in ~$ sw_vers
 ProductName:	Mac OS X
 ProductVersion:	10.10.3
 BuildVersion:	14D136
