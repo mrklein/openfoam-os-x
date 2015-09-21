@@ -15,6 +15,7 @@
  .../dataConversion/foamToEnsight/Make/options      |   1 -
  .../postProcessing/graphics/PV3Readers/Allwmake    |   5 +
  .../postProcessing/graphics/PV4Readers/Allwmake    |   5 +
+ bin/paraFoam                                       |   5 +
  etc/bashrc                                         |  28 +-
  etc/config/CGAL.sh                                 |  18 +-
  etc/config/metis.sh                                |   9 +-
@@ -91,7 +92,7 @@
  wmake/rules/darwin64Clang/cOpt                     |   2 +
  wmake/rules/darwin64Clang/cProf                    |   2 +
  wmake/rules/darwin64Clang/general                  |   8 +
- 93 files changed, 872 insertions(+), 315 deletions(-)
+ 94 files changed, 877 insertions(+), 315 deletions(-)
 
 diff --git a/.gitignore b/.gitignore
 index 43edf63..e78dc79 100644
@@ -420,6 +421,22 @@ index aa102b5..710aa2f 100755
  case "$ParaView_VERSION" in
  4*)
      if [ -d "$ParaView_DIR" -a -r "$ParaView_DIR" ]
+diff --git a/bin/paraFoam b/bin/paraFoam
+index a902d21..51d1458 100755
+--- a/bin/paraFoam
++++ b/bin/paraFoam
+@@ -72,6 +72,11 @@ extension=OpenFOAM
+ 
+ requirePV=1
+ 
++if [ "$(uname -s)" == "Darwin" ]; then
++	extension=foam
++	requirePV=0
++fi
++
+ # parse options
+ while [ "$#" -gt 0 ]
+ do
 diff --git a/etc/bashrc b/etc/bashrc
 index 4a771c9..06952b6 100644
 --- a/etc/bashrc
