@@ -15,12 +15,14 @@
  .../dataConversion/foamToEnsight/Make/options      |   1 -
  .../postProcessing/graphics/PV3Readers/Allwmake    |   5 +
  .../postProcessing/graphics/PV4Readers/Allwmake    |   5 +
+ bin/foamJob                                        |   8 ++
+ doc/Doxygen/_Header                                |   1 +
  etc/bashrc                                         |  28 +++++-
  etc/config/CGAL.sh                                 |  18 +++-
  etc/config/metis.sh                                |   9 +-
  etc/config/paraview-osx.sh                         |  16 +++
  etc/config/scotch.sh                               |   9 +-
- etc/config/settings.sh                             |  21 +++-
+ etc/config/settings.sh                             |  31 +++++-
  src/Allwmake                                       |  12 ++-
  src/OSspecific/POSIX/POSIX.C                       |  23 +++++
  src/OSspecific/POSIX/clockTime/clockTime.H         |   3 +
@@ -91,7 +93,7 @@
  wmake/rules/darwin64Clang/cOpt                     |   2 +
  wmake/rules/darwin64Clang/cProf                    |   2 +
  wmake/rules/darwin64Clang/general                  |   8 ++
- 93 files changed, 773 insertions(+), 144 deletions(-)
+ 95 files changed, 792 insertions(+), 144 deletions(-)
 
 diff --git a/.gitignore b/.gitignore
 index ec46862..ead2d97 100644
@@ -420,8 +422,39 @@ index aa102b5..710aa2f 100755
  case "$ParaView_VERSION" in
  4*)
      if [ -d "$ParaView_DIR" -a -r "$ParaView_DIR" ]
+diff --git a/bin/foamJob b/bin/foamJob
+index fc5e082..c69a706 100755
+--- a/bin/foamJob
++++ b/bin/foamJob
+@@ -265,6 +265,14 @@ then
+     fi
+ 
+ else
++	# Check if we are on El Capitan
++	if test "$(uname -s)" = "Darwin" && \
++		{ test "$(uname -r | cut -d. -f1)" -eq "15"; }
++	then
++		# Using foamExec workaround to reexport (DY)LD_LIBRARY_PATH variables
++		APPLICATION="foamExec $APPLICATION"
++	fi
++
+     #
+     # run (on single processor)
+     #
+diff --git a/doc/Doxygen/_Header b/doc/Doxygen/_Header
+index 985c43d..ea56bde 100644
+--- a/doc/Doxygen/_Header
++++ b/doc/Doxygen/_Header
+@@ -8,6 +8,7 @@
+ <link href="../OpenFOAMdocIcon.png" rel="icon" type="image/png" />
+ <link href="search/search.css" rel="stylesheet" type="text/css" />
+ <link href="../css/openfoam.css" rel="stylesheet" type="text/css" />
++<script type="text/javaScript" src="search/searchdata.js"></script>
+ <script type="text/javaScript" src="search/search.js"></script>
+ <script type="text/javascript" src="jquery.js"></script>
+ <script type="text/javascript" src="dynsections.js"></script>
 diff --git a/etc/bashrc b/etc/bashrc
-index 104fd76..4b7a291 100644
+index 104fd76..8d91796 100644
 --- a/etc/bashrc
 +++ b/etc/bashrc
 @@ -115,7 +115,9 @@ export WM_PROJECT_DIR=$WM_PROJECT_INST_DIR/$WM_PROJECT-$WM_PROJECT_VERSION
@@ -439,7 +472,7 @@ index 104fd76..4b7a291 100644
  cleaned=`$foamClean "$LD_LIBRARY_PATH" "$foamOldDirs"` \
      && LD_LIBRARY_PATH="$cleaned"
  
-+if [ "$(uname -s)" == "Darwin" ]; then
++if [ "$(uname -s)" = "Darwin" ]; then
 +	#- Clean DYLD_LIBRARY_PATH os OS X
 +	cleaned=`$foamClean "$DYLD_LIBRARY_PATH" "$foamOldDirs"` \
 +		&& DYLD_LIBRARY_PATH="$cleaned"
@@ -450,7 +483,7 @@ index 104fd76..4b7a291 100644
  
  export PATH LD_LIBRARY_PATH MANPATH
  
-+[ "$(uname -s)" == "Darwin" ] && export DYLD_LIBRARY_PATH
++[ "$(uname -s)" = "Darwin" ] && export DYLD_LIBRARY_PATH
  
  # Source project setup files
  # ~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -461,7 +494,7 @@ index 104fd76..4b7a291 100644
 -_foamSource `$WM_PROJECT_DIR/bin/foamEtcFile config/paraview.sh`
 -_foamSource `$WM_PROJECT_DIR/bin/foamEtcFile config/ensight.sh`
 -_foamSource `$WM_PROJECT_DIR/bin/foamEtcFile config/gperftools.sh`
-+if [ "$(uname -s)" == "Darwin" ]; then
++if [ "$(uname -s)" = "Darwin" ]; then
 +	_foamSource `$WM_PROJECT_DIR/bin/foamEtcFile config/paraview-osx.sh`
 +else
 +	_foamSource `$WM_PROJECT_DIR/bin/foamEtcFile config/paraview.sh`
@@ -475,7 +508,7 @@ index 104fd76..4b7a291 100644
  #- Clean LD_LIBRARY_PATH
  cleaned=`$foamClean "$LD_LIBRARY_PATH"` && LD_LIBRARY_PATH="$cleaned"
  
-+if [ "$(uname -s)" == "Darwin" ]; then
++if [ "$(uname -s)" = "Darwin" ]; then
 +	#- Clean DYLD_LIBRARY_PATH on OS X
 +	cleaned=`$foamClean "$DYLD_LIBRARY_PATH"` && DYLD_LIBRARY_PATH="$cleaned"
 +fi
@@ -485,13 +518,13 @@ index 104fd76..4b7a291 100644
  
  export PATH LD_LIBRARY_PATH MANPATH
  
-+[ "$(uname -s)" == "Darwin" ] && export DYLD_LIBRARY_PATH
++[ "$(uname -s)" = "Darwin" ] && export DYLD_LIBRARY_PATH
 +
  #- Clean LD_PRELOAD
  if [ -n "$LD_PRELOAD" ]
  then
 diff --git a/etc/config/CGAL.sh b/etc/config/CGAL.sh
-index dc8772d..03195a3 100644
+index dc8772d..4502513 100644
 --- a/etc/config/CGAL.sh
 +++ b/etc/config/CGAL.sh
 @@ -29,11 +29,21 @@
@@ -500,7 +533,7 @@ index dc8772d..03195a3 100644
  
 -boost_version=boost-system
 -cgal_version=CGAL-4.3
-+if [ "$(uname -s)" == "Darwin" ]; then
++if [ "$(uname -s)" = "Darwin" ]; then
 +	boost_version="boost-$(basename $(readlink /usr/local/opt/boost))"
 +	cgal_version="CGAL-$(basename $(readlink /usr/local/opt/cgal))"
  
@@ -521,7 +554,7 @@ index dc8772d..03195a3 100644
  if [ "$FOAM_VERBOSE" -a "$PS1" ]
  then
 diff --git a/etc/config/metis.sh b/etc/config/metis.sh
-index af7efde..bd4d68b 100644
+index af7efde..bcf57ad 100644
 --- a/etc/config/metis.sh
 +++ b/etc/config/metis.sh
 @@ -33,7 +33,12 @@
@@ -530,7 +563,7 @@ index af7efde..bd4d68b 100644
  
 -export METIS_VERSION=metis-5.1.0
 -export METIS_ARCH_PATH=$WM_THIRD_PARTY_DIR/platforms/$WM_ARCH$WM_COMPILER/$METIS_VERSION
-+if [ "$(uname -s)" == "Darwin" ]; then
++if [ "$(uname -s)" = "Darwin" ]; then
 +	export METIS_VERSION="metis-$(basename $(readlink /usr/local/opt/metis))"
 +	export METIS_ARCH_PATH=/usr/local/opt/metis
 +else
@@ -562,7 +595,7 @@ index 0000000..709e497
 +	echo
 +fi
 diff --git a/etc/config/scotch.sh b/etc/config/scotch.sh
-index 1ee06e8..b827c15 100644
+index 1ee06e8..f3f316e 100644
 --- a/etc/config/scotch.sh
 +++ b/etc/config/scotch.sh
 @@ -33,7 +33,12 @@
@@ -571,7 +604,7 @@ index 1ee06e8..b827c15 100644
  
 -export SCOTCH_VERSION=scotch_6.0.0
 -export SCOTCH_ARCH_PATH=$WM_THIRD_PARTY_DIR/platforms/$WM_ARCH$WM_COMPILER/$SCOTCH_VERSION
-+if [ "$(uname -s)" == "Darwin" ]; then
++if [ "$(uname -s)" = "Darwin" ]; then
 +	export SCOTCH_VERSION="scotch_$(basename $(readlink /usr/local/opt/scotch))"
 +	export SCOTCH_ARCH_PATH=/usr/local/opt/scotch
 +else
@@ -581,14 +614,14 @@ index 1ee06e8..b827c15 100644
  
  # -----------------------------------------------------------------------------
 diff --git a/etc/config/settings.sh b/etc/config/settings.sh
-index ae52902..e6a645c 100644
+index ae52902..b20a165 100644
 --- a/etc/config/settings.sh
 +++ b/etc/config/settings.sh
 @@ -46,6 +46,8 @@ _foamAddLib()
      while [ $# -ge 1 ]
      do
          export LD_LIBRARY_PATH=$1:$LD_LIBRARY_PATH
-+		[ "$(uname -s)" == "Darwin" ] \
++		[ "$(uname -s)" = "Darwin" ] \
 +			&& export DYLD_LIBRARY_PATH=$1:$DYLD_LIBRARY_PATH
          shift
      done
@@ -644,6 +677,27 @@ index ae52902..e6a645c 100644
  fi
  
  
+@@ -597,10 +610,20 @@ then
+ fi
+ export MPI_BUFFER_SIZE
+ 
++_increase_maxfiles ()
++{
++	local maxfiles=4096
++	[ "$(ulimit -n)" -lt $maxfiles ] \
++		&& ulimit -n $maxfiles > /dev/null 2>&1
++}
++
++# Increase max open files for lnInclude
++[ "$(uname -s)" = "Darwin" ] && _increase_maxfiles
+ 
+ # cleanup environment:
+ # ~~~~~~~~~~~~~~~~~~~~
+ #keep _foamAddPath _foamAddLib _foamAddMan
+ unset foamCompiler minBufferSize
++unset _increase_maxfiles
+ 
+ # ----------------------------------------------------------------- end-of-file
 diff --git a/src/Allwmake b/src/Allwmake
 index fa091ed..a0a79c9 100755
 --- a/src/Allwmake

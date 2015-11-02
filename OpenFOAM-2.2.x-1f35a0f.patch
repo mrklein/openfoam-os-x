@@ -8,12 +8,13 @@
  .../dataConversion/foamToEnsight/Make/options      |   1 -
  .../surface/surfaceFeatureExtract/Allwmake         |  30 +-
  .../surfaceFeatureExtract/surfaceFeatureExtract.C  |   3 +-
+ bin/foamJob                                        |   8 +
  bin/paraFoam                                       |  10 +-
  bin/tools/replaceAllShellSun                       |   2 +-
  etc/bashrc                                         | 111 ++++---
  etc/config/paraview-osx.sh                         |  15 +
  etc/config/scotch.sh                               |   9 +-
- etc/config/settings.sh                             |  39 ++-
+ etc/config/settings.sh                             |  50 +++-
  src/Allwmake                                       |  12 +-
  src/OSspecific/POSIX/POSIX.C                       |  23 ++
  src/OSspecific/POSIX/clockTime/clockTime.H         |   3 +
@@ -124,7 +125,7 @@
  wmake/rules/darwin64Clang/cOpt                     |   2 +
  wmake/rules/darwin64Clang/cProf                    |   2 +
  wmake/rules/darwin64Clang/general                  |   8 +
- 126 files changed, 964 insertions(+), 432 deletions(-)
+ 127 files changed, 983 insertions(+), 432 deletions(-)
 
 diff --git a/.gitignore b/.gitignore
 index 7c8bce0..039c370 100644
@@ -343,6 +344,25 @@ index 87350c4..5fc99be 100644
      typedef Monge_via_jet_fitting::Monge_form           Monge_form;
  
      std::vector<Point_3> in_points;  //container for data points
+diff --git a/bin/foamJob b/bin/foamJob
+index 20793c3..5a35f18 100755
+--- a/bin/foamJob
++++ b/bin/foamJob
+@@ -247,6 +247,14 @@ then
+     fi
+ 
+ else
++	# Check if we are on El Capitan
++	if test "$(uname -s)" = "Darwin" && \
++		{ test "$(uname -r | cut -d. -f1)" -eq "15"; }
++	then
++		# Using foamExec workaround to reexport (DY)LD_LIBRARY_PATH variables
++		APPLICATION="foamExec $APPLICATION"
++	fi
++
+     #
+     # run (on single processor)
+     #
 diff --git a/bin/paraFoam b/bin/paraFoam
 index d288e3f..6e46cdd 100755
 --- a/bin/paraFoam
@@ -378,7 +398,7 @@ index d5a0d8d..b57271e 100755
  then
      echo "Usage: ${0##*/} <dir>"
 diff --git a/etc/bashrc b/etc/bashrc
-index 0f0ff50..29ee710 100644
+index 0f0ff50..b1f3797 100644
 --- a/etc/bashrc
 +++ b/etc/bashrc
 @@ -104,7 +104,7 @@ export FOAM_SIGFPE=
@@ -501,7 +521,7 @@ index 0f0ff50..29ee710 100644
 +	&& LD_LIBRARY_PATH="$cleaned"
 +
 +#- Clean DYLD_LIBRARY_PATH on OS X
-+if [ "$(uname -s)" == "Darwin" ]; then
++if [ "$(uname -s)" = "Darwin" ]; then
 +	cleaned=`$foamClean "$DYLD_LIBRARY_PATH" "$foamOldDirs"` \
 +		&& DYLD_LIBRARY_PATH="$cleaned"
 +
@@ -512,7 +532,7 @@ index 0f0ff50..29ee710 100644
  
  export PATH LD_LIBRARY_PATH MANPATH
  
-+[ "$(uname -s)" == "Darwin" ] && export DYLD_LIBRARY_PATH
++[ "$(uname -s)" = "Darwin" ] && export DYLD_LIBRARY_PATH
 +
  
  # Source project setup files
@@ -524,7 +544,7 @@ index 0f0ff50..29ee710 100644
 -_foamSource `$WM_PROJECT_DIR/bin/foamEtcFile config/paraview.sh`
 -_foamSource `$WM_PROJECT_DIR/bin/foamEtcFile config/ensight.sh`
 -_foamSource `$WM_PROJECT_DIR/bin/foamEtcFile config/gperftools.sh`
-+if [ "$(uname -s)" == "Darwin" ]; then
++if [ "$(uname -s)" = "Darwin" ]; then
 +	_foamSource `$WM_PROJECT_DIR/bin/foamEtcFile config/paraview-osx.sh`
 +else
 +	_foamSource `$WM_PROJECT_DIR/bin/foamEtcFile config/paraview.sh`
@@ -539,7 +559,7 @@ index 0f0ff50..29ee710 100644
  cleaned=`$foamClean "$LD_LIBRARY_PATH"` && LD_LIBRARY_PATH="$cleaned"
  
 +#- Clean DYLD_LIBRARY_PATH on OS X
-+if [ "$(uname -s)" == "Darwin" ]; then
++if [ "$(uname -s)" = "Darwin" ]; then
 +	cleaned=`$foamClean "$DYLD_LIBRARY_PATH"` && DYLD_LIBRARY_PATH="$cleaned"
 +fi
 +
@@ -548,7 +568,7 @@ index 0f0ff50..29ee710 100644
  
  export PATH LD_LIBRARY_PATH MANPATH
  
-+[ "$(uname -s)" == "Darwin" ] && export DYLD_LIBRARY_PATH
++[ "$(uname -s)" = "Darwin" ] && export DYLD_LIBRARY_PATH
 +
  #- Clean LD_PRELOAD
  if [ -n "$LD_PRELOAD" ]
@@ -601,14 +621,14 @@ index 1ee06e8..71a9560 100644
  
  # -----------------------------------------------------------------------------
 diff --git a/etc/config/settings.sh b/etc/config/settings.sh
-index 5a77479..cafa19b 100644
+index 5a77479..f43f625 100644
 --- a/etc/config/settings.sh
 +++ b/etc/config/settings.sh
 @@ -46,6 +46,8 @@ _foamAddLib()
      while [ $# -ge 1 ]
      do
          export LD_LIBRARY_PATH=$1:$LD_LIBRARY_PATH
-+		[ "$(uname -s)" == "Darwin" ] \
++		[ "$(uname -s)" = "Darwin" ] \
 +			&& export DYLD_LIBRARY_PATH=$1:$DYLD_LIBRARY_PATH
          shift
      done
@@ -655,12 +675,10 @@ index 5a77479..cafa19b 100644
  
 -boost_version=boost_1_45_0
 -cgal_version=CGAL-4.0
-+if [ "$(uname -s)" == "Darwin" ]; then
++if [ "$(uname -s)" = "Darwin" ]; then
 +	boost_version="boost-$(basename $(readlink /usr/local/opt/boost))"
 +	cgal_version="CGAL-$(basename $(readlink /usr/local/opt/cgal))"
- 
--export BOOST_ARCH_PATH=$WM_THIRD_PARTY_DIR/platforms/$WM_ARCH$WM_COMPILER/$boost_version
--export CGAL_ARCH_PATH=$WM_THIRD_PARTY_DIR/platforms/$WM_ARCH$WM_COMPILER/$cgal_version
++
 +	export BOOST_ARCH_PATH=/usr/local/opt/boost
 +	export CGAL_ARCH_PATH=/usr/local/opt/cgal
 +	export GMP_ARCH_PATH=/usr/local/opt/gmp
@@ -668,7 +686,9 @@ index 5a77479..cafa19b 100644
 +else
 +	boost_version=boost_1_45_0
 +	cgal_version=CGAL-4.0
-+
+ 
+-export BOOST_ARCH_PATH=$WM_THIRD_PARTY_DIR/platforms/$WM_ARCH$WM_COMPILER/$boost_version
+-export CGAL_ARCH_PATH=$WM_THIRD_PARTY_DIR/platforms/$WM_ARCH$WM_COMPILER/$cgal_version
 +	export BOOST_ARCH_PATH=$WM_THIRD_PARTY_DIR/platforms/$WM_ARCH$WM_COMPILER/$boost_version
 +	export CGAL_ARCH_PATH=$WM_THIRD_PARTY_DIR/platforms/$WM_ARCH$WM_COMPILER/$cgal_version
 +fi
@@ -686,6 +706,27 @@ index 5a77479..cafa19b 100644
  fi
  
  
+@@ -587,9 +612,20 @@ then
+ fi
+ export MPI_BUFFER_SIZE
+ 
++_increase_maxfiles ()
++{
++	local maxfiles=4096
++	[ "$(ulimit -n)" -lt $maxfiles ] \
++		&& ulimit -n $maxfiles > /dev/null 2>&1
++
++}
++
++# Increase max open files for lnInclude
++[ "$(uname -s)" = "Darwin" ] && _increase_maxfiles
+ 
+ # cleanup environment:
+ # ~~~~~~~~~~~~~~~~~~~~
+ unset _foamAddPath _foamAddLib _foamAddMan foamCompiler minBufferSize
++unset _increase_maxfiles
+ 
+ # ----------------------------------------------------------------- end-of-file
 diff --git a/src/Allwmake b/src/Allwmake
 index 55b8981..8c59a57 100755
 --- a/src/Allwmake
