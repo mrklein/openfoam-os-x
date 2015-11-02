@@ -1,0 +1,32 @@
+- [X] lnInclude regeneration for releases
+  - [X] 2.3.1
+  - [X] 2.4.0
+- [X] ulimit -n in settings.sh
+  - [X] 2.2.x
+  - [X] 2.3.1
+  - [X] 2.3.x
+  - [X] 2.4.0
+  - [X] 2.4.x
+  - [X] dev
+- [X] = instead of == for string comparison in shell scripts
+  - [X] 2.2.x
+  - [X] 2.3.1
+  - [X] 2.3.x
+  - [X] 2.4.0
+  - [X] 2.4.x
+  - [X] dev
+- [-] foamJob script fix for El Capitan (10.11.x)
+  - [X] 2.2.x
+  - [X] 2.3.1
+  - [X] 2.3.x
+  - [X] 2.4.0
+  - [X] 2.4.x
+  - [ ] dev
+- [-] Infinite loop after sigFpe due to OpenMPI's signal handler
+  - [X] 2.2.x
+  - [X] 2.3.1
+  - [X] 2.3.x
+  - [X] 2.4.0
+  - [X] 2.4.x
+  - [ ] dev
+- [X] Patch generation script
