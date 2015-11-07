@@ -911,7 +911,7 @@ index bf04835..8a3c796 100644
  // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
  
 diff --git a/src/OSspecific/POSIX/printStack.C b/src/OSspecific/POSIX/printStack.C
-index d94451e..e673f4b 100644
+index d94451e..e4bb88b 100644
 --- a/src/OSspecific/POSIX/printStack.C
 +++ b/src/OSspecific/POSIX/printStack.C
 @@ -2,7 +2,7 @@
@@ -1076,7 +1076,7 @@ index d94451e..e673f4b 100644
 +          + filename
 +          + " __TEXT "
 +          + addressToWord(reinterpret_cast<const uintptr_t>(info->dli_fbase))
-+          + "'"
++          + "' 2> /dev/null"
 +          + " | tail -1"
 +#endif
          );
