@@ -11,23 +11,11 @@ FOAM_MOUNT_POINT=${FOAM_MOUNT_POINT:-"$HOME/OpenFOAM"}
 FOAM_RELEASE_FILE=${FOAM_RELESE_FILE:-"$HOME/.OpenFOAM/OpenFOAM-release"}
 FOAM_DISK_IMAGE=${FOAM_DISK_IMAGE:-"$HOME/OpenFOAM.sparsebundle"}
 
-FE_MOUNT_POINT=${FE_MOUNT_POINT:-"$HOME/foam"}
-FE_RELEASE_FILE=${FE_RELESE_FILE:-"$HOME/.foam/foam-release"}
-FE_DISK_IMAGE=${FE_DISK_IMAGE:-"$HOME/foam-extend.sparsebundle"}
-
 mount_disk_image () {
 	local oldpwd=$(pwd)
 	cd $HOME
 	# Attempt to mount image
 	hdiutil attach -quiet -mountpoint "$FOAM_MOUNT_POINT" "$FOAM_DISK_IMAGE"
-	cd $oldpwd
-	return 0
-}
-
-fe_mount_disk_image () {
-	local oldpwd=$(pwd)
-	cd $HOME
-	hdiutil attach -quiet -mountpoint "$FE_MOUNT_POINT" "$FE_DISK_IMAGE"
 	cd $oldpwd
 	return 0
 }
@@ -66,23 +54,6 @@ ofxxx () {
 	fi
 }
 
-# foam-extend functions
-fexxx () {
-	local release=$1
-	[ -n "$WM_PROJECT_DIR" ] && . $WM_PROJECT_DIR/etc/config/unset.sh
-	local bashrc="$FE_MOUNT_POINT/foam-extend-$release/etc/bashrc"
-	if [ -f "$bashrc" ]; then
-		source $bashrc
-	else
-		fe_mount_disk_image
-		if [ -f "$bashrc" ]; then
-			source $bashrc
-		else
-			echo "foam-extend $release doesn't seem to be installed."
-		fi
-	fi
-}
-
 of231 () {
 	ofxxx '2.3.1'
 }
@@ -113,17 +84,17 @@ of22x () {
 
 export -f of22x
 
-of21x () {
-	ofxxx '2.1.x'
+of300() {
+	ofxxx '3.0.0'
 }
 
-export -f of21x
+export -f of300
 
-ofdev() {
-	ofxxx 'dev'
+of30x() {
+	ofxxx '3.0.x'
 }
 
-export -f ofdev
+export -f of30x
 
 pf () {
 	paraFoam > /dev/null 2>&1 &

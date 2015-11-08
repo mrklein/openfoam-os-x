@@ -15,6 +15,10 @@ can be found in [wiki](https://github.com/mrklein/openfoam-os-x/wiki).
 2. Update for 2.2.x, 2.3.1, 2.3.x, 2.4.0, and 2.4.x patches that includes fixes
    in printStack function.
 
+3. Dropped 2.1.x patch (you can find it in earlier releases/commits) as I do
+   have enough resources to support it. Temporarily removed -dev patch,
+   currently it is equal to 3.0.x.
+
 Build was tested on
 
 ```
