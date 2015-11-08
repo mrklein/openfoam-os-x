@@ -1,0 +1,2057 @@
+ .gitignore                                         |   1 +
+ Allwmake                                           |   6 +-
+ applications/Allwmake                              |   3 +-
+ .../mesh/generation/snappyHexMesh/Make/options     |   1 -
+ .../mesh/manipulation/renumberMesh/Make/options    |   1 -
+ .../dataConversion/foamToEnsight/Make/options      |   1 -
+ .../postProcessing/graphics/PV3Readers/Allwmake    |   3 +
+ .../postProcessing/graphics/PV4Readers/Allwmake    |   3 +
+ bin/foamInstallationTest                           |  21 +++-
+ bin/foamJob                                        |   6 +
+ bin/paraFoam                                       |   5 +
+ etc/bashrc                                         |  37 +++++-
+ etc/config/CGAL.sh                                 |  19 ++-
+ etc/config/metis.sh                                |  10 +-
+ etc/config/paraview-osx.sh                         |  16 +++
+ etc/config/scotch.sh                               |  10 +-
+ etc/config/settings.sh                             |  44 ++++++-
+ src/Allwmake                                       |   7 +-
+ src/OSspecific/POSIX/POSIX.C                       |  22 ++++
+ src/OSspecific/POSIX/clockTime/clockTime.H         |   3 +
+ src/OSspecific/POSIX/fileStat.C                    |   2 +
+ src/OSspecific/POSIX/printStack.C                  |  72 +++++++++--
+ src/OSspecific/POSIX/signals/sigFpe.C              |  92 +++++++++++++-
+ src/OSspecific/POSIX/signals/sigFpe.H              |  14 ++-
+ src/OpenFOAM/Make/files                            |   6 +
+ src/OpenFOAM/db/IOstreams/IOstreams.H              |   4 +
+ src/OpenFOAM/primitives/Scalar/doubleFloat.H       |  15 +++
+ src/OpenFOAM/primitives/ints/int/int.H             |   8 ++
+ src/OpenFOAM/primitives/ints/long/long.C           |  50 ++++++++
+ src/OpenFOAM/primitives/ints/long/long.H           | 138 +++++++++++++++++++++
+ src/OpenFOAM/primitives/ints/long/longIO.C         | 104 ++++++++++++++++
+ src/OpenFOAM/primitives/ints/ulong/ulong.C         |  52 ++++++++
+ src/OpenFOAM/primitives/ints/ulong/ulong.H         | 138 +++++++++++++++++++++
+ src/OpenFOAM/primitives/ints/ulong/ulongIO.C       | 101 +++++++++++++++
+ src/fvAgglomerationMethods/Allwmake                |   9 +-
+ .../MGridGenGamgAgglomeration/Make/options         |  16 ++-
+ src/parallel/decompose/Allwmake                    |   2 +-
+ src/parallel/decompose/metisDecomp/Allwmake        |   7 +-
+ src/parallel/decompose/metisDecomp/Make/options    |   1 -
+ src/parallel/decompose/ptscotchDecomp/Make/options |  10 +-
+ src/parallel/decompose/scotchDecomp/Make/options   |   8 +-
+ src/renumber/SloanRenumber/Make/options            |  31 +++--
+ wmake/Makefile                                     |   4 +
+ wmake/MakefileFiles                                |   5 +-
+ wmake/rules/darwin64Clang/c                        |  22 ++++
+ wmake/rules/darwin64Clang/c++                      |  32 +++++
+ wmake/rules/darwin64Clang/c++Debug                 |   2 +
+ wmake/rules/darwin64Clang/c++Opt                   |   3 +
+ wmake/rules/darwin64Clang/c++Prof                  |   2 +
+ wmake/rules/darwin64Clang/cDebug                   |   2 +
+ wmake/rules/darwin64Clang/cOpt                     |   2 +
+ wmake/rules/darwin64Clang/cProf                    |   2 +
+ wmake/rules/darwin64Clang/general                  |   8 ++
+ 53 files changed, 1109 insertions(+), 74 deletions(-)
+
+diff --git a/.gitignore b/.gitignore
+index 28fb901..fe1ede4 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -39,6 +39,7 @@ linux*Gcc*/
+ linux*Icc*/
+ solaris*Gcc*/
+ SunOS*Gcc*/
++darwin*Clang*/
+ platforms/
+ 
+ # Reinstate wmake/rules that might look like build directories
+diff --git a/Allwmake b/Allwmake
+index e0dded1..cc63388 100755
+--- a/Allwmake
++++ b/Allwmake
+@@ -13,11 +13,12 @@ wmakeCheckPwd "$WM_PROJECT_DIR" || {
+     exit 1
+ }
+ 
+-[ -n "$FOAM_EXT_LIBBIN" ] || {
++[ "$(uname -s)" = "Darwin" ] || { [ -n "$FOAM_EXT_LIBBIN" ] || {
+     echo "Allwmake error: FOAM_EXT_LIBBIN not set"
+     echo "    Check the OpenFOAM entries in your dot-files and source them."
+     exit 1
+ }
++}
+ 
+ # Compile wmake support applications
+ (cd wmake/src && make)
+@@ -27,7 +28,8 @@ if [ -d "$WM_THIRD_PARTY_DIR" ]
+ then
+     $WM_THIRD_PARTY_DIR/Allwmake
+ else
+-    echo "Allwmake: no ThirdParty directory found - skipping"
++	[ "$(uname -s)" = "Darwin" ] \
++		|| echo "Allwmake: no ThirdParty directory found - skipping"
+ fi
+ 
+ # Compile OpenFOAM libraries and applications
+diff --git a/applications/Allwmake b/applications/Allwmake
+index f23a233..ff6266c 100755
+--- a/applications/Allwmake
++++ b/applications/Allwmake
+@@ -12,11 +12,12 @@ wmakeCheckPwd "$WM_PROJECT_DIR/applications" || {
+     exit 1
+ }
+ 
+-[ -n "$FOAM_EXT_LIBBIN" ] || {
++[ "$(uname -s)" = "Darwin" ] || { [ -n "$FOAM_EXT_LIBBIN" ] || {
+     echo "Allwmake error: FOAM_EXT_LIBBIN not set"
+     echo "    Check the OpenFOAM entries in your dot-files and source them."
+     exit 1
+ }
++}
+ 
+ set -x
+ 
+diff --git a/applications/utilities/mesh/generation/snappyHexMesh/Make/options b/applications/utilities/mesh/generation/snappyHexMesh/Make/options
+index 219e3d4..e8b0688 100644
+--- a/applications/utilities/mesh/generation/snappyHexMesh/Make/options
++++ b/applications/utilities/mesh/generation/snappyHexMesh/Make/options
+@@ -1,5 +1,4 @@
+ EXE_INC = \
+-    /* -g -DFULLDEBUG -O0 */ \
+     -I$(LIB_SRC)/parallel/decompose/decompositionMethods/lnInclude \
+     -I$(LIB_SRC)/mesh/autoMesh/lnInclude \
+     -I$(LIB_SRC)/meshTools/lnInclude \
+diff --git a/applications/utilities/mesh/manipulation/renumberMesh/Make/options b/applications/utilities/mesh/manipulation/renumberMesh/Make/options
+index 49a1c3d..882d1e4 100644
+--- a/applications/utilities/mesh/manipulation/renumberMesh/Make/options
++++ b/applications/utilities/mesh/manipulation/renumberMesh/Make/options
+@@ -1,5 +1,4 @@
+ EXE_INC = \
+-    /* -DFULLDEBUG -g -O0 */ \
+     ${COMPILE_FLAGS} \
+     -I$(LIB_SRC)/meshTools/lnInclude \
+     -I$(LIB_SRC)/dynamicMesh/lnInclude \
+diff --git a/applications/utilities/postProcessing/dataConversion/foamToEnsight/Make/options b/applications/utilities/postProcessing/dataConversion/foamToEnsight/Make/options
+index 7799242..b4382c4 100644
+--- a/applications/utilities/postProcessing/dataConversion/foamToEnsight/Make/options
++++ b/applications/utilities/postProcessing/dataConversion/foamToEnsight/Make/options
+@@ -1,5 +1,4 @@
+ EXE_INC = \
+-    /* -DFULLDEBUG -g -O0 */ \
+     -I$(LIB_SRC)/finiteVolume/lnInclude \
+     -I$(LIB_SRC)/meshTools/lnInclude \
+     -I$(LIB_SRC)/sampling/lnInclude \
+diff --git a/applications/utilities/postProcessing/graphics/PV3Readers/Allwmake b/applications/utilities/postProcessing/graphics/PV3Readers/Allwmake
+index ae0915f..f974dbb 100755
+--- a/applications/utilities/postProcessing/graphics/PV3Readers/Allwmake
++++ b/applications/utilities/postProcessing/graphics/PV3Readers/Allwmake
+@@ -2,6 +2,9 @@
+ cd ${0%/*} || exit 1    # Run from this directory
+ #set -x
+ 
++# Skip on OS X
++[ "$(uname -s)" = "Darwin" ] && exit 0
++
+ case "$ParaView_VERSION" in
+ 3*)
+     if [ -d "$ParaView_DIR" -a -r "$ParaView_DIR" ]
+diff --git a/applications/utilities/postProcessing/graphics/PV4Readers/Allwmake b/applications/utilities/postProcessing/graphics/PV4Readers/Allwmake
+index 6f6e56b..694f73f 100755
+--- a/applications/utilities/postProcessing/graphics/PV4Readers/Allwmake
++++ b/applications/utilities/postProcessing/graphics/PV4Readers/Allwmake
+@@ -2,6 +2,9 @@
+ cd ${0%/*} || exit 1    # Run from this directory
+ #set -x
+ 
++# Skip on OS X
++[ "$(uname -s)" = "Darwin" ] && exit 0
++
+ case "$ParaView_VERSION" in
+ 4*)
+     if [ -d "$ParaView_DIR" -a -r "$ParaView_DIR" ]
+diff --git a/bin/foamInstallationTest b/bin/foamInstallationTest
+index ed4bb9c..2fc12e7 100755
+--- a/bin/foamInstallationTest
++++ b/bin/foamInstallationTest
+@@ -306,13 +306,23 @@ reportExecutable()
+         VERSION=`$APP_PATH --version | head -1`
+         ;;
+     tar)
+-        VERSION=`$APP_PATH --version | head -1 | cut -d" " -f4`
+-        ;;
++		case "$OSTYPE" in
++		Darwin)
++			VERSION=`$APP_PATH --version | head -1 | cut -d" " -f2`
++			;;
++		*)
++			VERSION=`$APP_PATH --version | head -1 | cut -d" " -f4`
++			;;
++		esac
++		;;
+     gzip)
+         case "$OSTYPE" in
+         SunOS)
+             VERSION=`$1 --version 2>&1 | grep gzip | cut -d" " -f2`
+             ;;
++		Darwin)
++            VERSION=`$1 --version 2>&1`
++			;;
+         *)
+             VERSION=`$1 --version | head -1 | cut -d" " -f2`
+             ;;
+@@ -341,6 +351,7 @@ reportExecutable()
+ checkOpenFOAMEnvironment()
+ {
+     [ -d "$WM_PROJECT_INST_DIR" ] && [ -d "$WM_THIRD_PARTY_DIR" ] || {
++		[ "$(uname -s)" = "Darwin" ] && return 0
+         echo ""
+         echo "FATAL ERROR: OpenFOAM environment not configured."
+         echo ""
+@@ -388,7 +399,7 @@ checkHostName()
+ checkOS()
+ {
+     case "$OSTYPE" in
+-    Linux | LinuxAMD64 | SunOS )
++    Linux | LinuxAMD64 | SunOS | Darwin )
+         echo "`fixlen OS: $WIDTH` $OSTYPE version $(uname -r)"
+         ;;
+     *)
+@@ -429,7 +440,7 @@ echo "$COL1 $COL2 $COL3      $COL5"
+ hline
+ reportEnv '$WM_PROJECT_INST_DIR' 'noPath' "yes"
+ reportEnv '$WM_PROJECT_USER_DIR' 'noPath' "no"
+-reportEnv '$WM_THIRD_PARTY_DIR'  'noPath' "yes"
++[ "$(uname -s)" = "Darwin" ] || reportEnv '$WM_THIRD_PARTY_DIR'  'noPath' "yes"
+ hline
+ 
+ #------------------------------------------------------------------------------
+@@ -468,7 +479,7 @@ reportExecutable flex
+ reportExecutable "$WM_CC"
+ reportExecutable "$WM_CXX"
+ reportExecutable gzip
+-if [ "$OSTYPE" = Linux ]
++if [ "$OSTYPE" = Linux -o "$OSTYPE" = "Darwin" ]
+ then
+     reportExecutable tar
+ else
+diff --git a/bin/foamJob b/bin/foamJob
+index 6646e5d..479ddad 100755
+--- a/bin/foamJob
++++ b/bin/foamJob
+@@ -277,6 +277,12 @@ then
+     fi
+ 
+ else
++	# Check if we are on El Capitan
++	if test "$(uname -s)" = "Darwin" && \
++		{ test "$(uname -r | cut -d. -f1)" -eq 15; }
++	then
++		APPLICATION="foamExec $APPLICATION"
++	fi
+     #
+     # Run (on single processor)
+     #
+diff --git a/bin/paraFoam b/bin/paraFoam
+index b032fc6..fb51332 100755
+--- a/bin/paraFoam
++++ b/bin/paraFoam
+@@ -72,6 +72,11 @@ extension=OpenFOAM
+ 
+ requirePV=1
+ 
++[ "$(uname -s)" = "Darwin" ] && {
++extension=foam
++requirePV=0
++}
++
+ # Parse options
+ while [ "$#" -gt 0 ]
+ do
+diff --git a/etc/bashrc b/etc/bashrc
+index 4f7a701..9bf190f 100644
+--- a/etc/bashrc
++++ b/etc/bashrc
+@@ -121,7 +121,8 @@ export WM_PROJECT_DIR=$WM_PROJECT_INST_DIR/$WM_PROJECT-$WM_PROJECT_VERSION
+ 
+ # Location of third-party software
+ # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+-export WM_THIRD_PARTY_DIR=$WM_PROJECT_INST_DIR/ThirdParty-$WM_PROJECT_VERSION
++[ "$(uname -s)" = "Darwin" ] || \
++	export WM_THIRD_PARTY_DIR=$WM_PROJECT_INST_DIR/ThirdParty-$WM_PROJECT_VERSION
+ 
+ # Location of site-specific templates etc
+ # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+@@ -137,6 +138,17 @@ fi
+ # ~~~~~~~~~~~~~~~~~~~~~~
+ export WM_PROJECT_USER_DIR=$HOME/$WM_PROJECT/$USER-$WM_PROJECT_VERSION
+ 
++# Check if we are building OpenFOAM on OS X
++_foamOnOSX()
++{
++	# For portability we will not rely on $?
++	if [ "$(uname -s)" = "Darwin" ]
++	then
++		return 0
++	else
++		return 1
++	fi
++}
+ 
+ # Source files, possibly with some verbosity
+ _foamSource()
+@@ -203,11 +215,20 @@ cleaned=`$foamClean "$PATH" "$foamOldDirs"` && PATH="$cleaned"
+ cleaned=`$foamClean "$LD_LIBRARY_PATH" "$foamOldDirs"` \
+     && LD_LIBRARY_PATH="$cleaned"
+ 
++#- Clean DYLD_LIBRARY_PATH
++if _foamOnOSX
++then
++	cleaned=`$foamClean "$DYLD_LIBRARY_PATH" "$foamOldDirs"` \
++		&& DYLD_LIBRARY_PATH="$cleaned"
++fi
++
+ #- Clean MANPATH
+ cleaned=`$foamClean "$MANPATH" "$foamOldDirs"` && MANPATH="$cleaned"
+ 
+ export PATH LD_LIBRARY_PATH MANPATH
+ 
++_foamOnOSX && export DYLD_LIBRARY_PATH
++
+ 
+ # Source project setup files
+ # ~~~~~~~~~~~~~~~~~~~~~~~~~~
+@@ -217,9 +238,14 @@ _foamSource $WM_PROJECT_DIR/etc/config/aliases.sh
+ 
+ # Source user setup files for optional packages
+ # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+-_foamSource `$WM_PROJECT_DIR/bin/foamEtcFile config/paraview.sh`
++_foamOnOSX \
++	&& _foamSource `$WM_PROJECT_DIR/bin/foamEtcFile config/paraview-osx.sh` \
++	|| _foamSource `$WM_PROJECT_DIR/bin/foamEtcFile config/paraview.sh`
++
++_foamOnOSX || {
+ _foamSource `$WM_PROJECT_DIR/bin/foamEtcFile config/ensight.sh`
+ _foamSource `$WM_PROJECT_DIR/bin/foamEtcFile config/gperftools.sh`
++}
+ _foamSource `$WM_PROJECT_DIR/bin/foamEtcFile config/CGAL.sh`
+ 
+ 
+@@ -231,6 +257,11 @@ cleaned=`$foamClean "$PATH"` && PATH="$cleaned"
+ #- Clean LD_LIBRARY_PATH
+ cleaned=`$foamClean "$LD_LIBRARY_PATH"` && LD_LIBRARY_PATH="$cleaned"
+ 
++#- Clean DYLD_LIBRARY_PATH on OS X
++_foamOnOSX && {
++cleaned=`$foamClean "$DYLD_LIBRARY_PATH"` && DYLD_LIBRARY_PATH="$cleaned"
++}
++
+ #- Clean MANPATH (trailing ':' to find system pages)
+ cleaned=`$foamClean "$MANPATH"`: && MANPATH="$cleaned"
+ 
+@@ -247,6 +278,6 @@ fi
+ # cleanup environment:
+ # ~~~~~~~~~~~~~~~~~~~~
+ unset cleaned foamClean foamInstall foamOldDirs
+-unset _foamSource _foamEval
++unset _foamSource _foamEval _foamOnOSX
+ 
+ # ----------------------------------------------------------------- end-of-file
+diff --git a/etc/config/CGAL.sh b/etc/config/CGAL.sh
+index 7a59fc6..09c3b98 100644
+--- a/etc/config/CGAL.sh
++++ b/etc/config/CGAL.sh
+@@ -29,11 +29,22 @@
+ #     Sourced from OpenFOAM-<VERSION>/etc/bashrc
+ #------------------------------------------------------------------------------
+ 
+-boost_version=boost-system
+-cgal_version=CGAL-4.7
++if [ "$(uname -s)" = "Darwin" ]
++then
++	boost_version="boost-$(basename $(readlink /usr/local/opt/boost))"
++	cgal_version="CGAL-$(basename $(readlink /usr/local/opt/cgal))"
++
++	export BOOST_ARCH_PATH=/usr/local/opt/boost
++	export CGAL_ARCH_PATH=/usr/local/opt/cgal
++	export GMP_ARCH_PATH=/usr/local/opt/gmp
++	export MPFR_ARCH_PATH=/usr/local/opt/mpfr
++else
++	boost_version=boost-system
++	cgal_version=CGAL-4.7
+ 
+-export BOOST_ARCH_PATH=$WM_THIRD_PARTY_DIR/platforms/$WM_ARCH$WM_COMPILER/$boost_version
+-export CGAL_ARCH_PATH=$WM_THIRD_PARTY_DIR/platforms/$WM_ARCH$WM_COMPILER/$cgal_version
++	export BOOST_ARCH_PATH=$WM_THIRD_PARTY_DIR/platforms/$WM_ARCH$WM_COMPILER/$boost_version
++	export CGAL_ARCH_PATH=$WM_THIRD_PARTY_DIR/platforms/$WM_ARCH$WM_COMPILER/$cgal_version
++fi
+ 
+ if [ "$FOAM_VERBOSE" -a "$PS1" ]
+ then
+diff --git a/etc/config/metis.sh b/etc/config/metis.sh
+index af7efde..38d534f 100644
+--- a/etc/config/metis.sh
++++ b/etc/config/metis.sh
+@@ -33,7 +33,13 @@
+ #     during the wmake process
+ #------------------------------------------------------------------------------
+ 
+-export METIS_VERSION=metis-5.1.0
+-export METIS_ARCH_PATH=$WM_THIRD_PARTY_DIR/platforms/$WM_ARCH$WM_COMPILER/$METIS_VERSION
++if [ "$(uname -s)" = "Darwin" ]
++then
++	export METIS_VERSION=metis-$(basename $(readlink /usr/local/opt/metis))
++	export METIS_ARCH_PATH=/usr/local/opt/metis
++else
++	export METIS_VERSION=metis-5.1.0
++	export METIS_ARCH_PATH=$WM_THIRD_PARTY_DIR/platforms/$WM_ARCH$WM_COMPILER/$METIS_VERSION
++fi
+ 
+ # -----------------------------------------------------------------------------
+diff --git a/etc/config/paraview-osx.sh b/etc/config/paraview-osx.sh
+new file mode 100644
+index 0000000..709e497
+--- /dev/null
++++ b/etc/config/paraview-osx.sh
+@@ -0,0 +1,16 @@
++if [ -d "/Applications/paraview.app" ]; then
++
++	[ "$FOAM_VERBOSE" -a "$PS1" ] && echo "Using /Applications/paraview.app"
++
++	paraview () {
++		"/Applications/paraview.app/Contents/MacOS/paraview" "$@"
++	}
++
++	export -f paraview
++else
++	echo
++	echo "Please download binary Paraview release from"
++	echo "http://paraview.org and install it in /Applications"
++	echo "folder."
++	echo
++fi
+diff --git a/etc/config/scotch.sh b/etc/config/scotch.sh
+index e40e1c7..c5a5c28 100644
+--- a/etc/config/scotch.sh
++++ b/etc/config/scotch.sh
+@@ -33,7 +33,13 @@
+ #     during the wmake process
+ #------------------------------------------------------------------------------
+ 
+-export SCOTCH_VERSION=scotch_6.0.3
+-export SCOTCH_ARCH_PATH=$WM_THIRD_PARTY_DIR/platforms/$WM_ARCH$WM_COMPILER$WM_LABEL_OPTION/$SCOTCH_VERSION
++if [ $(uname -s) = "Darwin" ]
++then
++	export SCOTCH_VERSION="scotch-$(basename $(readlink /usr/local/opt/scotch))"
++	export SCOTCH_ARCH_PATH=/usr/local/opt/scotch
++else
++	export SCOTCH_VERSION=scotch-6.0.3
++	export SCOTCH_ARCH_PATH=$WM_THIRD_PARTY_DIR/platforms/$WM_ARCH$WM_COMPILER$WM_LABEL_OPTION/$SCOTCH_VERSION
++fi
+ 
+ # -----------------------------------------------------------------------------
+diff --git a/etc/config/settings.sh b/etc/config/settings.sh
+index 02be26b..ba77a23 100644
+--- a/etc/config/settings.sh
++++ b/etc/config/settings.sh
+@@ -30,6 +30,30 @@
+ #
+ #------------------------------------------------------------------------------
+ 
++# Increase maximum number of open files if it is below limit
++_increaseMaxOpenFiles()
++{
++	# Default value
++	local lim=4096
++
++	# Reset if parameter passed
++	[ -n "$1" ] && lim="$1"
++
++	# Silencing the errors
++	[ "$(ulimit -n)" -lt "$lim" ] && ulimit -n "$lim" > /dev/null 2>&1
++}
++
++# Check if OpenFOAM is built on OS X
++_foamOnOSX()
++{
++	if [ "$(uname -s)" = "Darwin" ]
++	then
++		return 0
++	else
++		return 1
++	fi
++}
++
+ # Prefix to PATH
+ _foamAddPath()
+ {
+@@ -46,6 +70,7 @@ _foamAddLib()
+     while [ $# -ge 1 ]
+     do
+         export LD_LIBRARY_PATH=$1:$LD_LIBRARY_PATH
++		_foamOnOSX && export DYLD_LIBRARY_PATH=$1:$DYLD_LIBRARY_PATH
+         shift
+     done
+ }
+@@ -152,6 +177,13 @@ SunOS)
+     export WM_LDFLAGS='-mabi=64 -G0'
+     ;;
+ 
++Darwin)
++	WM_ARCH=darwin64
++	export WM_COMPILER_LIB_ARCH=64
++	export WM_CC='clang'
++	export WM_CXX='clang++'
++	;;
++
+ *)    # an unsupported operating system
+     /bin/cat <<USAGE 1>&2
+ 
+@@ -179,7 +211,8 @@ export FOAM_APPBIN=$WM_PROJECT_DIR/platforms/$WM_OPTIONS/bin
+ export FOAM_LIBBIN=$WM_PROJECT_DIR/platforms/$WM_OPTIONS/lib
+ 
+ # External (ThirdParty) libraries
+-export FOAM_EXT_LIBBIN=$WM_THIRD_PARTY_DIR/platforms/$WM_OPTIONS/lib
++[ "$(uname -s)" = "Darwin" ] \
++	|| export FOAM_EXT_LIBBIN=$WM_THIRD_PARTY_DIR/platforms/$WM_OPTIONS/lib
+ 
+ # Site-specific directory
+ siteDir="${WM_PROJECT_SITE:-$WM_PROJECT_INST_DIR/site}"
+@@ -224,7 +257,9 @@ unset siteDir
+ 
+ _foamAddPath $FOAM_USER_APPBIN:$FOAM_SITE_APPBIN:$FOAM_APPBIN
+ # Make sure to pick up dummy versions of external libraries last
+-_foamAddLib  $FOAM_USER_LIBBIN:$FOAM_SITE_LIBBIN:$FOAM_LIBBIN:$FOAM_EXT_LIBBIN:$FOAM_LIBBIN/dummy
++[ -n "$FOAM_EXT_LIBBIN" ] \
++	&& _foamAddLib  $FOAM_USER_LIBBIN:$FOAM_SITE_LIBBIN:$FOAM_LIBBIN:$FOAM_EXT_LIBBIN:$FOAM_LIBBIN/dummy \
++	|| _foamAddLib  $FOAM_USER_LIBBIN:$FOAM_SITE_LIBBIN:$FOAM_LIBBIN:$FOAM_LIBBIN/dummy
+ 
+ # Compiler settings
+ # ~~~~~~~~~~~~~~~~~
+@@ -622,10 +657,11 @@ then
+ fi
+ export MPI_BUFFER_SIZE
+ 
++_foamOnOSX && _increaseMaxOpenFiles 4096
+ 
+ # Cleanup environment:
+ # ~~~~~~~~~~~~~~~~~~~~
+-#keep _foamAddPath _foamAddLib _foamAddMan
+-unset foamCompiler minBufferSize
++#keep _foamAddPath _foamAddLib _foamAddMan _foamOnOSX
++unset foamCompiler minBufferSize _increaseMaxOpenFiles
+ 
+ # ----------------------------------------------------------------- end-of-file
+diff --git a/src/Allwmake b/src/Allwmake
+index c0ea041..ae44c1d 100755
+--- a/src/Allwmake
++++ b/src/Allwmake
+@@ -12,19 +12,20 @@ wmakeCheckPwd "$WM_PROJECT_DIR/src" || {
+     exit 1
+ }
+ 
+-[ -n "$FOAM_EXT_LIBBIN" ] || {
++[ "$(uname -s)" = "Darwin" ] || { [ -n "$FOAM_EXT_LIBBIN" ] || {
+     echo "Allwmake error: FOAM_EXT_LIBBIN not set"
+     echo "    Check the OpenFOAM entries in your dot-files and source them."
+     exit 1
+ }
++}
+ 
+ set -x
+ 
+ # Update OpenFOAM version strings if required
+ wmakePrintBuild -check || /bin/rm -f OpenFOAM/Make/*/global.? 2>/dev/null
+ 
+-wmakeLnInclude OpenFOAM
+-wmakeLnInclude OSspecific/${WM_OSTYPE:-POSIX}
++wmakeLnInclude -f OpenFOAM
++wmakeLnInclude -f OSspecific/${WM_OSTYPE:-POSIX}
+ Pstream/Allwmake $targetType $*
+ 
+ OSspecific/${WM_OSTYPE:-POSIX}/Allwmake $*
+diff --git a/src/OSspecific/POSIX/POSIX.C b/src/OSspecific/POSIX/POSIX.C
+index 5374c0b..dd0444f 100644
+--- a/src/OSspecific/POSIX/POSIX.C
++++ b/src/OSspecific/POSIX/POSIX.C
+@@ -53,7 +53,11 @@ Description
+ #include <sys/socket.h>
+ #include <netdb.h>
+ #include <dlfcn.h>
++#if defined(darwin64)
++#include <mach-o/dyld.h>
++#else
+ #include <link.h>
++#endif
+ 
+ #include <netinet/in.h>
+ 
+@@ -1259,7 +1263,24 @@ bool Foam::dlSymFound(void* handle, const std::string& symbol)
+     }
+ }
+ 
++#if defined(darwin64)
++Foam::fileNameList Foam::dlLoaded()
++{
++    DynamicList<fileName> libs;
++    for(uint32_t cnt = 0; cnt < _dyld_image_count(); ++cnt)
++    {
++	libs.append(_dyld_get_image_name(cnt));
++    }
+ 
++    if (POSIX::debug)
++    {
++        std::cout
++            << "dlLoaded()"
++            << " : determined loaded libraries :" << libs.size() << std::endl;
++    }
++    return libs;
++}
++#else
+ static int collectLibsCallback
+ (
+     struct dl_phdr_info *info,
+@@ -1286,6 +1307,7 @@ Foam::fileNameList Foam::dlLoaded()
+     }
+     return libs;
+ }
++#endif
+ 
+ 
+ void Foam::osRandomSeed(const label seed)
+diff --git a/src/OSspecific/POSIX/clockTime/clockTime.H b/src/OSspecific/POSIX/clockTime/clockTime.H
+index 8708ba9..65f046c 100644
+--- a/src/OSspecific/POSIX/clockTime/clockTime.H
++++ b/src/OSspecific/POSIX/clockTime/clockTime.H
+@@ -37,6 +37,9 @@ SourceFiles
+ #define clockTime_H
+ 
+ #include <sys/types.h>
++#if defined(darwin64)
++#include <sys/time.h>
++#endif
+ 
+ // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+ 
+diff --git a/src/OSspecific/POSIX/fileStat.C b/src/OSspecific/POSIX/fileStat.C
+index bf04835..8a3c796 100644
+--- a/src/OSspecific/POSIX/fileStat.C
++++ b/src/OSspecific/POSIX/fileStat.C
+@@ -29,7 +29,9 @@ License
+ 
+ #include <signal.h>
+ #include <unistd.h>
++#if ! defined(darwin64)
+ #include <sys/sysmacros.h>
++#endif
+ 
+ // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
+ 
+diff --git a/src/OSspecific/POSIX/printStack.C b/src/OSspecific/POSIX/printStack.C
+index b3561ef..6f79a5b 100644
+--- a/src/OSspecific/POSIX/printStack.C
++++ b/src/OSspecific/POSIX/printStack.C
+@@ -27,11 +27,17 @@ License
+ #include "OStringStream.H"
+ #include "OSspecific.H"
+ #include "IFstream.H"
++#if defined(darwin64) && defined(__clang__)
++#include "ulong.H"
++#endif
+ 
+ #include <inttypes.h>
+ #include <cxxabi.h>
+ #include <execinfo.h>
+ #include <dlfcn.h>
++#if defined(darwin64)
++#include <regex.h>
++#endif
+ 
+ // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+ 
+@@ -100,6 +106,7 @@ void printSourceFileAndLine
+     uintptr_t address = uintptr_t(addr);
+     word myAddress = addressToWord(address);
+ 
++#if ! defined(darwin64)
+     if (filename.ext() == "so")
+     {
+         // Convert address into offset into dynamic library
+@@ -107,32 +114,79 @@ void printSourceFileAndLine
+         intptr_t relativeAddress = address - offset;
+         myAddress = addressToWord(relativeAddress);
+     }
++#endif
+ 
+     if (filename[0] == '/')
+     {
+         string line = pOpen
+         (
++#if ! defined(darwin64)
+             "addr2line -f --demangle=auto --exe "
+           + filename
+           + " "
+           + myAddress,
+             1
++#else
++            "echo 'image lookup -a "
++          + myAddress
++          + " "
++          + filename
++          + "'"
++          + " | xcrun lldb "
++          + "-O 'target create --no-dependents -a x86_64 "
++          + filename
++          + "' -o '"
++          + "target modules load -f "
++          + filename
++          + " __TEXT "
++          + addressToWord(reinterpret_cast<const uintptr_t>(info->dli_fbase))
++          + "' 2> /dev/null"
++          + " | tail -1"
++#endif
+         );
+ 
+-        if (line == "")
++#if defined(darwin64)
+         {
+-            os  << " addr2line failed";
++            const char *buf = line.c_str();
++            regex_t re;
++            regmatch_t mt[3];
++            int st;
++
++            regcomp(&re, ".\\+at \\(.\\+\\):\\(\\d\\+\\)", REG_ENHANCED);
++            st = regexec(&re, buf, 3, mt, 0);
++
++            if (st == REG_NOMATCH)
++            {
++                line = "??:0";
++            }
++            else
++            {
++                size_t len = mt[1].rm_eo - mt[1].rm_so;
++                string fname(buf + mt[1].rm_so, len);
++                len = mt[2].rm_eo - mt[2].rm_so;
++                string lnum(buf + mt[2].rm_so, len);
++                line = fname + ":" + lnum;
++            }
++            regfree(&re);
+         }
+-        else if (line == "??:0")
++#endif
++
++        if (line == "")
+         {
+-            os  << " in " << filename;
++            os  << " addr2line failed";
+         }
+         else
+         {
++            word location_preposition = " at ";
++            if (line == "??:0")
++            {
++                line = filename;
++                location_preposition = " in ";
++            }
+             string cwdLine(line.replaceAll(cwd() + '/', ""));
+             string homeLine(cwdLine.replaceAll(home(), '~'));
+ 
+-            os  << " at " << homeLine.c_str();
++            os  << location_preposition << homeLine.c_str();
+         }
+     }
+ }
+@@ -156,9 +210,9 @@ fileName absolutePath(const char* fn)
+ }
+ 
+ 
+-word demangleSymbol(const char* sn)
++string demangleSymbol(const char* sn)
+ {
+-    word res;
++    string res;
+     int st;
+     char* cxx_sname = abi::__cxa_demangle
+     (
+@@ -170,12 +224,12 @@ word demangleSymbol(const char* sn)
+ 
+     if (st == 0 && cxx_sname)
+     {
+-        res = word(cxx_sname);
++        res = string(cxx_sname);
+         free(cxx_sname);
+     }
+     else
+     {
+-        res = word(sn);
++        res = string(sn);
+     }
+ 
+     return res;
+diff --git a/src/OSspecific/POSIX/signals/sigFpe.C b/src/OSspecific/POSIX/signals/sigFpe.C
+index 5488f2e..d00b554 100644
+--- a/src/OSspecific/POSIX/signals/sigFpe.C
++++ b/src/OSspecific/POSIX/signals/sigFpe.C
+@@ -39,6 +39,13 @@ License
+     #include <sigfpe.h>
+ #endif
+ 
++#if defined(darwin64)
++#include <xmmintrin.h>
++#include <malloc/malloc.h>
++#include <sys/mman.h>
++#include <unistd.h>
++#endif
++
+ #include <limits>
+ 
+ // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
+@@ -52,6 +59,30 @@ void Foam::sigFpe::fillNan(UList<scalar>& lst)
+ 
+ bool Foam::sigFpe::mallocNanActive_ = false;
+ 
++#if defined(darwin64)
++void *(*Foam::sigFpe::oldMalloc_)(struct _malloc_zone_t *zone, size_t size)
++	= NULL;
++
++void *Foam::sigFpe::nanMalloc_(struct _malloc_zone_t *zone, size_t size)
++{
++    void *result;
++
++    result = oldMalloc_(zone, size);
++
++    if (mallocNanActive_)
++    {
++        UList<scalar> lst
++        (
++            reinterpret_cast<scalar*>(result),
++            size/sizeof(scalar)
++        );
++        fillNan(lst);
++    }
++
++    return result;
++}
++#endif
++
+ 
+ #ifdef LINUX
+ extern "C"
+@@ -86,7 +117,7 @@ void* Foam::sigFpe::mallocNan(size_t size)
+ #endif
+ 
+ 
+-#ifdef LINUX_GNUC
++#if defined(LINUX_GNUC) || defined(darwin64)
+ void Foam::sigFpe::sigHandler(int)
+ {
+     // Reset old handling
+@@ -124,9 +155,13 @@ Foam::sigFpe::~sigFpe()
+ {
+     if (env("FOAM_SIGFPE"))
+     {
+-        #ifdef LINUX_GNUC
++        #if defined(LINUX_GNUC) || defined(darwin64)
+         // Reset signal
++        #if defined(darwin64)
++        if (oldAction_.sa_handler && sigaction(SIGFPE, NULL, NULL) < 0)
++        #else
+         if (oldAction_.sa_handler && sigaction(SIGFPE, &oldAction_, NULL) < 0)
++        #endif
+         {
+             FatalErrorIn
+             (
+@@ -139,10 +174,24 @@ Foam::sigFpe::~sigFpe()
+ 
+     if (env("FOAM_SETNAN"))
+     {
+-        #ifdef LINUX
++        #if defined(LINUX) || defined(darwin64)
+         // Disable initialization to NaN
+         mallocNanActive_ = false;
+         #endif
++
++        #if defined(darwin64)
++        // Restoring old malloc handler
++        if (oldMalloc_ != NULL) {
++            malloc_zone_t *zone = malloc_default_zone();
++
++            if (zone != NULL)
++            {
++                mprotect(zone, getpagesize(), PROT_READ | PROT_WRITE);
++                zone->malloc = oldMalloc_;
++                mprotect(zone, getpagesize(), PROT_READ);
++            }
++        }
++        #endif
+     }
+ }
+ 
+@@ -164,21 +213,31 @@ void Foam::sigFpe::set(const bool verbose)
+     {
+         bool supported = false;
+ 
+-        #ifdef LINUX_GNUC
++        #if defined(LINUX_GNUC) || defined(darwin64)
+         supported = true;
+ 
++        #if defined(LINUX_GNUC)
+         feenableexcept
+         (
+             FE_DIVBYZERO
+           | FE_INVALID
+           | FE_OVERFLOW
+         );
++        #endif  // LINUX_GNUC
++        #if defined(darwin64)
++        _mm_setcsr(_MM_MASK_MASK &~
++                   (_MM_MASK_OVERFLOW|_MM_MASK_INVALID|_MM_MASK_DIV_ZERO));
++        #endif  // darwin64
+ 
+         struct sigaction newAction;
+         newAction.sa_handler = sigHandler;
+         newAction.sa_flags = SA_NODEFER;
+         sigemptyset(&newAction.sa_mask);
++        #if defined(darwin64)
++        if (sigaction(SIGFPE, &newAction, NULL) < 0)
++        #else
+         if (sigaction(SIGFPE, &newAction, &oldAction_) < 0)
++        #endif
+         {
+             FatalErrorIn
+             (
+@@ -230,10 +289,33 @@ void Foam::sigFpe::set(const bool verbose)
+ 
+     if (env("FOAM_SETNAN"))
+     {
+-        #ifdef LINUX
++        #if defined(LINUX)
+         mallocNanActive_ = true;
+         #endif
+ 
++        #if defined(darwin64)
++        malloc_zone_t *zone = malloc_default_zone();
++
++        if (zone != NULL)
++        {
++            oldMalloc_ = zone->malloc;
++            if
++            (
++                mprotect(zone, getpagesize(), PROT_READ | PROT_WRITE) == 0
++            )
++            {
++                zone->malloc = nanMalloc_;
++                if
++                (
++                    mprotect(zone, getpagesize(), PROT_READ) == 0
++                )
++                {
++                    mallocNanActive_ = true;
++                }
++            }
++        }
++        #endif
++
+         if (verbose)
+         {
+             if (mallocNanActive_)
+diff --git a/src/OSspecific/POSIX/signals/sigFpe.H b/src/OSspecific/POSIX/signals/sigFpe.H
+index 603c4b5..d81deec 100644
+--- a/src/OSspecific/POSIX/signals/sigFpe.H
++++ b/src/OSspecific/POSIX/signals/sigFpe.H
+@@ -54,6 +54,10 @@ SourceFiles
+     #define LINUX_GNUC
+ #endif
+ 
++#if defined(__APPLE__)
++#include <malloc/malloc.h>
++#endif
++
+ #include "UList.H"
+ 
+ // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+@@ -72,10 +76,16 @@ class sigFpe
+         //- Saved old signal trapping setting
+         static struct sigaction oldAction_;
+ 
++#if defined(darwin64)
++        static void *(*oldMalloc_)(struct _malloc_zone_t *zone, size_t size);
++
++        static void *nanMalloc_(struct _malloc_zone_t *zone, size_t size);
++#endif
++
+ 
+     // Static data members
+ 
+-        #ifdef LINUX_GNUC
++        #if defined(LINUX_GNUC) || defined(darwin64)
+         //- Handler for caught signals
+         static void sigHandler(int);
+         #endif
+@@ -103,7 +113,7 @@ public:
+         //- Flag to indicate mallocNan is enabled
+         static bool mallocNanActive_;
+ 
+-        #ifdef LINUX
++        #if defined(LINUX)
+         //- Malloc function which initializes to NaN
+         static void* mallocNan(size_t size);
+         #endif
+diff --git a/src/OpenFOAM/Make/files b/src/OpenFOAM/Make/files
+index 6b271cf..b3b47fa 100644
+--- a/src/OpenFOAM/Make/files
++++ b/src/OpenFOAM/Make/files
+@@ -30,6 +30,12 @@ $(ints)/label/label.C
+ $(ints)/uLabel/uLabel.C
+ $(ints)/lists/labelIOList.C
+ $(ints)/lists/labelListIOList.C
++#if defined(__APPLE__) && defined(__clang__)
++$(ints)/long/long.C
++$(ints)/long/longIO.C
++$(ints)/ulong/ulong.C
++$(ints)/ulong/ulongIO.C
++#endif
+ 
+ primitives/Scalar/doubleScalar/doubleScalar.C
+ primitives/Scalar/floatScalar/floatScalar.C
+diff --git a/src/OpenFOAM/db/IOstreams/IOstreams.H b/src/OpenFOAM/db/IOstreams/IOstreams.H
+index 438133d..64b7f9f 100644
+--- a/src/OpenFOAM/db/IOstreams/IOstreams.H
++++ b/src/OpenFOAM/db/IOstreams/IOstreams.H
+@@ -41,6 +41,10 @@ Description
+ #include "char.H"
+ #include "int.H"
+ #include "uint.H"
++#if defined(darwin64) && defined(__clang__)
++#include "ulong.H"
++#include "long.H"
++#endif
+ 
+ // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+ // Global predefined streams for standard input, output
+diff --git a/src/OpenFOAM/primitives/Scalar/doubleFloat.H b/src/OpenFOAM/primitives/Scalar/doubleFloat.H
+index 57373e0..b560586 100644
+--- a/src/OpenFOAM/primitives/Scalar/doubleFloat.H
++++ b/src/OpenFOAM/primitives/Scalar/doubleFloat.H
+@@ -31,6 +31,15 @@ License
+ 
+ #include <cmath>
+ 
++#if defined(darwin64)
++inline float j0f(float x) { return float(j0(double(x)));}
++inline float j1f(float x) { return float(j1(double(x)));}
++inline float y0f(float x) { return float(y0(double(x)));}
++inline float y1f(float x) { return float(y1(double(x)));}
++inline float jnf(const int n, const float s) { return float(jn(n, double(s))); }
++inline float ynf(const int n, const float s) { return float(yn(n, double(s))); }
++#endif
++
+ // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+ 
+ namespace Foam
+@@ -87,6 +96,12 @@ MAXMINPOW(float, float, int)
+ MAXMINPOW(float, int, float)
+ MAXMINPOW(float, float, long)
+ MAXMINPOW(float, long, float)
++#if defined(darwin64) && defined(__clang__) && WM_LABEL_SIZE == 64
++MAXMINPOW(double, int64_t, double)
++MAXMINPOW(float, int64_t, float)
++MAXMINPOW(double, double, int64_t)
++MAXMINPOW(float, float, int64_t)
++#endif
+ 
+ #undef MAXMINPOW
+ 
+diff --git a/src/OpenFOAM/primitives/ints/int/int.H b/src/OpenFOAM/primitives/ints/int/int.H
+index a3ab4b5..84940bd 100644
+--- a/src/OpenFOAM/primitives/ints/int/int.H
++++ b/src/OpenFOAM/primitives/ints/int/int.H
+@@ -37,6 +37,10 @@ SourceFiles
+ 
+ #include "int32.H"
+ #include "int64.H"
++#if defined(darwin64) && defined(__clang__)
++#include "long.H"
++#include "ulong.H"
++#endif
+ 
+ // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+ 
+@@ -63,6 +67,10 @@ MAXMIN(int32_t, int32_t, int32_t)
+ MAXMIN(int64_t, int64_t, int32_t)
+ MAXMIN(int64_t, int32_t, int64_t)
+ MAXMIN(int64_t, int64_t, int64_t)
++#if defined(darwin64) && defined(__clang__)
++MAXMIN(long, long, long)
++MAXMIN(unsigned long, unsigned long, unsigned long)
++#endif
+ 
+ 
+ // * * * * * * * * * * * * * * * IOstream Operators  * * * * * * * * * * * * //
+diff --git a/src/OpenFOAM/primitives/ints/long/long.C b/src/OpenFOAM/primitives/ints/long/long.C
+new file mode 100644
+index 0000000..e7b78c3
+--- /dev/null
++++ b/src/OpenFOAM/primitives/ints/long/long.C
+@@ -0,0 +1,50 @@
++/*---------------------------------------------------------------------------*\
++  =========                 |
++  \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
++   \\    /   O peration     |
++    \\  /    A nd           | Copyright (C) 2014 OpenFOAM Foundation
++     \\/     M anipulation  |
++-------------------------------------------------------------------------------
++License
++    This file is part of OpenFOAM.
++
++    OpenFOAM is free software: you can redistribute it and/or modify it
++    under the terms of the GNU General Public License as published by
++    the Free Software Foundation, either version 3 of the License, or
++    (at your option) any later version.
++
++    OpenFOAM is distributed in the hope that it will be useful, but WITHOUT
++    ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
++    FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
++    for more details.
++
++    You should have received a copy of the GNU General Public License
++    along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
++
++\*---------------------------------------------------------------------------*/
++
++#include "long.H"
++
++// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
++
++const long Foam::pTraits<long>::zero = 0;
++const long Foam::pTraits<long>::one = 1;
++const long Foam::pTraits<long>::min = LONG_MIN;
++const long Foam::pTraits<long>::max = LONG_MAX;
++const long Foam::pTraits<long>::rootMin = pTraits<long>::min;
++const long Foam::pTraits<long>::rootMax = pTraits<long>::max;
++
++const char* Foam::pTraits<long>::componentNames[] = { "x" };
++
++Foam::pTraits<long>::pTraits(const long& p)
++:
++    p_(p)
++{}
++
++Foam::pTraits<long>::pTraits(Istream& is)
++{
++    is >> p_;
++}
++
++
++// ************************************************************************* //
+diff --git a/src/OpenFOAM/primitives/ints/long/long.H b/src/OpenFOAM/primitives/ints/long/long.H
+new file mode 100644
+index 0000000..f8a3146
+--- /dev/null
++++ b/src/OpenFOAM/primitives/ints/long/long.H
+@@ -0,0 +1,138 @@
++/*---------------------------------------------------------------------------*\
++  =========                 |
++  \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
++   \\    /   O peration     |
++    \\  /    A nd           | Copyright (C) 2014-2015 OpenFOAM Foundation
++     \\/     M anipulation  |
++-------------------------------------------------------------------------------
++License
++    This file is part of OpenFOAM.
++
++    OpenFOAM is free software: you can redistribute it and/or modify it
++    under the terms of the GNU General Public License as published by
++    the Free Software Foundation, either version 3 of the License, or
++    (at your option) any later version.
++
++    OpenFOAM is distributed in the hope that it will be useful, but WITHOUT
++    ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
++    FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
++    for more details.
++
++    You should have received a copy of the GNU General Public License
++    along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
++
++Primitive
++    long
++
++Description
++    long integer
++
++SourceFiles
++    long.C
++    longIO.C
++
++\*---------------------------------------------------------------------------*/
++
++#ifndef long_H
++#define long_H
++
++#define __STDC_LIMIT_MACROS
++#include <stdint.h>
++#include <climits>
++#include <cstdlib>
++
++#include "word.H"
++#include "pTraits.H"
++#include "direction.H"
++
++#ifndef LONG_MIN
++#define LONG_MIN 0
++#endif
++
++// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
++
++namespace Foam
++{
++
++class Istream;
++class Ostream;
++
++// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
++
++//- Return a word representation of an long
++word name(const long);
++
++// * * * * * * * * * * * * * * * IOstream Operators  * * * * * * * * * * * * //
++
++long readLong(Istream&);
++bool read(const char*, long&);
++Istream& operator>>(Istream&, long&);
++Ostream& operator<<(Ostream&, const long);
++
++//- Template specialization for pTraits<long>
++template<>
++class pTraits<long>
++{
++    long p_;
++
++public:
++
++    //- Component type
++    typedef long cmptType;
++
++    // Member constants
++
++        enum
++        {
++            dim = 3,         //!< Dimensionality of space
++            rank = 0,        //!< Rank of int64_t is 0
++            nComponents = 1  //!< Number of components in int64_t is 1
++        };
++
++
++    // Static data members
++
++        static const char* const typeName;
++        static const char* componentNames[];
++        static const long zero;
++        static const long one;
++        static const long min;
++        static const long max;
++        static const long rootMax;
++        static const long rootMin;
++
++
++    // Constructors
++
++        //- Construct from primitive
++        explicit pTraits(const long&);
++
++        //- Construct from Istream
++        pTraits(Istream&);
++
++
++    // Member Functions
++
++        //- Access to the long value
++        operator long() const
++        {
++            return p_;
++        }
++
++        //- Access to the long value
++        operator long&()
++        {
++            return p_;
++        }
++};
++
++
++// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
++
++} // End namespace Foam
++
++// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
++
++#endif
++
++// ************************************************************************* //
+diff --git a/src/OpenFOAM/primitives/ints/long/longIO.C b/src/OpenFOAM/primitives/ints/long/longIO.C
+new file mode 100644
+index 0000000..9ee1235
+--- /dev/null
++++ b/src/OpenFOAM/primitives/ints/long/longIO.C
+@@ -0,0 +1,104 @@
++/*---------------------------------------------------------------------------*\
++  =========                 |
++  \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
++   \\    /   O peration     |
++    \\  /    A nd           | Copyright (C) 2014-2015 OpenFOAM Foundation
++     \\/     M anipulation  |
++-------------------------------------------------------------------------------
++License
++    This file is part of OpenFOAM.
++
++    OpenFOAM is free software: you can redistribute it and/or modify it
++    under the terms of the GNU General Public License as published by
++    the Free Software Foundation, either version 3 of the License, or
++    (at your option) any later version.
++
++    OpenFOAM is distributed in the hope that it will be useful, but WITHOUT
++    ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
++    FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
++    for more details.
++
++    You should have received a copy of the GNU General Public License
++    along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
++
++\*---------------------------------------------------------------------------*/
++
++#include "error.H"
++
++#include "long.H"
++#include "IOstreams.H"
++
++#include <inttypes.h>
++#include <sstream>
++#include <cerrno>
++
++// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
++
++Foam::word Foam::name(const long val)
++{
++    std::ostringstream buf;
++    buf << val;
++    return buf.str();
++}
++
++
++// * * * * * * * * * * * * * * * IOstream Operators  * * * * * * * * * * * * //
++
++Foam::Istream& Foam::operator>>(Istream& is, long& i)
++{
++    token t(is);
++
++    if (!t.good())
++    {
++        is.setBad();
++        return is;
++    }
++
++    if (t.isLabel())
++    {
++        i = long(t.labelToken());
++    }
++    else
++    {
++        is.setBad();
++        FatalIOErrorIn("operator>>(Istream&, long&)", is)
++            << "wrong token type - expected long, found " << t.info()
++            << exit(FatalIOError);
++
++        return is;
++    }
++
++    // Check state of Istream
++    is.check("Istream& operator>>(Istream&, long&)");
++
++    return is;
++}
++
++
++long Foam::readLong(Istream& is)
++{
++    long val;
++    is >> val;
++
++    return val;
++}
++
++
++bool Foam::read(const char* buf, long& s)
++{
++    char *endptr = NULL;
++    errno = 0;
++    s = strtol(buf, &endptr, 10);
++    return (*endptr == 0) && (errno == 0);
++}
++
++
++Foam::Ostream& Foam::operator<<(Ostream& os, const long i)
++{
++    os.write(label(i));
++    os.check("Ostream& operator<<(Ostream&, const long)");
++    return os;
++}
++
++
++// ************************************************************************* //
+diff --git a/src/OpenFOAM/primitives/ints/ulong/ulong.C b/src/OpenFOAM/primitives/ints/ulong/ulong.C
+new file mode 100644
+index 0000000..afcedbd
+--- /dev/null
++++ b/src/OpenFOAM/primitives/ints/ulong/ulong.C
+@@ -0,0 +1,52 @@
++/*---------------------------------------------------------------------------*\
++  =========                 |
++  \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
++   \\    /   O peration     |
++    \\  /    A nd           | Copyright (C) 2014 OpenFOAM Foundation
++     \\/     M anipulation  |
++-------------------------------------------------------------------------------
++License
++    This file is part of OpenFOAM.
++
++    OpenFOAM is free software: you can redistribute it and/or modify it
++    under the terms of the GNU General Public License as published by
++    the Free Software Foundation, either version 3 of the License, or
++    (at your option) any later version.
++
++    OpenFOAM is distributed in the hope that it will be useful, but WITHOUT
++    ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
++    FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
++    for more details.
++
++    You should have received a copy of the GNU General Public License
++    along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
++
++\*---------------------------------------------------------------------------*/
++
++#include "ulong.H"
++
++// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
++
++const unsigned long Foam::pTraits<unsigned long>::zero = 0;
++const unsigned long Foam::pTraits<unsigned long>::one = 1;
++const unsigned long Foam::pTraits<unsigned long>::min = ULONG_MIN;
++const unsigned long Foam::pTraits<unsigned long>::max = ULONG_MAX;
++const unsigned long Foam::pTraits<unsigned long>::rootMin =
++    pTraits<unsigned long>::min;
++const unsigned long Foam::pTraits<unsigned long>::rootMax =
++    pTraits<unsigned long>::max;
++
++const char* Foam::pTraits<unsigned long>::componentNames[] = { "x" };
++
++Foam::pTraits<unsigned long>::pTraits(const unsigned long& p)
++:
++    p_(p)
++{}
++
++Foam::pTraits<unsigned long>::pTraits(Istream& is)
++{
++    is >> p_;
++}
++
++
++// ************************************************************************* //
+diff --git a/src/OpenFOAM/primitives/ints/ulong/ulong.H b/src/OpenFOAM/primitives/ints/ulong/ulong.H
+new file mode 100644
+index 0000000..95b21b2
+--- /dev/null
++++ b/src/OpenFOAM/primitives/ints/ulong/ulong.H
+@@ -0,0 +1,138 @@
++/*---------------------------------------------------------------------------*\
++  =========                 |
++  \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
++   \\    /   O peration     |
++    \\  /    A nd           | Copyright (C) 2014-2015 OpenFOAM Foundation
++     \\/     M anipulation  |
++-------------------------------------------------------------------------------
++License
++    This file is part of OpenFOAM.
++
++    OpenFOAM is free software: you can redistribute it and/or modify it
++    under the terms of the GNU General Public License as published by
++    the Free Software Foundation, either version 3 of the License, or
++    (at your option) any later version.
++
++    OpenFOAM is distributed in the hope that it will be useful, but WITHOUT
++    ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
++    FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
++    for more details.
++
++    You should have received a copy of the GNU General Public License
++    along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
++
++Primitive
++    unisgned long
++
++Description
++    unsigned long integer
++
++SourceFiles
++    ulong.C
++    ulongIO.C
++
++\*---------------------------------------------------------------------------*/
++
++#ifndef ulong_H
++#define ulong_H
++
++#define __STDC_LIMIT_MACROS
++#include <stdint.h>
++#include <climits>
++#include <cstdlib>
++
++#include "word.H"
++#include "pTraits.H"
++#include "direction.H"
++
++#ifndef ULONG_MIN
++#define ULONG_MIN 0
++#endif
++
++// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
++
++namespace Foam
++{
++
++class Istream;
++class Ostream;
++
++// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
++
++//- Return a word representation of an unsigned long
++word name(const unsigned long);
++
++// * * * * * * * * * * * * * * * IOstream Operators  * * * * * * * * * * * * //
++
++unsigned long readUlong(Istream&);
++bool read(const char*, unsigned long&);
++Istream& operator>>(Istream&, unsigned long&);
++Ostream& operator<<(Ostream&, const unsigned long);
++
++//- Template specialization for pTraits<unsigned long>
++template<>
++class pTraits<unsigned long>
++{
++    unsigned long p_;
++
++public:
++
++    //- Component type
++    typedef unsigned long cmptType;
++
++    // Member constants
++
++        enum
++        {
++            dim = 3,         //!< Dimensionality of space
++            rank = 0,        //!< Rank of uint64_t is 0
++            nComponents = 1  //!< Number of components in uint64_t is 1
++        };
++
++
++    // Static data members
++
++        static const char* const typeName;
++        static const char* componentNames[];
++        static const unsigned long zero;
++        static const unsigned long one;
++        static const unsigned long min;
++        static const unsigned long max;
++        static const unsigned long rootMax;
++        static const unsigned long rootMin;
++
++
++    // Constructors
++
++        //- Construct from primitive
++        explicit pTraits(const unsigned long&);
++
++        //- Construct from Istream
++        pTraits(Istream&);
++
++
++    // Member Functions
++
++        //- Access to the uint64_t value
++        operator unsigned long() const
++        {
++            return p_;
++        }
++
++        //- Access to the uint value
++        operator unsigned long&()
++        {
++            return p_;
++        }
++};
++
++
++// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
++
++} // End namespace Foam
++
++// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
++
++#endif
++
++// ************************************************************************* //
+diff --git a/src/OpenFOAM/primitives/ints/ulong/ulongIO.C b/src/OpenFOAM/primitives/ints/ulong/ulongIO.C
+new file mode 100644
+index 0000000..aa62c61
+--- /dev/null
++++ b/src/OpenFOAM/primitives/ints/ulong/ulongIO.C
+@@ -0,0 +1,101 @@
++/*---------------------------------------------------------------------------*\
++  =========                 |
++  \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
++   \\    /   O peration     |
++    \\  /    A nd           | Copyright (C) 2014 OpenFOAM Foundation
++     \\/     M anipulation  |
++-------------------------------------------------------------------------------
++License
++    This file is part of OpenFOAM.
++
++    OpenFOAM is free software: you can redistribute it and/or modify it
++    under the terms of the GNU General Public License as published by
++    the Free Software Foundation, either version 3 of the License, or
++    (at your option) any later version.
++
++    OpenFOAM is distributed in the hope that it will be useful, but WITHOUT
++    ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
++    FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
++    for more details.
++
++    You should have received a copy of the GNU General Public License
++    along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
++
++\*---------------------------------------------------------------------------*/
++
++#include "error.H"
++
++#include "ulong.H"
++#include "IOstreams.H"
++
++#include <sstream>
++
++// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
++
++Foam::word Foam::name(const unsigned long val)
++{
++    std::ostringstream buf;
++    buf << val;
++    return buf.str();
++}
++
++
++// * * * * * * * * * * * * * * * IOstream Operators  * * * * * * * * * * * * //
++
++Foam::Istream& Foam::operator>>(Istream& is, unsigned long& i)
++{
++    token t(is);
++
++    if (!t.good())
++    {
++        is.setBad();
++        return is;
++    }
++
++    if (t.isLabel())
++    {
++        i = static_cast<unsigned long>(t.labelToken());
++    }
++    else
++    {
++        is.setBad();
++        FatalIOErrorIn("operator>>(Istream&, unsigned long&)", is)
++            << "wrong token type - expected unsigned long, found " << t.info()
++            << exit(FatalIOError);
++
++        return is;
++    }
++
++    // Check state of Istream
++    is.check("Istream& operator>>(Istream&, unsigned long&)");
++
++    return is;
++}
++
++
++unsigned long Foam::readUlong(Istream& is)
++{
++    unsigned long val;
++    is >> val;
++
++    return val;
++}
++
++
++bool Foam::read(const char* buf, unsigned long& s)
++{
++    char *endptr = NULL;
++    s = strtoul(buf, &endptr, 10);
++    return (*endptr == 0);
++}
++
++
++Foam::Ostream& Foam::operator<<(Ostream& os, const unsigned long i)
++{
++    os.write(label(i));
++    os.check("Ostream& operator<<(Ostream&, const unsigned long)");
++    return os;
++}
++
++
++// ************************************************************************* //
+diff --git a/src/fvAgglomerationMethods/Allwmake b/src/fvAgglomerationMethods/Allwmake
+index 16340f0..5381cfe 100755
+--- a/src/fvAgglomerationMethods/Allwmake
++++ b/src/fvAgglomerationMethods/Allwmake
+@@ -8,9 +8,14 @@ set -x
+ 
+ export ParMGridGen=$WM_THIRD_PARTY_DIR/ParMGridGen-1.0
+ 
+-if [ -e "$FOAM_LIBBIN/libMGridGen.so" ]
++if [ "$(uname -s)" = "Darwin" ]
+ then
+-    wmake $targetType MGridGenGamgAgglomeration
++	[ -e "/usr/local/opt/parmgridgen/lib/libmgrid.a" \
++		-a "$WM_LABEL_SIZE" -ne "64" ] \
++		&& wmake $targetType MGridGenGamgAgglomeration
++else
++	[ -e "$FOAM_LIBBIN/libMGridGen.so" ] \
++		&& wmake $targetType MGridGenGamgAgglomeration
+ fi
+ 
+ wmake $targetType pairPatchAgglomeration
+diff --git a/src/fvAgglomerationMethods/MGridGenGamgAgglomeration/Make/options b/src/fvAgglomerationMethods/MGridGenGamgAgglomeration/Make/options
+index a58b65f..a135baf 100644
+--- a/src/fvAgglomerationMethods/MGridGenGamgAgglomeration/Make/options
++++ b/src/fvAgglomerationMethods/MGridGenGamgAgglomeration/Make/options
+@@ -7,9 +7,17 @@ TYPE_REAL=-DTYPE_REAL
+ 
+ EXE_INC = \
+     -I$(LIB_SRC)/finiteVolume/lnInclude \
+-    -I$(ParMGridGen)/MGridGen/Lib/lnInclude \
+-    -I$(ParMGridGen)/MGridGen/IMlib/lnInclude \
+     $(TYPE_REAL)
+ 
+-LIB_LIBS = \
+-    -L$(FOAM_EXT_LIBBIN) -lMGridGen
++LIB_LIBS =
++
++ifeq ($(shell uname -s),Darwin)
++    LIB_LIBS = -L/usr/local/opt/parmgridgen/lib -lmgrid
++    EXE_INC += -I/usr/local/opt/parmgridgen/include
++else
++	LIB_LIBS = -L$(FOAM_EXT_LIBBIN) -lMGridGen
++    EXE_INC += -I$(ParMGridGen)/MGridGen/Lib/lnInclude
++    EXE_INC += -I$(ParMGridGen)/MGridGen/IMlib/lnInclude
++endif
++
++/* vim:set ft=make sw=4 ts=4 et: */
+diff --git a/src/parallel/decompose/Allwmake b/src/parallel/decompose/Allwmake
+index 603ee52..d75d1cf 100755
+--- a/src/parallel/decompose/Allwmake
++++ b/src/parallel/decompose/Allwmake
+@@ -44,7 +44,7 @@ set -x
+ 
+ wmakeLnInclude decompositionMethods
+ 
+-if [ -n "$SCOTCH_ARCH_PATH" ]
++if [ -n "$SCOTCH_ARCH_PATH" -a "$WM_LABEL_SIZE" -ne "64" ]
+ then
+     wmake $targetType scotchDecomp
+ 
+diff --git a/src/parallel/decompose/metisDecomp/Allwmake b/src/parallel/decompose/metisDecomp/Allwmake
+index 549e422..dda4fa0 100755
+--- a/src/parallel/decompose/metisDecomp/Allwmake
++++ b/src/parallel/decompose/metisDecomp/Allwmake
+@@ -1,6 +1,10 @@
+ #!/bin/sh
+ cd ${0%/*} || exit 1    # Run from this directory
+ 
++# Skip METIS for 64 bit label
++[ "$WM_LABEL_SIZE" -eq "64" ] && exit 0
++
++SO_EXT=dylib
+ # Parse arguments for library compilation
+ targetType=libso
+ . $WM_PROJECT_DIR/wmake/scripts/AllwmakeParseArguments
+@@ -10,7 +14,7 @@ if settings=`$WM_PROJECT_DIR/bin/foamEtcFile config/metis.sh`
+ then
+     . $settings
+     echo "using METIS_ARCH_PATH=$METIS_ARCH_PATH"
+-    if [ -r $METIS_ARCH_PATH/lib/libmetis.so ]
++    if [ -r $METIS_ARCH_PATH/lib/libmetis.$SO_EXT ]
+     then
+         wmake $targetType
+     fi
+@@ -20,5 +24,6 @@ else
+     echo
+ fi
+ 
++unset SO_EXT
+ 
+ # ----------------------------------------------------------------- end-of-file
+diff --git a/src/parallel/decompose/metisDecomp/Make/options b/src/parallel/decompose/metisDecomp/Make/options
+index 8acd678..d4dfa96 100644
+--- a/src/parallel/decompose/metisDecomp/Make/options
++++ b/src/parallel/decompose/metisDecomp/Make/options
+@@ -1,5 +1,4 @@
+ EXE_INC = \
+-    /* -DFULLDEBUG -g -O0 */ \
+     -I$(METIS_ARCH_PATH)/include \
+     -I../decompositionMethods/lnInclude
+ 
+diff --git a/src/parallel/decompose/ptscotchDecomp/Make/options b/src/parallel/decompose/ptscotchDecomp/Make/options
+index 25ca6e9..2cace47 100644
+--- a/src/parallel/decompose/ptscotchDecomp/Make/options
++++ b/src/parallel/decompose/ptscotchDecomp/Make/options
+@@ -3,10 +3,12 @@ sinclude $(RULES)/mplib$(WM_MPLIB)
+ 
+ EXE_INC = \
+     $(PFLAGS) $(PINC) \
+-    -I$(SCOTCH_ROOT)/include \
+-    -I$(SCOTCH_ARCH_PATH)/include/$(FOAM_MPI) \
+-    -I/usr/include/scotch \
++    -I$(SCOTCH_ARCH_PATH)/include \
+     -I../decompositionMethods/lnInclude
+ 
+ LIB_LIBS = \
+-    -L$(SCOTCH_ROOT)/lib -L$(FOAM_EXT_LIBBIN)/$(FOAM_MPI) -lptscotch -lptscotcherrexit -lscotch ${LINK_FLAGS} -lrt
++    -L$(SCOTCH_ARCH_PATH)/lib -lptscotch -lptscotcherrexit -lscotch
++
++ifneq ($(shell uname -s),Darwin)
++LIB_LIBS += -lrt
++endif
+diff --git a/src/parallel/decompose/scotchDecomp/Make/options b/src/parallel/decompose/scotchDecomp/Make/options
+index 3bb11fb..23701f5 100644
+--- a/src/parallel/decompose/scotchDecomp/Make/options
++++ b/src/parallel/decompose/scotchDecomp/Make/options
+@@ -7,10 +7,12 @@ sinclude $(RULES)/mplib$(WM_MPLIB)
+ 
+ EXE_INC = \
+     $(PFLAGS) $(PINC) \
+-    -I$(SCOTCH_ROOT)/include \
+     -I$(SCOTCH_ARCH_PATH)/include \
+-    -I/usr/include/scotch \
+     -I../decompositionMethods/lnInclude
+ 
+ LIB_LIBS = \
+-    -L$(SCOTCH_ROOT)/lib -L$(FOAM_EXT_LIBBIN) -lscotch -lscotcherrexit -lrt
++    -L$(SCOTCH_ARCH_PATH)/lib -lscotch -lscotcherrexit
++
++ifneq ($(shell uname -s),Darwin)
++LIB_LIBS += -lrt
++endif
+diff --git a/src/renumber/SloanRenumber/Make/options b/src/renumber/SloanRenumber/Make/options
+index 492a3ae..29597e3 100644
+--- a/src/renumber/SloanRenumber/Make/options
++++ b/src/renumber/SloanRenumber/Make/options
+@@ -1,12 +1,21 @@
+-EXE_INC = \
+-    /* -DFULLDEBUG -g -O0 */ \
+-    -I$(BOOST_ARCH_PATH)/include \
+-    -I$(LIB_SRC)/meshTools/lnInclude \
+-    -I$(LIB_SRC)/parallel/decompose/decompositionMethods/lnInclude \
+-    -I$(LIB_SRC)/renumber/renumberMethods/lnInclude
++EXE_INC = -I$(BOOST_ARCH_PATH)/include \
++	  -I$(LIB_SRC)/meshTools/lnInclude \
++	  -I$(LIB_SRC)/parallel/decompose/decompositionMethods/lnInclude \
++	  -I$(LIB_SRC)/renumber/renumberMethods/lnInclude
+ 
+-LIB_LIBS = \
+-    -L$(BOOST_ARCH_PATH)/lib -lboost_thread \
+-    -lmeshTools \
+-    -ldecompositionMethods \
+-    -lrenumberMethods
++LIB_LIBS = -L$(BOOST_ARCH_PATH)/lib \
++	   -lmeshTools \
++	   -ldecompositionMethods \
++	   -lrenumberMethods
++
++ifeq ($(shell uname -s),Darwin)
++SO = dylib
++else
++SO = so
++endif
++
++ifneq ("$(wildcard $(BOOST_ARCH_PATH)/lib/libboost_thread-mt.$(SO))","")
++LIB_LIBS += -lboost_thread-mt
++else
++LIB_LIBS += -lboost_thread
++endif
+diff --git a/wmake/Makefile b/wmake/Makefile
+index 38f3f1a..3eaf65f 100644
+--- a/wmake/Makefile
++++ b/wmake/Makefile
+@@ -80,7 +80,11 @@ LIB_LIBS           =
+ LIB             = libNULL
+ 
+ # Shared library extension
++ifeq ($(shell uname -s),Darwin)
++SO              = dylib
++else
+ SO              = so
++endif
+ 
+ # Project executable
+ EXE             = $(WM_PROJECT).out
+diff --git a/wmake/MakefileFiles b/wmake/MakefileFiles
+index 9f0ed1c..5442d7d 100644
+--- a/wmake/MakefileFiles
++++ b/wmake/MakefileFiles
+@@ -68,16 +68,17 @@ $(SFILES): $(MAKE_DIR)/files
+ 	# Add a newline to files to ensure the last line is followed by a newline
+ 	@echo "" >> $(SFILES)
+ 	# Remove commented lines, blank lines, and trailing blanks from files
+-	@sed -i \
++	@sed -i~ \
+ 	    -e '/^#/ d'         \
+ 	    -e '/^[ \t]*$$/ d'   \
+ 	    -e 's,[ \t]*$$,,'    \
+ 	     $(SFILES)
+ 	# Add backslashes
+-	@sed -i \
++	@sed -i~ \
+ 	    -e 's,$$, \\,'    \
+ 	    -e '$$s,\\,,'    \
+ 	    $(SFILES)
++	@rm $(SFILES)~
+ 
+ $(VARS): $(SFILES)
+ 
+diff --git a/wmake/rules/darwin64Clang/c b/wmake/rules/darwin64Clang/c
+new file mode 100644
+index 0000000..e537810
+--- /dev/null
++++ b/wmake/rules/darwin64Clang/c
+@@ -0,0 +1,22 @@
++SUFFIXES += .c
++
++cWARN        = -Wall
++
++cc          = xcrun clang -m64
++
++include $(RULES)/c$(WM_COMPILE_OPTION)
++
++cFLAGS      = $(GFLAGS) $(cWARN) $(cOPT) $(cDBUG) $(LIB_HEADER_DIRS) -fPIC
++
++ctoo        = $(WM_SCHEDULER) $(cc) $(cFLAGS) -c $< -o $@
++
++LINK_LIBS   = $(cDBUG)
++
++LINKLIBSO   = $(cc) -Xlinker -dylib \
++                    -Xlinker -flat_namespace \
++		    -Xlinker -undefined \
++		    -Xlinker suppress
++
++LINKEXE     = $(cc) -Xlinker -execute \
++                    -Xlinker -undefined \
++		    -Xlinker dynamic_lookup
+diff --git a/wmake/rules/darwin64Clang/c++ b/wmake/rules/darwin64Clang/c++
+new file mode 100644
+index 0000000..fadbb97
+--- /dev/null
++++ b/wmake/rules/darwin64Clang/c++
+@@ -0,0 +1,32 @@
++SUFFIXES += .C
++SUFFIXES += .cxx
++SUFFIXES += .cc
++SUFFIXES += .cpp
++
++c++WARN     = -Wall -Wextra -Wno-unused-parameter -Wno-overloaded-virtual \
++              -Wno-unused-variable -Wno-unused-local-typedef -Wno-invalid-offsetof \
++	      -Wno-c++11-extensions
++
++CC          = xcrun clang++ -arch x86_64
++
++include $(RULES)/c++$(WM_COMPILE_OPTION)
++
++ptFLAGS     = -DNoRepository -ftemplate-depth-100
++
++c++FLAGS    = $(GFLAGS) $(c++WARN) $(c++OPT) $(c++DBUG) $(ptFLAGS) $(LIB_HEADER_DIRS) -fPIC
++
++Ctoo        = $(WM_SCHEDULER) $(CC) $(c++FLAGS) -c $< -o $@
++cxxtoo      = $(Ctoo)
++cctoo       = $(Ctoo)
++cpptoo      = $(Ctoo)
++
++LINK_LIBS   = $(c++DBUG)
++
++LINKLIBSO   = $(CC) $(c++FLAGS) -Xlinker -dylib \
++				-Xlinker -flat_namespace \
++				-Xlinker -undefined \
++				-Xlinker suppress
++
++LINKEXE     = $(CC) $(c++FLAGS) -Xlinker -execute \
++				-Xlinker -undefined \
++				-Xlinker dynamic_lookup
+diff --git a/wmake/rules/darwin64Clang/c++Debug b/wmake/rules/darwin64Clang/c++Debug
+new file mode 100644
+index 0000000..1c63335
+--- /dev/null
++++ b/wmake/rules/darwin64Clang/c++Debug
+@@ -0,0 +1,2 @@
++c++DBUG    = -g -DFULLDEBUG
++c++OPT      = -O0
+diff --git a/wmake/rules/darwin64Clang/c++Opt b/wmake/rules/darwin64Clang/c++Opt
+new file mode 100644
+index 0000000..3363be8
+--- /dev/null
++++ b/wmake/rules/darwin64Clang/c++Opt
+@@ -0,0 +1,3 @@
++#c++DBUG     = -O0 -DFULLDEBUG -g
++c++DBUG     =
++c++OPT      = -O3
+diff --git a/wmake/rules/darwin64Clang/c++Prof b/wmake/rules/darwin64Clang/c++Prof
+new file mode 100644
+index 0000000..3bda4da
+--- /dev/null
++++ b/wmake/rules/darwin64Clang/c++Prof
+@@ -0,0 +1,2 @@
++c++DBUG    = -pg
++c++OPT     = -O2
+diff --git a/wmake/rules/darwin64Clang/cDebug b/wmake/rules/darwin64Clang/cDebug
+new file mode 100644
+index 0000000..7b7adf1
+--- /dev/null
++++ b/wmake/rules/darwin64Clang/cDebug
+@@ -0,0 +1,2 @@
++cDBUG       = -g -DFULLDEBUG
++cOPT        = -O0
+diff --git a/wmake/rules/darwin64Clang/cOpt b/wmake/rules/darwin64Clang/cOpt
+new file mode 100644
+index 0000000..1731870
+--- /dev/null
++++ b/wmake/rules/darwin64Clang/cOpt
+@@ -0,0 +1,2 @@
++cDBUG       =
++cOPT        = -O3
+diff --git a/wmake/rules/darwin64Clang/cProf b/wmake/rules/darwin64Clang/cProf
+new file mode 100644
+index 0000000..ca3ac9b
+--- /dev/null
++++ b/wmake/rules/darwin64Clang/cProf
+@@ -0,0 +1,2 @@
++cDBUG       = -pg
++cOPT        = -O2
+diff --git a/wmake/rules/darwin64Clang/general b/wmake/rules/darwin64Clang/general
+new file mode 100644
+index 0000000..243cb7d
+--- /dev/null
++++ b/wmake/rules/darwin64Clang/general
+@@ -0,0 +1,8 @@
++CPP        = cpp -traditional-cpp $(GFLAGS)
++
++PROJECT_LIBS = -l$(WM_PROJECT) -ldl
++
++include $(GENERAL_RULES)/standard
++
++include $(RULES)/c
++include $(RULES)/c++

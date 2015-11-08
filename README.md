@@ -3,6 +3,51 @@
 Patches for OpenFOAM compilation on OS X. Detailed installation instructions
 can be found in [wiki](https://github.com/mrklein/openfoam-os-x/wiki).
 
+## November 8, 2015
+
+1. Initial commit of 3.0.0 and 3.0.x patches (at this point they are identical).
+   For 32 bit labels nothing changed in installation procedure. For 64 bit labels
+   currently Scotch and METIS decomposition methods along with
+   MGridGenGamgAgglomeration agglomeration method are disabled. They could be
+   enabled in the future patches after testing 64 bit indexes in Scotch and
+   METIS.
+
+2. Update for 2.2.x, 2.3.1, 2.3.x, 2.4.0, and 2.4.x patches that includes fixes
+   in printStack function.
+
+Build was tested on
+
+```
+alexey at daphne in openfoam-os-x$ sw_vers 
+ProductName:	Mac OS X
+ProductVersion:	10.11.1
+BuildVersion:	15B42
+```
+
+with
+
+```
+alexey at daphne in openfoam-os-x$ clang++ --version
+Apple LLVM version 7.0.0 (clang-700.1.76)
+Target: x86_64-apple-darwin15.0.0
+Thread model: posix
+```
+
+and these third party libraries
+
+```
+alexey at daphne in openfoam-os-x$ brew list --versions
+boost 1.59.0
+cgal 4.6.3
+gmp 6.0.0a
+metis 5.1.0
+mpfr 3.1.3
+open-mpi 1.10.0
+parmetis 4.0.3_2
+parmgridgen 0.0.1
+scotch 6.0.4_1
+```
+
 ## September 20, 2015
 
 Being upset by sigSegv in renumberMesh (guess segmentation violations happen in
