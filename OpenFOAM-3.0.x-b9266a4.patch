@@ -11,9 +11,9 @@
  bin/paraFoam                                       |   5 +
  etc/bashrc                                         |  37 +++++-
  etc/config/CGAL.sh                                 |  19 ++-
- etc/config/metis.sh                                |  10 +-
+ etc/config/metis.sh                                |  16 ++-
  etc/config/paraview-osx.sh                         |  16 +++
- etc/config/scotch.sh                               |  10 +-
+ etc/config/scotch.sh                               |  16 ++-
  etc/config/settings.sh                             |  44 ++++++-
  src/Allwmake                                       |   7 +-
  src/OSspecific/POSIX/POSIX.C                       |  22 ++++
@@ -34,9 +34,9 @@
  src/OpenFOAM/primitives/ints/ulong/ulongIO.C       | 101 +++++++++++++++
  src/fvAgglomerationMethods/Allwmake                |   9 +-
  .../MGridGenGamgAgglomeration/Make/options         |  16 ++-
- src/parallel/decompose/Allwmake                    |   2 +-
- src/parallel/decompose/metisDecomp/Allwmake        |   7 +-
+ src/parallel/decompose/metisDecomp/Allwmake        |   6 +-
  src/parallel/decompose/metisDecomp/Make/options    |   1 -
+ src/parallel/decompose/metisDecomp/metisDecomp.C   |  10 +-
  src/parallel/decompose/ptscotchDecomp/Make/options |  10 +-
  src/parallel/decompose/scotchDecomp/Make/options   |   8 +-
  src/renumber/SloanRenumber/Make/options            |  31 +++--
@@ -51,7 +51,7 @@
  wmake/rules/darwin64Clang/cOpt                     |   2 +
  wmake/rules/darwin64Clang/cProf                    |   2 +
  wmake/rules/darwin64Clang/general                  |   8 ++
- 53 files changed, 1109 insertions(+), 74 deletions(-)
+ 53 files changed, 1126 insertions(+), 76 deletions(-)
 
 diff --git a/.gitignore b/.gitignore
 index 28fb901..fe1ede4 100644
@@ -388,10 +388,10 @@ index 7a59fc6..09c3b98 100644
  if [ "$FOAM_VERBOSE" -a "$PS1" ]
  then
 diff --git a/etc/config/metis.sh b/etc/config/metis.sh
-index af7efde..38d534f 100644
+index af7efde..b04869f 100644
 --- a/etc/config/metis.sh
 +++ b/etc/config/metis.sh
-@@ -33,7 +33,13 @@
+@@ -33,7 +33,19 @@
  #     during the wmake process
  #------------------------------------------------------------------------------
  
@@ -399,8 +399,14 @@ index af7efde..38d534f 100644
 -export METIS_ARCH_PATH=$WM_THIRD_PARTY_DIR/platforms/$WM_ARCH$WM_COMPILER/$METIS_VERSION
 +if [ "$(uname -s)" = "Darwin" ]
 +then
-+	export METIS_VERSION=metis-$(basename $(readlink /usr/local/opt/metis))
-+	export METIS_ARCH_PATH=/usr/local/opt/metis
++	if [ "$WM_LABEL_SIZE" -eq 32 ]
++	then
++		export METIS_VERSION=metis-$(basename $(readlink /usr/local/opt/metis))
++		export METIS_ARCH_PATH=/usr/local/opt/metis
++	else
++		export METIS_VERSION=metis-$(basename $(readlink /usr/local/opt/metis64))
++		export METIS_ARCH_PATH=/usr/local/opt/metis64
++	fi
 +else
 +	export METIS_VERSION=metis-5.1.0
 +	export METIS_ARCH_PATH=$WM_THIRD_PARTY_DIR/platforms/$WM_ARCH$WM_COMPILER/$METIS_VERSION
@@ -430,10 +436,10 @@ index 0000000..709e497
 +	echo
 +fi
 diff --git a/etc/config/scotch.sh b/etc/config/scotch.sh
-index e40e1c7..c5a5c28 100644
+index e40e1c7..69a7794 100644
 --- a/etc/config/scotch.sh
 +++ b/etc/config/scotch.sh
-@@ -33,7 +33,13 @@
+@@ -33,7 +33,19 @@
  #     during the wmake process
  #------------------------------------------------------------------------------
  
@@ -441,8 +447,14 @@ index e40e1c7..c5a5c28 100644
 -export SCOTCH_ARCH_PATH=$WM_THIRD_PARTY_DIR/platforms/$WM_ARCH$WM_COMPILER$WM_LABEL_OPTION/$SCOTCH_VERSION
 +if [ $(uname -s) = "Darwin" ]
 +then
-+	export SCOTCH_VERSION="scotch-$(basename $(readlink /usr/local/opt/scotch))"
-+	export SCOTCH_ARCH_PATH=/usr/local/opt/scotch
++	if [ "$WM_LABEL_SIZE" -eq "32" ]
++	then
++		export SCOTCH_VERSION="scotch-$(basename $(readlink /usr/local/opt/scotch))"
++		export SCOTCH_ARCH_PATH=/usr/local/opt/scotch
++	else
++		export SCOTCH_VERSION="scotch-$(basename $(readlink /usr/local/opt/scotch64))"
++		export SCOTCH_ARCH_PATH=/usr/local/opt/scotch64
++	fi
 +else
 +	export SCOTCH_VERSION=scotch-6.0.3
 +	export SCOTCH_ARCH_PATH=$WM_THIRD_PARTY_DIR/platforms/$WM_ARCH$WM_COMPILER$WM_LABEL_OPTION/$SCOTCH_VERSION
@@ -1754,44 +1766,30 @@ index a58b65f..a135baf 100644
 +endif
 +
 +/* vim:set ft=make sw=4 ts=4 et: */
-diff --git a/src/parallel/decompose/Allwmake b/src/parallel/decompose/Allwmake
-index 603ee52..d75d1cf 100755
---- a/src/parallel/decompose/Allwmake
-+++ b/src/parallel/decompose/Allwmake
-@@ -44,7 +44,7 @@ set -x
- 
- wmakeLnInclude decompositionMethods
- 
--if [ -n "$SCOTCH_ARCH_PATH" ]
-+if [ -n "$SCOTCH_ARCH_PATH" -a "$WM_LABEL_SIZE" -ne "64" ]
- then
-     wmake $targetType scotchDecomp
- 
 diff --git a/src/parallel/decompose/metisDecomp/Allwmake b/src/parallel/decompose/metisDecomp/Allwmake
-index 549e422..dda4fa0 100755
+index 549e422..c31d07d 100755
 --- a/src/parallel/decompose/metisDecomp/Allwmake
 +++ b/src/parallel/decompose/metisDecomp/Allwmake
-@@ -1,6 +1,10 @@
+@@ -1,6 +1,9 @@
  #!/bin/sh
  cd ${0%/*} || exit 1    # Run from this directory
  
-+# Skip METIS for 64 bit label
-+[ "$WM_LABEL_SIZE" -eq "64" ] && exit 0
++SO_EXT=so
++[ "$(uname -s)" = "Darwin" ] && SO_EXT=dylib
 +
-+SO_EXT=dylib
  # Parse arguments for library compilation
  targetType=libso
  . $WM_PROJECT_DIR/wmake/scripts/AllwmakeParseArguments
-@@ -10,7 +14,7 @@ if settings=`$WM_PROJECT_DIR/bin/foamEtcFile config/metis.sh`
+@@ -10,7 +13,7 @@ if settings=`$WM_PROJECT_DIR/bin/foamEtcFile config/metis.sh`
  then
      . $settings
      echo "using METIS_ARCH_PATH=$METIS_ARCH_PATH"
 -    if [ -r $METIS_ARCH_PATH/lib/libmetis.so ]
-+    if [ -r $METIS_ARCH_PATH/lib/libmetis.$SO_EXT ]
++    if [ -r "$METIS_ARCH_PATH/lib/libmetis.$SO_EXT" ]
      then
          wmake $targetType
      fi
-@@ -20,5 +24,6 @@ else
+@@ -20,5 +23,6 @@ else
      echo
  fi
  
@@ -1808,6 +1806,41 @@ index 8acd678..d4dfa96 100644
      -I$(METIS_ARCH_PATH)/include \
      -I../decompositionMethods/lnInclude
  
+diff --git a/src/parallel/decompose/metisDecomp/metisDecomp.C b/src/parallel/decompose/metisDecomp/metisDecomp.C
+index f14ef21..ee57674 100644
+--- a/src/parallel/decompose/metisDecomp/metisDecomp.C
++++ b/src/parallel/decompose/metisDecomp/metisDecomp.C
+@@ -73,7 +73,11 @@ Foam::label Foam::metisDecomp::decompose
+ 
+     // processor weights initialised with no size, only used if specified in
+     // a file
++#if REALTYPEWIDTH == 32
+     Field<floatScalar> processorWeights;
++#else
++    Field<doubleScalar> processorWeights;
++#endif
+ 
+     // cell weights (so on the vertices of the dual)
+     List<label> cellWeights;
+@@ -193,15 +197,15 @@ Foam::label Foam::metisDecomp::decompose
+         //}
+     }
+ 
+-    int ncon = 1;
++    label ncon = 1;
+ 
+-    int nProcs = nProcessors_;
++    label nProcs = nProcessors_;
+ 
+     // output: cell -> processor addressing
+     finalDecomp.setSize(numCells);
+ 
+     // output: number of cut edges
+-    int edgeCut = 0;
++    label edgeCut = 0;
+ 
+     if (method == "recursive")
+     {
 diff --git a/src/parallel/decompose/ptscotchDecomp/Make/options b/src/parallel/decompose/ptscotchDecomp/Make/options
 index 25ca6e9..2cace47 100644
 --- a/src/parallel/decompose/ptscotchDecomp/Make/options
