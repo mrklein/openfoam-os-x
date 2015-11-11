@@ -7,7 +7,7 @@ can be found in [wiki](https://github.com/mrklein/openfoam-os-x/wiki).
 
 Updated 3.0.0 and 3.0.x patches to include build logic for Scotch and METIS
 with 64-bit index types. Libraries can be installed using files (`scotch64.rb`
-and `metis64.rb`) from `formulae` folder. See [OpenFOAM 3.0.(0|x) & WM_LABEL_SIZE=64](https://github.com/mrklein/openfoam-os-x/wiki/OpenFOAM-3.0.(0%7Cx)-&-WM_LABEL_SIZE=64)
+and `metis64.rb`) from `formulae` folder. See [OpenFOAM 3.0.(0|x) & WM_LABEL_SIZE=64](https://github.com/mrklein/openfoam-os-x/wiki/OpenFOAM-3.0.(0%7Cx)-&-WM_LABEL_SIZE=64).
 
 ## November 8, 2015
 
