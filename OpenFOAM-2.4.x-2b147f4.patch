@@ -24,7 +24,7 @@
  etc/config/metis.sh                                |   9 +-
  etc/config/paraview-osx.sh                         |  16 +++
  etc/config/scotch.sh                               |   9 +-
- etc/config/settings.sh                             |  37 ++++++-
+ etc/config/settings.sh                             |  35 ++++++-
  src/Allwmake                                       |  12 ++-
  src/OSspecific/POSIX/POSIX.C                       |  23 +++++
  src/OSspecific/POSIX/clockTime/clockTime.H         |   3 +
@@ -98,7 +98,7 @@
  wmake/rules/darwin64Clang/cOpt                     |   2 +
  wmake/rules/darwin64Clang/cProf                    |   2 +
  wmake/rules/darwin64Clang/general                  |   8 ++
- 100 files changed, 810 insertions(+), 147 deletions(-)
+ 100 files changed, 808 insertions(+), 147 deletions(-)
 
 diff --git a/.gitignore b/.gitignore
 index ec46862..ead2d97 100644
@@ -640,15 +640,15 @@ index 87d9384..b904a48 100644
  
  # -----------------------------------------------------------------------------
 diff --git a/etc/config/settings.sh b/etc/config/settings.sh
-index 8baec49..ee12faf 100644
+index 8baec49..6a80ebd 100644
 --- a/etc/config/settings.sh
 +++ b/etc/config/settings.sh
 @@ -46,6 +46,8 @@ _foamAddLib()
      while [ $# -ge 1 ]
      do
          export LD_LIBRARY_PATH=$1:$LD_LIBRARY_PATH
-+		[ $(uname -s) = "Darwin" ] \
-+			&& export DYLD_LIBRARY_PATH=$1:$DYLD_LIBRARY_PATH
++        [ $(uname -s) = "Darwin" ] \
++            && export DYLD_LIBRARY_PATH=$1:$DYLD_LIBRARY_PATH
          shift
      done
  }
@@ -657,70 +657,68 @@ index 8baec49..ee12faf 100644
      ;;
  
 +Darwin)
-+	WM_ARCH=darwin64
++    WM_ARCH=darwin64
 +    export WM_CC='clang'
 +    export WM_CXX='clang++'
-+	;;
++    ;;
 +
  *)    # an unsupported operating system
      /bin/cat <<USAGE 1>&2
  
-@@ -177,7 +185,9 @@ export FOAM_APPBIN=$WM_PROJECT_DIR/platforms/$WM_OPTIONS/bin
+@@ -177,7 +185,8 @@ export FOAM_APPBIN=$WM_PROJECT_DIR/platforms/$WM_OPTIONS/bin
  export FOAM_LIBBIN=$WM_PROJECT_DIR/platforms/$WM_OPTIONS/lib
  
  # external (ThirdParty) libraries
 -export FOAM_EXT_LIBBIN=$WM_THIRD_PARTY_DIR/platforms/$WM_OPTIONS/lib
-+if [ "$(uname -s)" != "Darwin" ]; then
-+	export FOAM_EXT_LIBBIN=$WM_THIRD_PARTY_DIR/platforms/$WM_OPTIONS/lib
-+fi
++[ "$(uname -s)" = "Darwin" ] \
++    || export FOAM_EXT_LIBBIN=$WM_THIRD_PARTY_DIR/platforms/$WM_OPTIONS/lib
  
  # site-specific directory
  siteDir="${WM_PROJECT_SITE:-$WM_PROJECT_INST_DIR/site}"
-@@ -222,7 +232,11 @@ unset siteDir
+@@ -222,7 +231,11 @@ unset siteDir
  
  _foamAddPath $FOAM_USER_APPBIN:$FOAM_SITE_APPBIN:$FOAM_APPBIN
  # Make sure to pick up dummy versions of external libraries last
 -_foamAddLib  $FOAM_USER_LIBBIN:$FOAM_SITE_LIBBIN:$FOAM_LIBBIN:$FOAM_EXT_LIBBIN:$FOAM_LIBBIN/dummy
 +if [ "$(uname -s)" = "Darwin" ]; then
-+	_foamAddLib  $FOAM_USER_LIBBIN:$FOAM_SITE_LIBBIN:$FOAM_LIBBIN:$FOAM_LIBBIN/dummy
++    _foamAddLib  $FOAM_USER_LIBBIN:$FOAM_SITE_LIBBIN:$FOAM_LIBBIN:$FOAM_LIBBIN/dummy
 +else
-+	_foamAddLib  $FOAM_USER_LIBBIN:$FOAM_SITE_LIBBIN:$FOAM_LIBBIN:$FOAM_EXT_LIBBIN:$FOAM_LIBBIN/dummy
++    _foamAddLib  $FOAM_USER_LIBBIN:$FOAM_SITE_LIBBIN:$FOAM_LIBBIN:$FOAM_EXT_LIBBIN:$FOAM_LIBBIN/dummy
 +fi
  
  # Compiler settings
  # ~~~~~~~~~~~~~~~~~
-@@ -333,6 +347,11 @@ OpenFOAM | ThirdParty)
+@@ -333,6 +346,11 @@ OpenFOAM | ThirdParty)
      ;;
  system)
      # okay, use system compiler
-+	if [ "$(uname -s)" = "Darwin" ]; then
-+		# additional variables on OS X
-+		export MPFR_ARCH_PATH=/usr/local/opt/mpfr
-+		export GMP_ARCH_PATH=/usr/local/opt/gmp
-+	fi
++    if [ "$(uname -s)" = "Darwin" ]; then
++        # additional variables on OS X
++        export MPFR_ARCH_PATH=/usr/local/opt/mpfr
++        export GMP_ARCH_PATH=/usr/local/opt/gmp
++    fi
      ;;
  *)
      echo "Warn: foamCompiler='$foamCompiler' is unsupported" 1>&2
-@@ -581,7 +600,8 @@ esac
+@@ -581,7 +599,8 @@ esac
  # dummy MPI already added to LD_LIBRARY_PATH and has no external libraries
  if [ "$FOAM_MPI" != dummy ]
  then
 -    _foamAddLib $FOAM_LIBBIN/$FOAM_MPI:$FOAM_EXT_LIBBIN/$FOAM_MPI
++    [ "$(uname -s)" = "Darwin" ] || _foamAddLib $FOAM_EXT_LIBBIN/$FOAM_MPI
 +    _foamAddLib $FOAM_LIBBIN/$FOAM_MPI
-+	[ "$(uname -s)" != "Darwin" ] && _foamAddLib $FOAM_EXT_LIBBIN/$FOAM_MPI
  fi
  
  
-@@ -596,10 +616,21 @@ then
+@@ -596,10 +615,20 @@ then
  fi
  export MPI_BUFFER_SIZE
  
 +_increase_maxfiles ()
 +{
-+	local maxfiles=4096
-+	[ "$(ulimit -n)" -lt $maxfiles ] \
-+		&& ulimit -n $maxfiles > /dev/null 2>&1
-+
++    local maxfiles=4096
++    [ "$(ulimit -n)" -lt $maxfiles ] \
++        && ulimit -n $maxfiles > /dev/null 2>&1
 +}
 +
 +# Increase max open files for lnInclude
@@ -1484,7 +1482,7 @@ index 2733291..25528fc 100644
          os  << "    cellShape has no model!\n";
      }
 diff --git a/src/OpenFOAM/meshes/polyMesh/polyMesh.C b/src/OpenFOAM/meshes/polyMesh/polyMesh.C
-index a8156d2..bc13aa4 100644
+index 8f02d1f..df11a69 100644
 --- a/src/OpenFOAM/meshes/polyMesh/polyMesh.C
 +++ b/src/OpenFOAM/meshes/polyMesh/polyMesh.C
 @@ -678,23 +678,23 @@ void Foam::polyMesh::resetPrimitives

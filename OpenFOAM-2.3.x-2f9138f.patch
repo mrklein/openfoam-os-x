@@ -614,15 +614,15 @@ index 1ee06e8..f3f316e 100644
  
  # -----------------------------------------------------------------------------
 diff --git a/etc/config/settings.sh b/etc/config/settings.sh
-index ae52902..b20a165 100644
+index ae52902..8cdcacd 100644
 --- a/etc/config/settings.sh
 +++ b/etc/config/settings.sh
 @@ -46,6 +46,8 @@ _foamAddLib()
      while [ $# -ge 1 ]
      do
          export LD_LIBRARY_PATH=$1:$LD_LIBRARY_PATH
-+		[ "$(uname -s)" = "Darwin" ] \
-+			&& export DYLD_LIBRARY_PATH=$1:$DYLD_LIBRARY_PATH
++        [ "$(uname -s)" = "Darwin" ] \
++            && export DYLD_LIBRARY_PATH=$1:$DYLD_LIBRARY_PATH
          shift
      done
  }
@@ -631,10 +631,10 @@ index ae52902..b20a165 100644
      ;;
  
 +Darwin)
-+	WM_ARCH=darwin64
-+	export WM_CC='clang'
-+	export WM_CXX='clang++'
-+	;;
++    WM_ARCH=darwin64
++    export WM_CC='clang'
++    export WM_CXX='clang++'
++    ;;
 +
  *)    # an unsupported operating system
      /bin/cat <<USAGE 1>&2
@@ -644,8 +644,8 @@ index ae52902..b20a165 100644
  
  # external (ThirdParty) libraries
 -export FOAM_EXT_LIBBIN=$WM_THIRD_PARTY_DIR/platforms/$WM_OPTIONS/lib
-+[ "$(uname -s)" != "Darwin" ] \
-+	&& export FOAM_EXT_LIBBIN=$WM_THIRD_PARTY_DIR/platforms/$WM_OPTIONS/lib
++[ "$(uname -s)" = "Darwin" ] \
++    || export FOAM_EXT_LIBBIN=$WM_THIRD_PARTY_DIR/platforms/$WM_OPTIONS/lib
  
  # site-specific directory
  siteDir="${WM_PROJECT_SITE:-$WM_PROJECT_INST_DIR/site}"
@@ -655,15 +655,15 @@ index ae52902..b20a165 100644
  # Make sure to pick up dummy versions of external libraries last
 -_foamAddLib  $FOAM_USER_LIBBIN:$FOAM_SITE_LIBBIN:$FOAM_LIBBIN:$FOAM_EXT_LIBBIN:$FOAM_LIBBIN/dummy
 +_foamAddLib  $FOAM_USER_LIBBIN:$FOAM_SITE_LIBBIN:$FOAM_LIBBIN:$FOAM_LIBBIN/dummy
-+[ "$(uname -s)" != "Darwin" ] \
-+	&& _foamAddLib $FOAM_EXT_LIBBIN
++[ "$(uname -s)" = "Darwin" ] \
++    || _foamAddLib $FOAM_EXT_LIBBIN
  
  # Compiler settings
  # ~~~~~~~~~~~~~~~~~
  unset gcc_version gmp_version mpfr_version mpc_version
 -unset MPFR_ARCH_PATH GMP_ARCH_PATH
-+[ "$(uname -s)" != "Darwin" ] \
-+	&& unset MPFR_ARCH_PATH GMP_ARCH_PATH
++[ "$(uname -s)" = "Darwin" ] \
++    || unset MPFR_ARCH_PATH GMP_ARCH_PATH
  
  # Location of compiler installation
  # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -672,8 +672,8 @@ index ae52902..b20a165 100644
  if [ "$FOAM_MPI" != dummy ]
  then
 -    _foamAddLib $FOAM_LIBBIN/$FOAM_MPI:$FOAM_EXT_LIBBIN/$FOAM_MPI
++    [ "$(uname -s)" = "Darwin" ] || _foamAddLib $FOAM_EXT_LIBBIN/$FOAM_MPI
 +    _foamAddLib $FOAM_LIBBIN/$FOAM_MPI
-+	[ "$(uname -s)" != "Darwin" ] && _foamAddLib $FOAM_EXT_LIBBIN/$FOAM_MPI
  fi
  
  
@@ -683,9 +683,9 @@ index ae52902..b20a165 100644
  
 +_increase_maxfiles ()
 +{
-+	local maxfiles=4096
-+	[ "$(ulimit -n)" -lt $maxfiles ] \
-+		&& ulimit -n $maxfiles > /dev/null 2>&1
++    local maxfiles=4096
++    [ "$(ulimit -n)" -lt $maxfiles ] \
++        && ulimit -n $maxfiles > /dev/null 2>&1
 +}
 +
 +# Increase max open files for lnInclude

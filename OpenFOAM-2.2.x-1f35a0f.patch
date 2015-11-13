@@ -8,13 +8,14 @@
  .../dataConversion/foamToEnsight/Make/options      |   1 -
  .../surface/surfaceFeatureExtract/Allwmake         |  30 +-
  .../surfaceFeatureExtract/surfaceFeatureExtract.C  |   3 +-
+ bin/foamInstallationTest                           |  37 ++-
  bin/foamJob                                        |   8 +
  bin/paraFoam                                       |  10 +-
  bin/tools/replaceAllShellSun                       |   2 +-
  etc/bashrc                                         | 111 ++++---
  etc/config/paraview-osx.sh                         |  15 +
  etc/config/scotch.sh                               |   9 +-
- etc/config/settings.sh                             |  50 +++-
+ etc/config/settings.sh                             |  48 ++-
  src/Allwmake                                       |  12 +-
  src/OSspecific/POSIX/POSIX.C                       |  23 ++
  src/OSspecific/POSIX/clockTime/clockTime.H         |   3 +
@@ -125,7 +126,7 @@
  wmake/rules/darwin64Clang/cOpt                     |   2 +
  wmake/rules/darwin64Clang/cProf                    |   2 +
  wmake/rules/darwin64Clang/general                  |   8 +
- 127 files changed, 983 insertions(+), 432 deletions(-)
+ 128 files changed, 1009 insertions(+), 441 deletions(-)
 
 diff --git a/.gitignore b/.gitignore
 index 7c8bce0..039c370 100644
@@ -344,6 +345,104 @@ index 87350c4..5fc99be 100644
      typedef Monge_via_jet_fitting::Monge_form           Monge_form;
  
      std::vector<Point_3> in_points;  //container for data points
+diff --git a/bin/foamInstallationTest b/bin/foamInstallationTest
+index fe72e8c..9870a35 100755
+--- a/bin/foamInstallationTest
++++ b/bin/foamInstallationTest
+@@ -42,8 +42,8 @@ fatalError=0
+ criticalError=0
+ 
+ # System variables
+-HOST=`uname -n`
+-OSTYPE=`uname -s`
++HOST=$(uname -n)
++OSTYPE=$(uname -s)
+ USER_NAME=$LOGNAME
+ : ${USER_NAME:=$USER}
+ 
+@@ -249,6 +249,9 @@ reportExecutable()
+         VERSION=`$1 --version /dev/null 2>&1      \
+             | sed -ne 's/flex \([0-9][0-9.]*\).*/\1/p' `
+         ;;
++	clang)
++		VERSION=$($1 --version 2>&1 | sed -ne 's/.*clang-\([0-9.]*\)/\1/p')
++		;;
+     gcc)
+         VERSION=`$1 -v 2>&1 \
+             | sed -ne 's/^gcc version \([0-9][0-9.]*\).*/\1/p' `
+@@ -264,9 +267,9 @@ reportExecutable()
+ 
+         gccOK=""
+         pass=""
+-        if [ $V1 -lt $MINV1 ]; then
++        if [ "$V1" -lt "$MINV1" ]; then
+             gccOk="ERROR"
+-        elif [ $V1 -gt $MINV1 ]; then
++        elif [ "$V1" -gt "$MINV1" ]; then
+             pass="yes"
+         fi
+ 
+@@ -298,13 +301,23 @@ reportExecutable()
+         VERSION=`$APP_PATH --version | head -1`
+         ;;
+     tar)
+-        VERSION=`$APP_PATH --version | head -1 | cut -d" " -f4`
++		case "$OSTYPE" in
++		Darwin)
++			VERSION=$($APP_PATH --version | head -1 | cut -d" " -f2)
++			;;
++		*)
++			VERSION=`$APP_PATH --version | head -1 | cut -d" " -f4`
++			;;
++		esac
+         ;;
+     gzip)
+         case "$OSTYPE" in
+         SunOS)
+             VERSION=`$1 --version 2>&1 | grep gzip | cut -d" " -f2`
+             ;;
++		Darwin)
++			VERSION=$($1 --version 2>&1)
++			;;
+         *)
+             VERSION=`$1 --version | head -1 | cut -d" " -f2`
+             ;;
+@@ -332,7 +345,8 @@ reportExecutable()
+ 
+ checkOpenFOAMEnvironment()
+ {
+-    [ -d "$WM_PROJECT_INST_DIR" ] && [ -d "$WM_THIRD_PARTY_DIR" ] || {
++    [ -d "$WM_PROJECT_INST_DIR" ] \
++		&& [ -d "$WM_THIRD_PARTY_DIR" -o "$(uname -s)" = "Darwin" ] || {
+         echo ""
+         echo "FATAL ERROR: OpenFOAM environment not configured."
+         echo ""
+@@ -380,7 +394,7 @@ checkHostName()
+ checkOS()
+ {
+     case "$OSTYPE" in
+-    Linux | LinuxAMD64 | SunOS )
++    Linux | LinuxAMD64 | SunOS | Darwin )
+         echo "`fixlen OS: $WIDTH` $OSTYPE version $(uname -r)"
+         ;;
+     *)
+@@ -457,9 +471,14 @@ hline
+ echo "$COL1 $COL2 $COL3"
+ hline
+ reportExecutable flex
+-reportExecutable gcc
++if [ "$OSTYPE" = "Darwin" ]
++then
++	reportExecutable clang
++else
++	reportExecutable gcc
++fi
+ reportExecutable gzip
+-if [ "$OSTYPE" = Linux ]
++if [ "$OSTYPE" = Linux -o "$OSTYPE" = "Darwin" ]
+ then
+     reportExecutable tar
+ else
 diff --git a/bin/foamJob b/bin/foamJob
 index 20793c3..5a35f18 100755
 --- a/bin/foamJob
@@ -621,15 +720,15 @@ index 1ee06e8..71a9560 100644
  
  # -----------------------------------------------------------------------------
 diff --git a/etc/config/settings.sh b/etc/config/settings.sh
-index 5a77479..f43f625 100644
+index 5a77479..5bd1f91 100644
 --- a/etc/config/settings.sh
 +++ b/etc/config/settings.sh
 @@ -46,6 +46,8 @@ _foamAddLib()
      while [ $# -ge 1 ]
      do
          export LD_LIBRARY_PATH=$1:$LD_LIBRARY_PATH
-+		[ "$(uname -s)" = "Darwin" ] \
-+			&& export DYLD_LIBRARY_PATH=$1:$DYLD_LIBRARY_PATH
++        [ "$(uname -s)" = "Darwin" ] \
++            && export DYLD_LIBRARY_PATH=$1:$DYLD_LIBRARY_PATH
          shift
      done
  }
@@ -638,10 +737,10 @@ index 5a77479..f43f625 100644
      ;;
  
 +Darwin)
-+	WM_ARCH=darwin64
-+	export WM_CC='clang'
-+	export WM_CXX='clang++'
-+	;;
++    WM_ARCH=darwin64
++    export WM_CC='clang'
++    export WM_CXX='clang++'
++    ;;
 +
  *)    # an unsupported operating system
      /bin/cat <<USAGE 1>&2
@@ -651,8 +750,8 @@ index 5a77479..f43f625 100644
  
  # external (ThirdParty) libraries
 -export FOAM_EXT_LIBBIN=$WM_THIRD_PARTY_DIR/platforms/$WM_OPTIONS/lib
-+[ "$(uname -s)" != "Darwin" ] \
-+	&& export FOAM_EXT_LIBBIN=$WM_THIRD_PARTY_DIR/platforms/$WM_OPTIONS/lib
++[ "$(uname -s)" = "Darwin" ] \
++    || export FOAM_EXT_LIBBIN=$WM_THIRD_PARTY_DIR/platforms/$WM_OPTIONS/lib
  
  # site-specific directory
  siteDir="${WM_PROJECT_SITE:-$WM_PROJECT_INST_DIR/site}"
@@ -661,10 +760,10 @@ index 5a77479..f43f625 100644
  _foamAddPath $FOAM_USER_APPBIN:$FOAM_SITE_APPBIN:$FOAM_APPBIN
  # Make sure to pick up dummy versions of external libraries last
 -_foamAddLib  $FOAM_USER_LIBBIN:$FOAM_SITE_LIBBIN:$FOAM_LIBBIN:$FOAM_EXT_LIBBIN:$FOAM_LIBBIN/dummy
-+if [ "$(uname -s)" != "Darwin" ]; then
-+	_foamAddLib $FOAM_USER_LIBBIN:$FOAM_SITE_LIBBIN:$FOAM_LIBBIN:$FOAM_EXT_LIBBIN:$FOAM_LIBBIN/dummy
++if [ "$(uname -s)" = "Darwin" ]; then
++    _foamAddLib $FOAM_USER_LIBBIN:$FOAM_SITE_LIBBIN:$FOAM_LIBBIN:$FOAM_LIBBIN/dummy
 +else
-+	_foamAddLib $FOAM_USER_LIBBIN:$FOAM_SITE_LIBBIN:$FOAM_LIBBIN:$FOAM_LIBBIN/dummy
++    _foamAddLib $FOAM_USER_LIBBIN:$FOAM_SITE_LIBBIN:$FOAM_LIBBIN:$FOAM_EXT_LIBBIN:$FOAM_LIBBIN/dummy
 +fi
  
  # Compiler settings
@@ -676,46 +775,44 @@ index 5a77479..f43f625 100644
 -boost_version=boost_1_45_0
 -cgal_version=CGAL-4.0
 +if [ "$(uname -s)" = "Darwin" ]; then
-+	boost_version="boost-$(basename $(readlink /usr/local/opt/boost))"
-+	cgal_version="CGAL-$(basename $(readlink /usr/local/opt/cgal))"
++    boost_version="boost-$(basename $(readlink /usr/local/opt/boost))"
++    cgal_version="CGAL-$(basename $(readlink /usr/local/opt/cgal))"
 +
-+	export BOOST_ARCH_PATH=/usr/local/opt/boost
-+	export CGAL_ARCH_PATH=/usr/local/opt/cgal
-+	export GMP_ARCH_PATH=/usr/local/opt/gmp
-+	export MPFR_ARCH_PATH=/usr/local/opt/mpfr
++    export BOOST_ARCH_PATH=/usr/local/opt/boost
++    export CGAL_ARCH_PATH=/usr/local/opt/cgal
++    export GMP_ARCH_PATH=/usr/local/opt/gmp
++    export MPFR_ARCH_PATH=/usr/local/opt/mpfr
 +else
-+	boost_version=boost_1_45_0
-+	cgal_version=CGAL-4.0
++    boost_version=boost_1_45_0
++    cgal_version=CGAL-4.0
  
 -export BOOST_ARCH_PATH=$WM_THIRD_PARTY_DIR/platforms/$WM_ARCH$WM_COMPILER/$boost_version
 -export CGAL_ARCH_PATH=$WM_THIRD_PARTY_DIR/platforms/$WM_ARCH$WM_COMPILER/$cgal_version
-+	export BOOST_ARCH_PATH=$WM_THIRD_PARTY_DIR/platforms/$WM_ARCH$WM_COMPILER/$boost_version
-+	export CGAL_ARCH_PATH=$WM_THIRD_PARTY_DIR/platforms/$WM_ARCH$WM_COMPILER/$cgal_version
++    export BOOST_ARCH_PATH=$WM_THIRD_PARTY_DIR/platforms/$WM_ARCH$WM_COMPILER/$boost_version
++    export CGAL_ARCH_PATH=$WM_THIRD_PARTY_DIR/platforms/$WM_ARCH$WM_COMPILER/$cgal_version
 +fi
  
  # enabled if CGAL is available
  if [ "$FOAM_VERBOSE" -a "$PS1" ]
-@@ -572,7 +595,9 @@ esac
+@@ -572,7 +595,8 @@ esac
  # dummy MPI already added to LD_LIBRARY_PATH and has no external libraries
  if [ "$FOAM_MPI" != dummy ]
  then
 -    _foamAddLib $FOAM_LIBBIN/$FOAM_MPI:$FOAM_EXT_LIBBIN/$FOAM_MPI
++    [ "$(uname -s)" = "Darwin" ] || _foamAddLib $FOAM_EXT_LIBBIN/$FOAM_MPI
 +    _foamAddLib $FOAM_LIBBIN/$FOAM_MPI
-+	[ "$(uname -s)" != "Darwin" ] \
-+		&& _foamAddLib $FOAM_EXT_LIBBIN/$FOAM_MPI
  fi
  
  
-@@ -587,9 +612,20 @@ then
+@@ -587,9 +611,19 @@ then
  fi
  export MPI_BUFFER_SIZE
  
 +_increase_maxfiles ()
 +{
-+	local maxfiles=4096
-+	[ "$(ulimit -n)" -lt $maxfiles ] \
-+		&& ulimit -n $maxfiles > /dev/null 2>&1
-+
++    local maxfiles=4096
++    [ "$(ulimit -n)" -lt $maxfiles ] \
++        && ulimit -n $maxfiles > /dev/null 2>&1
 +}
 +
 +# Increase max open files for lnInclude
