@@ -6,18 +6,19 @@
  .../mesh/manipulation/renumberMesh/Make/options    |   1 -
  .../miscellaneous/foamDebugSwitches/Make/options   |   2 -
  .../dataConversion/foamToEnsight/Make/options      |   1 -
- .../surface/surfaceFeatureExtract/Allwmake         |  30 +-
- .../surfaceFeatureExtract/surfaceFeatureExtract.C  |   3 +-
+ .../surface/surfaceFeatureExtract/Allwmake         |  32 +-
+ .../surface/surfaceFeatureExtract/Make/options     |   2 +-
+ .../surfaceFeatureExtract/surfaceFeatureExtract.C  |   4 +-
  bin/foamInstallationTest                           |  37 ++-
  bin/foamJob                                        |   8 +
  bin/paraFoam                                       |  10 +-
  bin/tools/replaceAllShellSun                       |   2 +-
  etc/bashrc                                         | 111 ++++---
  etc/config/paraview-osx.sh                         |  15 +
- etc/config/scotch.sh                               |   9 +-
- etc/config/settings.sh                             |  48 ++-
+ etc/config/scotch.sh                               |  14 +-
+ etc/config/settings.sh                             |  78 ++++-
  src/Allwmake                                       |  12 +-
- src/OSspecific/POSIX/POSIX.C                       |  23 ++
+ src/OSspecific/POSIX/POSIX.C                       |  37 +++
  src/OSspecific/POSIX/clockTime/clockTime.H         |   3 +
  src/OSspecific/POSIX/fileStat.C                    |   2 +
  src/OSspecific/POSIX/printStack.C                  | 332 ++++++++++-----------
@@ -32,6 +33,7 @@
  src/OpenFOAM/db/IOstreams/Pstreams/gatherScatter.C |   3 +
  .../functionEntries/codeStream/codeStream.C        |   3 +
  .../db/dynamicLibrary/dynamicCode/dynamicCode.C    |   4 +
+ .../db/dynamicLibrary/dynamicCode/dynamicCode.H    |   4 +
  .../db/objectRegistry/objectRegistryTemplates.C    |   2 +-
  .../DimensionedField/DimensionedFieldI.H           |   2 +-
  .../DimensionedField/SubDimensionedFieldI.H        |   2 +-
@@ -117,6 +119,7 @@
  ...tMixingLengthFrequencyInletFvPatchScalarField.H |   2 +-
  .../turbulenceModel/turbulenceModelDoc.H           |   2 +-
  wmake/Makefile                                     |   4 +
+ wmake/rules/darwin64Clang/CGAL                     |  12 +
  wmake/rules/darwin64Clang/c                        |  16 +
  wmake/rules/darwin64Clang/c++                      |  29 ++
  wmake/rules/darwin64Clang/c++Debug                 |   2 +
@@ -126,7 +129,7 @@
  wmake/rules/darwin64Clang/cOpt                     |   2 +
  wmake/rules/darwin64Clang/cProf                    |   2 +
  wmake/rules/darwin64Clang/general                  |   8 +
- 128 files changed, 1009 insertions(+), 441 deletions(-)
+ 131 files changed, 1076 insertions(+), 444 deletions(-)
 
 diff --git a/.gitignore b/.gitignore
 index 7c8bce0..039c370 100644
@@ -291,10 +294,10 @@ index 7799242..b4382c4 100644
      -I$(LIB_SRC)/meshTools/lnInclude \
      -I$(LIB_SRC)/sampling/lnInclude \
 diff --git a/applications/utilities/surface/surfaceFeatureExtract/Allwmake b/applications/utilities/surface/surfaceFeatureExtract/Allwmake
-index 2b9a927..d39ea0e 100755
+index 2b9a927..58dd7d6 100755
 --- a/applications/utilities/surface/surfaceFeatureExtract/Allwmake
 +++ b/applications/utilities/surface/surfaceFeatureExtract/Allwmake
-@@ -9,15 +9,27 @@ then
+@@ -9,15 +9,29 @@ then
      echo "Compiling surfaceFeatureExtract with CGAL curvature support"
      echo
  
@@ -307,15 +310,17 @@ index 2b9a927..d39ea0e 100755
 -           CGAL_LIB=-lCGAL \
 -           CGAL_BOOST_LIB=-lboost_thread \
 -           CGAL_MPFR_LIB=-lmpfr"
-+	if [ "$(uname -s)" == "Darwin" ]; then
++	if [ "$(uname -s)" = "Darwin" ]
++    then
 +		wmake "ENABLE_CURVATURE=-DENABLE_CURVATURE \
 +			EXE_FROUNDING_MATH= \
 +			USE_F2C=-DCGAL_USE_F2C \
 +			CGAL_LIBDIR=-L$CGAL_ARCH_PATH/lib \
++            EIGEN3_LIBDIR=-L$ENGEN_ARCH_PATH/lib \
 +			LAPACK_LIB=-llapack \
 +			BLAS_LIB=-lblas \
 +			CGAL_LIB=-lCGAL \
-+			CGAL_BOOST_LIB=-lboost_thread \
++			CGAL_BOOST_LIB=-lboost_thread-mt \
 +			CGAL_MPFR_LIB=-lmpfr"
 +	else
 +		wmake "ENABLE_CURVATURE=-DENABLE_CURVATURE \
@@ -331,11 +336,29 @@ index 2b9a927..d39ea0e 100755
  else
      echo
      echo "Compiling surfaceFeatureExtract without CGAL curvature support"
+diff --git a/applications/utilities/surface/surfaceFeatureExtract/Make/options b/applications/utilities/surface/surfaceFeatureExtract/Make/options
+index 461cec9..8ab9849 100644
+--- a/applications/utilities/surface/surfaceFeatureExtract/Make/options
++++ b/applications/utilities/surface/surfaceFeatureExtract/Make/options
+@@ -1,4 +1,4 @@
+-include $(GENERAL_RULES)/CGAL
++include $(RULES)/CGAL
+ 
+ EXE_INC = \
+     ${ENABLE_CURVATURE}\
 diff --git a/applications/utilities/surface/surfaceFeatureExtract/surfaceFeatureExtract.C b/applications/utilities/surface/surfaceFeatureExtract/surfaceFeatureExtract.C
-index 87350c4..5fc99be 100644
+index 87350c4..e2176e2 100644
 --- a/applications/utilities/surface/surfaceFeatureExtract/surfaceFeatureExtract.C
 +++ b/applications/utilities/surface/surfaceFeatureExtract/surfaceFeatureExtract.C
-@@ -82,7 +82,8 @@ scalarField calcCurvature(const triSurface& surf)
+@@ -50,6 +50,7 @@ Description
+ #ifdef ENABLE_CURVATURE
+ #include "buildCGALPolyhedron.H"
+ #include "CGALPolyhedronRings.H"
++#define CGAL_EIGEN3_ENABLED
+ #include <CGAL/Monge_via_jet_fitting.h>
+ #include <CGAL/Lapack/Linear_algebra_lapack.h>
+ #include <CGAL/property_map.h>
+@@ -82,7 +83,8 @@ scalarField calcCurvature(const triSurface& surf)
          Vertex_PM_type;
      typedef T_PolyhedralSurf_rings<Polyhedron, Vertex_PM_type > Poly_rings;
  
@@ -701,26 +724,31 @@ index 0000000..8a45da2
 +	echo
 +fi
 diff --git a/etc/config/scotch.sh b/etc/config/scotch.sh
-index 1ee06e8..71a9560 100644
+index 1ee06e8..d1aed11 100644
 --- a/etc/config/scotch.sh
 +++ b/etc/config/scotch.sh
-@@ -33,7 +33,12 @@
+@@ -33,7 +33,17 @@
  #     during the wmake process
  #------------------------------------------------------------------------------
  
 -export SCOTCH_VERSION=scotch_6.0.0
 -export SCOTCH_ARCH_PATH=$WM_THIRD_PARTY_DIR/platforms/$WM_ARCH$WM_COMPILER/$SCOTCH_VERSION
-+if [ "$(uname -s)" != "Darwin" ]; then
++if [ "$(uname -s)" = "Darwin" ]
++then
++    _scotch_path="$(brew --prefix)/opt/scotch"
++
++	export SCOTCH_VERSION="scotch_$(basename $(readlink "$_scotch_path"))"
++	export SCOTCH_ARCH_PATH="$_scotch_path"
++
++    unset _scotch_path
++else
 +	export SCOTCH_VERSION=scotch_6.0.0
 +	export SCOTCH_ARCH_PATH=$WM_THIRD_PARTY_DIR/platforms/$WM_ARCH$WM_COMPILER/$SCOTCH_VERSION
-+else
-+	export SCOTCH_VERSION="scotch_$(basename $(readlink /usr/local/opt/scotch))"
-+	export SCOTCH_ARCH_PATH=/usr/local/opt/scotch
 +fi
  
  # -----------------------------------------------------------------------------
 diff --git a/etc/config/settings.sh b/etc/config/settings.sh
-index 5a77479..5bd1f91 100644
+index 5a77479..f43c632 100644
 --- a/etc/config/settings.sh
 +++ b/etc/config/settings.sh
 @@ -46,6 +46,8 @@ _foamAddLib()
@@ -732,7 +760,39 @@ index 5a77479..5bd1f91 100644
          shift
      done
  }
-@@ -151,6 +153,12 @@ SunOS)
+@@ -60,6 +62,31 @@ _foamAddMan()
+     done
+ }
+ 
++# get formula version
++_brew_formula_version()
++{
++    if [ "$#" -lt 1 ]
++    then
++        echo "-1"
++    else
++        local brew_prefix="$(brew --prefix)"
++        local formula_link_path="$brew_prefix/opt/$1"
++        local formula_cellar_path="$(readlink "$formula_link_path")"
++        echo "$(basename "$formula_cellar_path")"
++    fi
++}
++
++_brew_formula_path()
++{
++    if [ "$#" -lt 1 ]
++    then
++        echo ""
++    else
++        local brew_prefix="$(brew --prefix)"
++        echo "$brew_prefix/opt/$1"
++    fi
++}
++
+ #------------------------------------------------------------------------------
+ # Set environment variables according to system type
+ export WM_ARCH=`uname -s`
+@@ -151,6 +178,12 @@ SunOS)
      export WM_LDFLAGS='-mabi=64 -G0'
      ;;
  
@@ -745,7 +805,7 @@ index 5a77479..5bd1f91 100644
  *)    # an unsupported operating system
      /bin/cat <<USAGE 1>&2
  
-@@ -177,7 +185,8 @@ export FOAM_APPBIN=$WM_PROJECT_DIR/platforms/$WM_OPTIONS/bin
+@@ -177,7 +210,8 @@ export FOAM_APPBIN=$WM_PROJECT_DIR/platforms/$WM_OPTIONS/bin
  export FOAM_LIBBIN=$WM_PROJECT_DIR/platforms/$WM_OPTIONS/lib
  
  # external (ThirdParty) libraries
@@ -755,7 +815,7 @@ index 5a77479..5bd1f91 100644
  
  # site-specific directory
  siteDir="${WM_PROJECT_SITE:-$WM_PROJECT_INST_DIR/site}"
-@@ -221,7 +230,11 @@ unset siteDir
+@@ -221,7 +255,11 @@ unset siteDir
  
  _foamAddPath $FOAM_USER_APPBIN:$FOAM_SITE_APPBIN:$FOAM_APPBIN
  # Make sure to pick up dummy versions of external libraries last
@@ -768,33 +828,48 @@ index 5a77479..5bd1f91 100644
  
  # Compiler settings
  # ~~~~~~~~~~~~~~~~~
-@@ -362,11 +375,21 @@ fi
+@@ -362,11 +400,22 @@ fi
  # boost and CGAL
  # ~~~~~~~~~~~~~~
  
 -boost_version=boost_1_45_0
 -cgal_version=CGAL-4.0
 +if [ "$(uname -s)" = "Darwin" ]; then
-+    boost_version="boost-$(basename $(readlink /usr/local/opt/boost))"
-+    cgal_version="CGAL-$(basename $(readlink /usr/local/opt/cgal))"
-+
-+    export BOOST_ARCH_PATH=/usr/local/opt/boost
-+    export CGAL_ARCH_PATH=/usr/local/opt/cgal
-+    export GMP_ARCH_PATH=/usr/local/opt/gmp
-+    export MPFR_ARCH_PATH=/usr/local/opt/mpfr
-+else
-+    boost_version=boost_1_45_0
-+    cgal_version=CGAL-4.0
++    boost_version="boost-$(_brew_formula_version boost)"
++    cgal_version="CGAL-$(_brew_formula_version cgal)"
  
 -export BOOST_ARCH_PATH=$WM_THIRD_PARTY_DIR/platforms/$WM_ARCH$WM_COMPILER/$boost_version
 -export CGAL_ARCH_PATH=$WM_THIRD_PARTY_DIR/platforms/$WM_ARCH$WM_COMPILER/$cgal_version
++    export BOOST_ARCH_PATH="$(_brew_formula_path boost)"
++    export CGAL_ARCH_PATH="$(_brew_formula_path cgal)"
++    export GMP_ARCH_PATH="$(_brew_formula_path gmp)"
++    export MPFR_ARCH_PATH="$(_brew_formula_path mpfr)"
++    export EIGEN_ARCH_PATH="$(_brew_formula_path eigen)"
++else
++    boost_version=boost_1_45_0
++    cgal_version=CGAL-4.0
++
 +    export BOOST_ARCH_PATH=$WM_THIRD_PARTY_DIR/platforms/$WM_ARCH$WM_COMPILER/$boost_version
 +    export CGAL_ARCH_PATH=$WM_THIRD_PARTY_DIR/platforms/$WM_ARCH$WM_COMPILER/$cgal_version
 +fi
  
  # enabled if CGAL is available
  if [ "$FOAM_VERBOSE" -a "$PS1" ]
-@@ -572,7 +595,8 @@ esac
+@@ -380,11 +429,11 @@ if [ -d "$CGAL_ARCH_PATH" ]
+ then
+     if [ -d "$BOOST_ARCH_PATH" ]
+     then
+-        _foamAddLib $BOOST_ARCH_PATH/lib
++        _foamAddLib "$BOOST_ARCH_PATH/lib"
+     else
+         unset BOOST_ARCH_PATH
+     fi
+-    _foamAddLib $CGAL_ARCH_PATH/lib
++    _foamAddLib "$CGAL_ARCH_PATH/lib"
+ else
+     unset BOOST_ARCH_PATH CGAL_ARCH_PATH MPFR_ARCH_PATH GMP_ARCH_PATH
+ fi
+@@ -572,7 +621,8 @@ esac
  # dummy MPI already added to LD_LIBRARY_PATH and has no external libraries
  if [ "$FOAM_MPI" != dummy ]
  then
@@ -804,7 +879,7 @@ index 5a77479..5bd1f91 100644
  fi
  
  
-@@ -587,9 +611,19 @@ then
+@@ -587,9 +637,19 @@ then
  fi
  export MPI_BUFFER_SIZE
  
@@ -821,7 +896,7 @@ index 5a77479..5bd1f91 100644
  # cleanup environment:
  # ~~~~~~~~~~~~~~~~~~~~
  unset _foamAddPath _foamAddLib _foamAddMan foamCompiler minBufferSize
-+unset _increase_maxfiles
++unset _increase_maxfiles _brew_formula_version _brew_formula_version
  
  # ----------------------------------------------------------------- end-of-file
 diff --git a/src/Allwmake b/src/Allwmake
@@ -848,7 +923,7 @@ index 55b8981..8c59a57 100755
  set -x
  
 diff --git a/src/OSspecific/POSIX/POSIX.C b/src/OSspecific/POSIX/POSIX.C
-index 9207781..f39d8ed 100644
+index 9207781..4afd9b1 100644
 --- a/src/OSspecific/POSIX/POSIX.C
 +++ b/src/OSspecific/POSIX/POSIX.C
 @@ -53,7 +53,11 @@ Description
@@ -863,7 +938,28 @@ index 9207781..f39d8ed 100644
  
  #include <netinet/in.h>
  
-@@ -1260,6 +1264,24 @@ bool Foam::dlSymFound(void* handle, const std::string& symbol)
+@@ -1173,6 +1177,20 @@ void* Foam::dlOpen(const fileName& lib, const bool check)
+             << " : dlopen of " << lib << std::endl;
+     }
+     void* handle = ::dlopen(lib.c_str(), RTLD_LAZY|RTLD_GLOBAL);
++#if defined(darwin64)
++    if (!handle && lib.ext() == "so")
++    {
++        fileName fallback_lib = lib.lessExt() + ".dylib";
++        if (check)
++        {
++            WarningIn("dlOpen(const fileName&, const bool)")
++                << "dlopen: using fallback library name "
++                << fallback_lib
++                << endl;
++        }
++        handle = ::dlopen(fallback_lib.c_str(), RTLD_LAZY|RTLD_GLOBAL);
++    }
++#endif
+ 
+     if (!handle && check)
+     {
+@@ -1260,6 +1278,24 @@ bool Foam::dlSymFound(void* handle, const std::string& symbol)
  }
  
  
@@ -888,7 +984,7 @@ index 9207781..f39d8ed 100644
  static int collectLibsCallback
  (
      struct dl_phdr_info *info,
-@@ -1286,6 +1308,7 @@ Foam::fileNameList Foam::dlLoaded()
+@@ -1286,6 +1322,7 @@ Foam::fileNameList Foam::dlLoaded()
      }
      return libs;
  }
@@ -1705,6 +1801,22 @@ index 2f97577..026519c 100644
  }
  
  
+diff --git a/src/OpenFOAM/db/dynamicLibrary/dynamicCode/dynamicCode.H b/src/OpenFOAM/db/dynamicLibrary/dynamicCode/dynamicCode.H
+index 852ba6d..cecf678 100644
+--- a/src/OpenFOAM/db/dynamicLibrary/dynamicCode/dynamicCode.H
++++ b/src/OpenFOAM/db/dynamicLibrary/dynamicCode/dynamicCode.H
+@@ -221,7 +221,11 @@ public:
+         //  Corresponds to codeRoot()/libSubDir()/lib\<codeName\>.so
+         fileName libPath() const
+         {
++#if defined(darwin64)
++            return codeRoot_/libSubDir_/"lib" + codeName_ + ".dylib";
++#else
+             return codeRoot_/libSubDir_/"lib" + codeName_ + ".so";
++#endif
+         }
+ 
+         //- Path for specified code name relative to \$FOAM_CASE
 diff --git a/src/OpenFOAM/db/objectRegistry/objectRegistryTemplates.C b/src/OpenFOAM/db/objectRegistry/objectRegistryTemplates.C
 index 483e1c2..3d495af 100644
 --- a/src/OpenFOAM/db/objectRegistry/objectRegistryTemplates.C
@@ -3467,6 +3579,24 @@ index 96e1885..7de8c1a 100644
  
  # Project executable
  EXE             = $(WM_PROJECT).out
+diff --git a/wmake/rules/darwin64Clang/CGAL b/wmake/rules/darwin64Clang/CGAL
+new file mode 100644
+index 0000000..ec9d904
+--- /dev/null
++++ b/wmake/rules/darwin64Clang/CGAL
+@@ -0,0 +1,12 @@
++CGAL_INC = \
++    -Wno-old-style-cast \
++    -I$(CGAL_ARCH_PATH)/include \
++    -I$(MPFR_ARCH_PATH)/include \
++    -I$(GMP_ARCH_PATH)/include \
++    -I$(BOOST_ARCH_PATH)/include \
++    -I$(EIGEN_ARCH_PATH)/include/eigen3
++
++CGAL_LIBS = \
++    -L$(MPFR_ARCH_PATH)/lib \
++    -L$(GMP_ARCH_PATH)/lib \
++    -L$(BOOST_ARCH_PATH)/lib
 diff --git a/wmake/rules/darwin64Clang/c b/wmake/rules/darwin64Clang/c
 new file mode 100644
 index 0000000..9a3e872

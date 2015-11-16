@@ -20,13 +20,13 @@
  bin/foamJob                                        |   8 ++
  bin/paraFoam                                       |   5 +
  etc/bashrc                                         |  30 +++++-
- etc/config/CGAL.sh                                 |  17 +++-
- etc/config/metis.sh                                |   9 +-
+ etc/config/CGAL.sh                                 |  27 +++--
+ etc/config/metis.sh                                |  13 ++-
  etc/config/paraview-osx.sh                         |  16 +++
- etc/config/scotch.sh                               |   9 +-
- etc/config/settings.sh                             |  35 ++++++-
+ etc/config/scotch.sh                               |  14 ++-
+ etc/config/settings.sh                             |  40 +++++++-
  src/Allwmake                                       |  12 ++-
- src/OSspecific/POSIX/POSIX.C                       |  23 +++++
+ src/OSspecific/POSIX/POSIX.C                       |  37 +++++++
  src/OSspecific/POSIX/clockTime/clockTime.H         |   3 +
  src/OSspecific/POSIX/fileStat.C                    |   2 +
  src/OSspecific/POSIX/printStack.C                  |  68 +++++++++++--
@@ -41,6 +41,7 @@
  src/OpenFOAM/db/IOstreams/Pstreams/gatherScatter.C |   4 +
  .../functionEntries/codeStream/codeStream.C        |   3 +
  .../db/dynamicLibrary/dynamicCode/dynamicCode.C    |   4 +
+ .../db/dynamicLibrary/dynamicCode/dynamicCode.H    |   6 +-
  .../db/objectRegistry/objectRegistryTemplates.C    |   2 +-
  .../DimensionedField/DimensionedFieldI.H           |   2 +-
  .../DimensionedField/SubDimensionedFieldI.H        |   2 +-
@@ -98,7 +99,7 @@
  wmake/rules/darwin64Clang/cOpt                     |   2 +
  wmake/rules/darwin64Clang/cProf                    |   2 +
  wmake/rules/darwin64Clang/general                  |   8 ++
- 100 files changed, 808 insertions(+), 147 deletions(-)
+ 101 files changed, 849 insertions(+), 150 deletions(-)
 
 diff --git a/.gitignore b/.gitignore
 index ec46862..ead2d97 100644
@@ -551,47 +552,72 @@ index 3f49f62..73d2e81 100644
  if [ -n "$LD_PRELOAD" ]
  then
 diff --git a/etc/config/CGAL.sh b/etc/config/CGAL.sh
-index 7d495d0..463e249 100644
+index 7d495d0..0807318 100644
 --- a/etc/config/CGAL.sh
 +++ b/etc/config/CGAL.sh
-@@ -29,11 +29,20 @@
+@@ -29,11 +29,26 @@
  #     Sourced from OpenFOAM-<VERSION>/etc/bashrc
  #------------------------------------------------------------------------------
  
 -boost_version=boost-system
 -cgal_version=CGAL-4.6
-+if [ "$(uname -s)" != "Darwin" ]
++if [ "$(uname -s)" = "Darwin" ]
 +then
-+	boost_version=boost-system
-+	cgal_version=CGAL-4.6
++    _brew_prefix="$(brew --prefix)"
 +
-+	export BOOST_ARCH_PATH=$WM_THIRD_PARTY_DIR/platforms/$WM_ARCH$WM_COMPILER/$boost_version
-+	export CGAL_ARCH_PATH=$WM_THIRD_PARTY_DIR/platforms/$WM_ARCH$WM_COMPILER/$cgal_version
-+else
-+	boost_version="boost-$(basename $(readlink /usr/local/opt/boost))"
-+	cgal_version="CGAL-$(basename $(readlink /usr/local/opt/cgal))"
++    boost_version="boost-$(basename $(readlink "$_brew_prefix/opt/boost"))"
++    cgal_version="CGAL-$(basename $(readlink "$_brew_prefix/opt/cgal"))"
++
++    export BOOST_ARCH_PATH="$_brew_prefix/opt/boost"
++    export CGAL_ARCH_PATH="$_brew_prefix/opt/cgal"
++    export GMP_ARCH_PATH="$_brew_prefix/opt/gmp"
++    export MPFR_ARCH_PATH="$_brew_prefix/opt/mpfr"
  
 -export BOOST_ARCH_PATH=$WM_THIRD_PARTY_DIR/platforms/$WM_ARCH$WM_COMPILER/$boost_version
 -export CGAL_ARCH_PATH=$WM_THIRD_PARTY_DIR/platforms/$WM_ARCH$WM_COMPILER/$cgal_version
-+	export BOOST_ARCH_PATH=/usr/local/opt/boost
-+	export CGAL_ARCH_PATH=/usr/local/opt/cgal
++    unset _brew_prefix
++else
++    boost_version=boost-system
++    cgal_version=CGAL-4.6
++
++    export BOOST_ARCH_PATH=$WM_THIRD_PARTY_DIR/platforms/$WM_ARCH$WM_COMPILER/$boost_version
++    export CGAL_ARCH_PATH=$WM_THIRD_PARTY_DIR/platforms/$WM_ARCH$WM_COMPILER/$cgal_version
 +fi
  
  if [ "$FOAM_VERBOSE" -a "$PS1" ]
  then
+@@ -44,12 +59,12 @@ fi
+ 
+ if [ -d "$CGAL_ARCH_PATH" ]
+ then
+-    _foamAddLib $CGAL_ARCH_PATH/lib
++    _foamAddLib "$CGAL_ARCH_PATH/lib"
+ fi
+ 
+ if [ -d "$BOOST_ARCH_PATH" ]
+ then
+-    _foamAddLib $BOOST_ARCH_PATH/lib
++    _foamAddLib "$BOOST_ARCH_PATH/lib"
+ fi
+ 
+ unset boost_version cgal_version
 diff --git a/etc/config/metis.sh b/etc/config/metis.sh
-index af7efde..bcf57ad 100644
+index af7efde..2beaf2a 100644
 --- a/etc/config/metis.sh
 +++ b/etc/config/metis.sh
-@@ -33,7 +33,12 @@
+@@ -33,7 +33,16 @@
  #     during the wmake process
  #------------------------------------------------------------------------------
  
 -export METIS_VERSION=metis-5.1.0
 -export METIS_ARCH_PATH=$WM_THIRD_PARTY_DIR/platforms/$WM_ARCH$WM_COMPILER/$METIS_VERSION
 +if [ "$(uname -s)" = "Darwin" ]; then
-+	export METIS_VERSION="metis-$(basename $(readlink /usr/local/opt/metis))"
-+	export METIS_ARCH_PATH=/usr/local/opt/metis
++    _brew_prefix="$(brew --prefix)"
++
++    export METIS_VERSION="metis-$(basename $(readlink "$_brew_prefix/opt/metis"))"
++    export METIS_ARCH_PATH="$_brew_prefix/opt/metis"
++
++    unset _brew_prefix
 +else
 +	export METIS_VERSION=metis-5.1.0
 +	export METIS_ARCH_PATH=$WM_THIRD_PARTY_DIR/platforms/$WM_ARCH$WM_COMPILER/$METIS_VERSION
@@ -621,18 +647,23 @@ index 0000000..709e497
 +	echo
 +fi
 diff --git a/etc/config/scotch.sh b/etc/config/scotch.sh
-index 87d9384..b904a48 100644
+index 87d9384..9127781 100644
 --- a/etc/config/scotch.sh
 +++ b/etc/config/scotch.sh
-@@ -33,7 +33,12 @@
+@@ -33,7 +33,17 @@
  #     during the wmake process
  #------------------------------------------------------------------------------
  
 -export SCOTCH_VERSION=scotch_6.0.3
 -export SCOTCH_ARCH_PATH=$WM_THIRD_PARTY_DIR/platforms/$WM_ARCH$WM_COMPILER/$SCOTCH_VERSION
-+if [ "$(uname -s)" = "Darwin" ]; then
-+	export SCOTCH_VERSION="scotch-$(basename $(readlink /usr/local/opt/scotch))"
-+	export SCOTCH_ARCH_PATH=/usr/local/opt/scotch
++if [ "$(uname -s)" = "Darwin" ]
++then
++    _brew_prefix="$(brew --prefix)"
++
++    export SCOTCH_VERSION="scotch-$(basename $(readlink "$_brew_prefix/opt/scotch"))"
++    export SCOTCH_ARCH_PATH="$_brew_prefix/opt/scotch"
++
++    unset _brew_prefix
 +else
 +	export SCOTCH_VERSION=scotch-6.0.3
 +	export SCOTCH_ARCH_PATH=$WM_THIRD_PARTY_DIR/platforms/$WM_ARCH$WM_COMPILER/$SCOTCH_VERSION
@@ -640,7 +671,7 @@ index 87d9384..b904a48 100644
  
  # -----------------------------------------------------------------------------
 diff --git a/etc/config/settings.sh b/etc/config/settings.sh
-index 8baec49..6a80ebd 100644
+index 8baec49..6d52aaa 100644
 --- a/etc/config/settings.sh
 +++ b/etc/config/settings.sh
 @@ -46,6 +46,8 @@ _foamAddLib()
@@ -688,19 +719,24 @@ index 8baec49..6a80ebd 100644
  
  # Compiler settings
  # ~~~~~~~~~~~~~~~~~
-@@ -333,6 +346,11 @@ OpenFOAM | ThirdParty)
+@@ -333,6 +346,16 @@ OpenFOAM | ThirdParty)
      ;;
  system)
      # okay, use system compiler
-+    if [ "$(uname -s)" = "Darwin" ]; then
++    if [ "$(uname -s)" = "Darwin" ]
++    then
++        _brew_prefix="$(brew --prefix)"
++
 +        # additional variables on OS X
-+        export MPFR_ARCH_PATH=/usr/local/opt/mpfr
-+        export GMP_ARCH_PATH=/usr/local/opt/gmp
++        export MPFR_ARCH_PATH="$_brew_prefix/opt/mpfr"
++        export GMP_ARCH_PATH="$_brew_prefix/opt/gmp"
++
++        unset _brew_prefix
 +    fi
      ;;
  *)
      echo "Warn: foamCompiler='$foamCompiler' is unsupported" 1>&2
-@@ -581,7 +599,8 @@ esac
+@@ -581,7 +604,8 @@ esac
  # dummy MPI already added to LD_LIBRARY_PATH and has no external libraries
  if [ "$FOAM_MPI" != dummy ]
  then
@@ -710,7 +746,7 @@ index 8baec49..6a80ebd 100644
  fi
  
  
-@@ -596,10 +615,20 @@ then
+@@ -596,10 +620,20 @@ then
  fi
  export MPI_BUFFER_SIZE
  
@@ -755,7 +791,7 @@ index fa091ed..a0a79c9 100755
  set -x
  
 diff --git a/src/OSspecific/POSIX/POSIX.C b/src/OSspecific/POSIX/POSIX.C
-index 9207781..f39d8ed 100644
+index 9207781..1808ea5 100644
 --- a/src/OSspecific/POSIX/POSIX.C
 +++ b/src/OSspecific/POSIX/POSIX.C
 @@ -53,7 +53,11 @@ Description
@@ -770,7 +806,28 @@ index 9207781..f39d8ed 100644
  
  #include <netinet/in.h>
  
-@@ -1260,6 +1264,24 @@ bool Foam::dlSymFound(void* handle, const std::string& symbol)
+@@ -1173,6 +1177,20 @@ void* Foam::dlOpen(const fileName& lib, const bool check)
+             << " : dlopen of " << lib << std::endl;
+     }
+     void* handle = ::dlopen(lib.c_str(), RTLD_LAZY|RTLD_GLOBAL);
++#if defined(darwin64)
++    if (!handle && lib.ext() == "so")
++    {
++        fileName fallback_lib = lib.lessExt() + ".dylib";
++        if (check)
++        {
++            WarningIn("dlOpen(const fileName&, const bool)")
++                << "dlOpen: using fallback library name "
++                << fallback_lib
++                << endl;
++        }
++        handle = ::dlopen(fallback_lib.c_str(), RTLD_LAZY|RTLD_GLOBAL);
++    }
++#endif
+ 
+     if (!handle && check)
+     {
+@@ -1260,6 +1278,24 @@ bool Foam::dlSymFound(void* handle, const std::string& symbol)
  }
  
  
@@ -795,7 +852,7 @@ index 9207781..f39d8ed 100644
  static int collectLibsCallback
  (
      struct dl_phdr_info *info,
-@@ -1286,6 +1308,7 @@ Foam::fileNameList Foam::dlLoaded()
+@@ -1286,6 +1322,7 @@ Foam::fileNameList Foam::dlLoaded()
      }
      return libs;
  }
@@ -1322,6 +1379,31 @@ index 2f97577..026519c 100644
  }
  
  
+diff --git a/src/OpenFOAM/db/dynamicLibrary/dynamicCode/dynamicCode.H b/src/OpenFOAM/db/dynamicLibrary/dynamicCode/dynamicCode.H
+index 852ba6d..de16c15 100644
+--- a/src/OpenFOAM/db/dynamicLibrary/dynamicCode/dynamicCode.H
++++ b/src/OpenFOAM/db/dynamicLibrary/dynamicCode/dynamicCode.H
+@@ -167,7 +167,7 @@ public:
+         //- Check security for creating dynamic code
+         static void checkSecurity(const char* title, const dictionary&);
+ 
+-        //- Return the library basename without leading 'lib' or trailing '.so'
++        //- Return the library basename without leading 'lib' or trailing '.dylib'
+         static word libraryBaseName(const fileName& libPath);
+ 
+ 
+@@ -221,7 +221,11 @@ public:
+         //  Corresponds to codeRoot()/libSubDir()/lib\<codeName\>.so
+         fileName libPath() const
+         {
++#if defined(darwin64)
++            return codeRoot_/libSubDir_/"lib" + codeName_ + ".dylib";
++#else
+             return codeRoot_/libSubDir_/"lib" + codeName_ + ".so";
++#endif
+         }
+ 
+         //- Path for specified code name relative to \$FOAM_CASE
 diff --git a/src/OpenFOAM/db/objectRegistry/objectRegistryTemplates.C b/src/OpenFOAM/db/objectRegistry/objectRegistryTemplates.C
 index b5b5554..8eb8e1f 100644
 --- a/src/OpenFOAM/db/objectRegistry/objectRegistryTemplates.C
