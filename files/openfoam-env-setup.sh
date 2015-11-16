@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 # If you'd like to setup environment every time terminal is launched
 # create .OpenFOAM/OpenFOAM-release file in your home folder. In the file put
@@ -7,9 +7,9 @@
 # $ cat '2.X.Y' > .OpenFOAM/OpenFOAM-release
 # If you'd like to switch environment between versions use of2xy commands.
 
-FOAM_MOUNT_POINT=${FOAM_MOUNT_POINT:-"$HOME/OpenFOAM"}
-FOAM_RELEASE_FILE=${FOAM_RELESE_FILE:-"$HOME/.OpenFOAM/OpenFOAM-release"}
-FOAM_DISK_IMAGE=${FOAM_DISK_IMAGE:-"$HOME/OpenFOAM.sparsebundle"}
+readonly FOAM_MOUNT_POINT=${FOAM_MOUNT_POINT:-"$HOME/OpenFOAM"}
+readonly FOAM_RELEASE_FILE=${FOAM_RELESE_FILE:-"$HOME/.OpenFOAM/OpenFOAM-release"}
+readonly FOAM_DISK_IMAGE=${FOAM_DISK_IMAGE:-"$HOME/OpenFOAM.sparsebundle"}
 
 mount_disk_image () {
 	local oldpwd=$(pwd)
@@ -21,16 +21,15 @@ mount_disk_image () {
 }
 
 main () {
-	if [ ! -f $FOAM_RELEASE_FILE ]; then
-		# No default release information, just exporting setup functions
-		return 1
-	fi
+	[ -f $FOAM_RELEASE_FILE ] || return 1
 
-	local release="$(cat $FOAM_RELEASE_FILE)"
+	local release="$(cat "$FOAM_RELEASE_FILE")"
 	local bashrc="$FOAM_MOUNT_POINT/OpenFOAM-$release/etc/bashrc"
 
-	[ ! -f "$bashrc" ] && mount_disk_image
-	if [ -f "$bashrc" ]; then
+	[ -f "$bashrc" ] || mount_disk_image
+
+	if [ -f "$bashrc" ]
+    then
 		source $bashrc WM_NCOMPPROCS="$(sysctl -n hw.ncpu)"
 	else
 		echo "OpenFOAM $release doesn't seem to be installed."
@@ -53,6 +52,12 @@ ofxxx () {
 		fi
 	fi
 }
+
+of22x () {
+	ofxxx '2.2.x'
+}
+
+export -f of22x
 
 of231 () {
 	ofxxx '2.3.1'

@@ -1,3 +1,40 @@
+- [ ] Script for updating rolling releases
+  - [ ] 2.4.x
+  - [ ] 3.0.x
+- [ ] Extended functionality in RunFunctions
+  - [ ] 2.4.0
+  - [ ] 2.4.x
+  - [ ] 3.0.0
+  - [ ] 3.0.x
+- [ ] Implement foamLookupEntry utility for querying dictionaries
+  - [ ] 2.4.0
+  - [ ] 2.4.x
+  - [ ] 3.0.0
+  - [ ] 3.0.x
+- [X] Dynamic code library name extension
+  - [X] 2.2.x
+  - [X] 2.3.1
+  - [X] 2.3.x
+  - [X] 2.4.0
+  - [X] 2.4.x
+  - [X] 3.0.0
+  - [X] 3.0.x
+- [X] Fallback dynamic library extension
+  - [X] 2.2.x
+  - [X] 2.3.1
+  - [X] 2.3.x
+  - [X] 2.4.0
+  - [X] 2.4.x
+  - [X] 3.0.0
+  - [X] 3.0.x
+- [X] Query for Homebrew prefix
+  - [X] 2.2.x
+  - [X] 2.3.1
+  - [X] 2.3.x
+  - [X] 2.4.0
+  - [X] 2.4.x
+  - [X] 3.0.0
+  - [X] 3.0.x
 - [X] lnInclude regeneration for releases
   - [X] 2.3.1
   - [X] 2.4.0
