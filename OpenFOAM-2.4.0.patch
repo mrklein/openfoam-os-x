@@ -1,6 +1,6 @@
  .gitignore                                         |   1 +
- Allwmake                                           |  26 ++---
- applications/Allwmake                              |  12 ++-
+ Allwmake                                           |  26 +++--
+ applications/Allwmake                              |  12 +-
  .../mesh/conversion/kivaToFoam/readKivaGrid.H      |   2 +-
  .../mesh/generation/foamyHexMesh/Make/options      |   4 +
  .../foamyHexMesh/conformalVoronoiMesh/Make/options |   4 +
@@ -10,7 +10,7 @@
  .../conformalVoronoiMesh/indexedCell/indexedCell.H |   8 ++
  .../mesh/generation/foamyQuadMesh/Make/options     |   4 +
  .../mesh/generation/snappyHexMesh/Make/options     |   1 -
- .../mesh/manipulation/renumberMesh/Allwmake        |  11 ++-
+ .../mesh/manipulation/renumberMesh/Allwmake        |  11 +-
  .../mesh/manipulation/renumberMesh/Make/options    |   1 -
  .../miscellaneous/foamDebugSwitches/Make/options   |   2 -
  .../dataConversion/foamToEnsight/Make/options      |   1 -
@@ -19,19 +19,20 @@
  .../surfaceBooleanFeatures.C                       |   2 +
  bin/foamJob                                        |   8 ++
  bin/paraFoam                                       |   5 +
- etc/bashrc                                         |  30 +++++-
- etc/config/CGAL.sh                                 |  27 +++--
+ bin/tools/RunFunctions                             | 123 ++++++++++++++++-----
+ etc/bashrc                                         |  30 ++++-
+ etc/config/CGAL.sh                                 |  27 ++++-
  etc/config/metis.sh                                |  14 ++-
  etc/config/paraview-osx.sh                         |  16 +++
  etc/config/scotch.sh                               |  14 ++-
  etc/config/settings.sh                             |  37 ++++++-
- src/Allwmake                                       |  18 ++--
+ src/Allwmake                                       |  18 +--
  src/OSspecific/POSIX/POSIX.C                       |  37 +++++++
  src/OSspecific/POSIX/clockTime/clockTime.H         |   3 +
  src/OSspecific/POSIX/fileStat.C                    |   2 +
- src/OSspecific/POSIX/printStack.C                  |  68 +++++++++++--
- src/OSspecific/POSIX/signals/sigFpe.C              |  95 ++++++++++++++++--
- src/OSspecific/POSIX/signals/sigFpe.H              |  22 ++++-
+ src/OSspecific/POSIX/printStack.C                  |  68 +++++++++++-
+ src/OSspecific/POSIX/signals/sigFpe.C              |  95 +++++++++++++++-
+ src/OSspecific/POSIX/signals/sigFpe.H              |  22 +++-
  .../Lists/CompactListList/CompactListListI.H       |   2 +-
  .../containers/Lists/FixedList/FixedListI.H        |   2 +-
  src/OpenFOAM/containers/Lists/List/ListI.H         |   2 +-
@@ -55,9 +56,9 @@
  .../meshes/meshShapes/cellShape/cellShapeIO.C      |   2 +-
  src/OpenFOAM/meshes/polyMesh/polyMesh.C            |   8 +-
  src/OpenFOAM/primitives/Scalar/doubleFloat.H       |   9 ++
- src/OpenFOAM/primitives/nullObject/nullObject.C    |  34 +++++++
- src/OpenFOAM/primitives/nullObject/nullObject.H    | 110 +++++++++++++++++++++
- src/OpenFOAM/primitives/nullObject/nullObjectI.H   |  65 ++++++++++++
+ src/OpenFOAM/primitives/nullObject/nullObject.C    |  34 ++++++
+ src/OpenFOAM/primitives/nullObject/nullObject.H    | 110 ++++++++++++++++++
+ src/OpenFOAM/primitives/nullObject/nullObjectI.H   |  65 +++++++++++
  src/conversion/ensight/part/ensightPartCells.C     |   2 +-
  src/conversion/ensight/part/ensightPartIO.C        |   2 +-
  src/edgeMesh/edgeMesh.C                            |   4 +-
@@ -91,7 +92,7 @@
  .../specie/reaction/Reactions/Reaction/Reaction.C  |   6 +-
  wmake/Makefile                                     |   4 +
  wmake/rules/darwin64Clang/c                        |  16 +++
- wmake/rules/darwin64Clang/c++                      |  28 ++++++
+ wmake/rules/darwin64Clang/c++                      |  28 +++++
  wmake/rules/darwin64Clang/c++Debug                 |   2 +
  wmake/rules/darwin64Clang/c++Opt                   |   3 +
  wmake/rules/darwin64Clang/c++Prof                  |   2 +
@@ -99,7 +100,7 @@
  wmake/rules/darwin64Clang/cOpt                     |   2 +
  wmake/rules/darwin64Clang/cProf                    |   2 +
  wmake/rules/darwin64Clang/general                  |   8 ++
- 101 files changed, 850 insertions(+), 151 deletions(-)
+ 102 files changed, 945 insertions(+), 179 deletions(-)
 
 diff --git a/.gitignore b/.gitignore
 index ec46862..ead2d97 100644
@@ -479,6 +480,189 @@ index a902d21..51d1458 100755
  # parse options
  while [ "$#" -gt 0 ]
  do
+diff --git a/bin/tools/RunFunctions b/bin/tools/RunFunctions
+index 5a254ea..0340786 100644
+--- a/bin/tools/RunFunctions
++++ b/bin/tools/RunFunctions
+@@ -2,7 +2,7 @@
+ # =========                 |
+ # \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+ #  \\    /   O peration     |
+-#   \\  /    A nd           | Copyright (C) 2011-2015 OpenFOAM Foundation
++#   \\  /    A nd           | Copyright (C) 2011-2012 OpenFOAM Foundation
+ #    \\/     M anipulation  |
+ #------------------------------------------------------------------------------
+ # License
+@@ -28,75 +28,142 @@
+ #     Miscellaneous functions for running tutorial cases
+ #------------------------------------------------------------------------------
+ 
++isSIPEnabled()
++{
++    [ which -s csrutil ] && {
++    [ $(csrutil status | awk '{print $5}' | tr -d ".") = "enabled" ] \
++        && return 0
++    }
++    return 1
++}
++
++# Workaround for cleared DYLD_LIBRARY_PATH
++[ "$(uname -s)" = "Darwin" ] && [ isSIPEnabled ] && . $WM_PROJECT_DIR/etc/bashrc
++
+ getNumberOfProcessors()
+ {
+-    sed -ne 's/^numberOfSubdomains\s*\(.*\);/\1/p' system/decomposeParDict
++    grep numberOfSubdomains system/decomposeParDict \
++        | awk '{print $2}' \
++        | tr -d ";"
+ }
+ 
+ getApplication()
+ {
+-    sed -ne 's/^ *application\s*\([a-zA-Z]*\)\s*;.*$/\1/p' system/controlDict
++    grep application system/controlDict \
++        | awk '{print $2}' \
++        | tr -d ";"
+ }
+ 
+ runApplication()
+ {
+-    APP_RUN=$1
+-    APP_NAME=${1##*/}
++    local force=
++    local append=
++
++    local app_run="$1"
++    while [ "${app_run:0:1}" = "-" ]; do
++        case $app_run in
++        -f|--force)
++            force=y
++            ;;
++        -a|--append)
++            append=y
++            ;;
++        esac
++        shift
++        app_run="$1"
++    done
+     shift
++    local app_name=${app_run##*/}
++
++    [ -x "$(which $app_run)" ] || {
++    echo "Application $app_run does not exist or is not executable."
++    exit 1
++    }
++
++    [ "$force" = "y" ] && rm -f "log.$app_name"
+ 
+-    if [ -f log.$APP_NAME ]
++    if [ -f "log.$app_name" ]
+     then
+-        echo "$APP_NAME already run on $PWD: remove log file to re-run"
++        if [ "$append" = "y" ]
++        then
++            echo "Running $app_run on $PWD (appending to log.$app_name)"
++            $app_run "$@" >> "log.$app_name" 2>&1
++        else
++            echo "$app_name already run on $PWD: remove log file to re-run"
++        fi
+     else
+-        echo "Running $APP_RUN on $PWD"
+-        $APP_RUN "$@" > log.$APP_NAME 2>&1
++        echo "Running $app_run on $PWD"
++        $app_run "$@" > "log.$app_name" 2>&1
+     fi
+ }
+ 
+ runParallel()
+ {
+-    APP_RUN=$1
+-    APP_NAME=${1##*/}
++    local force=
++    local append=
++
++    local app_run="$1"
++    while [ "${app_run:0:1}" = "-" ]; do
++        case $app_run in
++        -f|--force)
++            force=y
++            ;;
++        -a|--append)
++            append=y
++            ;;
++        esac
++        shift
++        app_run="$1"
++    done
++    shift
++    local app_name=${app_run##*/}
++
++    [ -x "$(which app_run)" ] || {
++    echo "Application $app_run does not exist or is not executable."
++    exit 1
++    }
++
++    [ "$force" = "y" ] && rm -f "log.$app_name"
++
++    local n_procs="$1"
+     shift
+ 
+-    if [ -f log.$APP_NAME ]
++    if [ -f "log.$app_name" ]
+     then
+-        echo "$APP_NAME already run on $PWD: remove log file to re-run"
++        if [ "$append" = "y" ]
++        then
++            echo
++        else
++            echo "$app_name already run on $PWD: remove log file to re-run"
++        fi
+     else
+-        nProcs=$1
+-        shift
+-        echo "Running $APP_RUN in parallel on $PWD using $nProcs processes"
+-
+-        #if [ "$WM_SCHEDULER" ]
+-        #then
+-        #    echo "$PWD: $WM_SCHEDULER -np $nProcs" 1>&2
+-        #    $WM_SCHEDULER -np $nProcs "( mpirun -np $nProcs $APP_RUN -parallel "$@" < /dev/null > log.$APP_NAME 2>&1 )"
+-        #else
+-            ( mpirun -np $nProcs $APP_RUN -parallel "$@" < /dev/null > log.$APP_NAME 2>&1 )
+-        #fi
++        echo "Running $app_run in parallel on $PWD using $n_procs processes"
++
++        ( mpirun -np "$n_procs" $app_run -parallel "$@" < /dev/null > "log.$app_name" 2>&1 )
+     fi
+ }
+ 
+ compileApplication()
+ {
+     echo "Compiling $1 application"
+-    wmake $1
++    wmake "$1"
+ }
+ 
+ cloneCase()
+ {
+-    if [ -d $2 ]
++    if [ -d "$2" ]
+     then
+         echo "Case already cloned: remove case directory $2 to clone"
+     else
+         echo "Cloning $2 case from $1"
+-        mkdir $2
++        mkdir "$2"
+         cpfiles="0 system constant"
+         for f in $cpfiles
+         do
+-            cp -r $1/$f $2
++            cp -r "$1/$f" "$2"
+         done
+     fi
+ }
+ 
++# vim: set ft=sh:
+ #------------------------------------------------------------------------------
 diff --git a/etc/bashrc b/etc/bashrc
 index ac70942..908552a 100644
 --- a/etc/bashrc

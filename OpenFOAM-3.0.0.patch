@@ -9,6 +9,7 @@
  bin/foamInstallationTest                           |  21 +++-
  bin/foamJob                                        |   6 +
  bin/paraFoam                                       |   5 +
+ bin/tools/RunFunctions                             | 123 +++++++++++++-----
  etc/bashrc                                         |  37 +++++-
  etc/config/CGAL.sh                                 |  27 +++-
  etc/config/metis.sh                                |  18 ++-
@@ -53,7 +54,7 @@
  wmake/rules/darwin64Clang/cOpt                     |   2 +
  wmake/rules/darwin64Clang/cProf                    |   2 +
  wmake/rules/darwin64Clang/general                  |   8 ++
- 55 files changed, 1167 insertions(+), 79 deletions(-)
+ 56 files changed, 1262 insertions(+), 107 deletions(-)
 
 diff --git a/.gitignore b/.gitignore
 index 28fb901..fe1ede4 100644
@@ -269,6 +270,189 @@ index b032fc6..fb51332 100755
  # Parse options
  while [ "$#" -gt 0 ]
  do
+diff --git a/bin/tools/RunFunctions b/bin/tools/RunFunctions
+index 5a254ea..0340786 100644
+--- a/bin/tools/RunFunctions
++++ b/bin/tools/RunFunctions
+@@ -2,7 +2,7 @@
+ # =========                 |
+ # \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+ #  \\    /   O peration     |
+-#   \\  /    A nd           | Copyright (C) 2011-2015 OpenFOAM Foundation
++#   \\  /    A nd           | Copyright (C) 2011-2012 OpenFOAM Foundation
+ #    \\/     M anipulation  |
+ #------------------------------------------------------------------------------
+ # License
+@@ -28,75 +28,142 @@
+ #     Miscellaneous functions for running tutorial cases
+ #------------------------------------------------------------------------------
+ 
++isSIPEnabled()
++{
++    [ which -s csrutil ] && {
++    [ $(csrutil status | awk '{print $5}' | tr -d ".") = "enabled" ] \
++        && return 0
++    }
++    return 1
++}
++
++# Workaround for cleared DYLD_LIBRARY_PATH
++[ "$(uname -s)" = "Darwin" ] && [ isSIPEnabled ] && . $WM_PROJECT_DIR/etc/bashrc
++
+ getNumberOfProcessors()
+ {
+-    sed -ne 's/^numberOfSubdomains\s*\(.*\);/\1/p' system/decomposeParDict
++    grep numberOfSubdomains system/decomposeParDict \
++        | awk '{print $2}' \
++        | tr -d ";"
+ }
+ 
+ getApplication()
+ {
+-    sed -ne 's/^ *application\s*\([a-zA-Z]*\)\s*;.*$/\1/p' system/controlDict
++    grep application system/controlDict \
++        | awk '{print $2}' \
++        | tr -d ";"
+ }
+ 
+ runApplication()
+ {
+-    APP_RUN=$1
+-    APP_NAME=${1##*/}
++    local force=
++    local append=
++
++    local app_run="$1"
++    while [ "${app_run:0:1}" = "-" ]; do
++        case $app_run in
++        -f|--force)
++            force=y
++            ;;
++        -a|--append)
++            append=y
++            ;;
++        esac
++        shift
++        app_run="$1"
++    done
+     shift
++    local app_name=${app_run##*/}
++
++    [ -x "$(which $app_run)" ] || {
++    echo "Application $app_run does not exist or is not executable."
++    exit 1
++    }
++
++    [ "$force" = "y" ] && rm -f "log.$app_name"
+ 
+-    if [ -f log.$APP_NAME ]
++    if [ -f "log.$app_name" ]
+     then
+-        echo "$APP_NAME already run on $PWD: remove log file to re-run"
++        if [ "$append" = "y" ]
++        then
++            echo "Running $app_run on $PWD (appending to log.$app_name)"
++            $app_run "$@" >> "log.$app_name" 2>&1
++        else
++            echo "$app_name already run on $PWD: remove log file to re-run"
++        fi
+     else
+-        echo "Running $APP_RUN on $PWD"
+-        $APP_RUN "$@" > log.$APP_NAME 2>&1
++        echo "Running $app_run on $PWD"
++        $app_run "$@" > "log.$app_name" 2>&1
+     fi
+ }
+ 
+ runParallel()
+ {
+-    APP_RUN=$1
+-    APP_NAME=${1##*/}
++    local force=
++    local append=
++
++    local app_run="$1"
++    while [ "${app_run:0:1}" = "-" ]; do
++        case $app_run in
++        -f|--force)
++            force=y
++            ;;
++        -a|--append)
++            append=y
++            ;;
++        esac
++        shift
++        app_run="$1"
++    done
++    shift
++    local app_name=${app_run##*/}
++
++    [ -x "$(which app_run)" ] || {
++    echo "Application $app_run does not exist or is not executable."
++    exit 1
++    }
++
++    [ "$force" = "y" ] && rm -f "log.$app_name"
++
++    local n_procs="$1"
+     shift
+ 
+-    if [ -f log.$APP_NAME ]
++    if [ -f "log.$app_name" ]
+     then
+-        echo "$APP_NAME already run on $PWD: remove log file to re-run"
++        if [ "$append" = "y" ]
++        then
++            echo
++        else
++            echo "$app_name already run on $PWD: remove log file to re-run"
++        fi
+     else
+-        nProcs=$1
+-        shift
+-        echo "Running $APP_RUN in parallel on $PWD using $nProcs processes"
+-
+-        #if [ "$WM_SCHEDULER" ]
+-        #then
+-        #    echo "$PWD: $WM_SCHEDULER -np $nProcs" 1>&2
+-        #    $WM_SCHEDULER -np $nProcs "( mpirun -np $nProcs $APP_RUN -parallel "$@" < /dev/null > log.$APP_NAME 2>&1 )"
+-        #else
+-            ( mpirun -np $nProcs $APP_RUN -parallel "$@" < /dev/null > log.$APP_NAME 2>&1 )
+-        #fi
++        echo "Running $app_run in parallel on $PWD using $n_procs processes"
++
++        ( mpirun -np "$n_procs" $app_run -parallel "$@" < /dev/null > "log.$app_name" 2>&1 )
+     fi
+ }
+ 
+ compileApplication()
+ {
+     echo "Compiling $1 application"
+-    wmake $1
++    wmake "$1"
+ }
+ 
+ cloneCase()
+ {
+-    if [ -d $2 ]
++    if [ -d "$2" ]
+     then
+         echo "Case already cloned: remove case directory $2 to clone"
+     else
+         echo "Cloning $2 case from $1"
+-        mkdir $2
++        mkdir "$2"
+         cpfiles="0 system constant"
+         for f in $cpfiles
+         do
+-            cp -r $1/$f $2
++            cp -r "$1/$f" "$2"
+         done
+     fi
+ }
+ 
++# vim: set ft=sh:
+ #------------------------------------------------------------------------------
 diff --git a/etc/bashrc b/etc/bashrc
 index f7d1801..a8ecef0 100644
 --- a/etc/bashrc

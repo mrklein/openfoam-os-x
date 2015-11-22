@@ -3,6 +3,17 @@
 Patches for OpenFOAM compilation on OS X. Detailed installation instructions
 can be found in [wiki](https://github.com/mrklein/openfoam-os-x/wiki).
 
+## November 22, 2015
+
+Updated patches to include
+
+1. Working getApplication function (resolves #14)
+2. Extended functionality for runApplication and runParallel.
+   - -f (or --force) flag to force log-file overwrite
+   - -a (--append) to append to log-file instead of overwriting
+3. RunFunctions now also automatically source $WM_PROJECT_DIR/etc/bashrc if run
+   on El Capitan with enabled SIP (workaround for #15).
+
 ## November 9, 2015
 
 Updated 3.0.0 and 3.0.x patches to include build logic for Scotch and METIS
