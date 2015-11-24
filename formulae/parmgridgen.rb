@@ -1,7 +1,7 @@
 class Parmgridgen < Formula
   homepage "http://www-users.cs.umn.edu/~moulitsa/software.html"
   url "https://github.com/mrklein/ParMGridGen/archive/v0.0.2.tar.gz"
-  sha256 "94fd48e0253c809646b2ce90d9e282dff63393802cdf0d29d21368617599b1c5"
+  sha256 "b3875d877def79c5fe37df0c9b1a43a47b3a99e8714f654a44d2010ce338ea93"
 
   depends_on :mpi => :cc
 
