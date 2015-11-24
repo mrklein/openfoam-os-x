@@ -1,0 +1,167 @@
+#---------------------------------*- sh -*-------------------------------------
+# =========                 |
+# \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+#  \\    /   O peration     |
+#   \\  /    A nd           | Copyright (C) 2011-2012 OpenFOAM Foundation
+#    \\/     M anipulation  |
+#------------------------------------------------------------------------------
+# License
+#     This file is part of OpenFOAM.
+#
+#     OpenFOAM is free software: you can redistribute it and/or modify it
+#     under the terms of the GNU General Public License as published by
+#     the Free Software Foundation, either version 3 of the License, or
+#     (at your option) any later version.
+#
+#     OpenFOAM is distributed in the hope that it will be useful, but WITHOUT
+#     ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+#     FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+#     for more details.
+#
+#     You should have received a copy of the GNU General Public License
+#     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
+#
+# Script
+#     RunFunctions
+#
+# Description
+#     Miscellaneous functions for running tutorial cases
+#------------------------------------------------------------------------------
+
+isSIPEnabled()
+{
+    [ which -s csrutil ] && {
+    [ $(csrutil status | awk '{print $5}' | tr -d ".") = "enabled" ] \
+        && return 0
+    }
+    return 1
+}
+
+# Workaround for cleared DYLD_LIBRARY_PATH
+[ "$(uname -s)" = "Darwin" ] && [ isSIPEnabled ] && . $WM_PROJECT_DIR/etc/bashrc
+
+getNumberOfProcessors()
+{
+    foamLookupEntry -key numberOfSubdomains -dict system/decomposeParDict -batch
+    return $?
+}
+
+getApplication()
+{
+    foamLookupEntry -key application -dict system/controlDict -batch
+    return $?
+}
+
+runApplication()
+{
+    local force=
+    local append=
+
+    local app_run="$1"
+    while [ "${app_run:0:1}" = "-" ]; do
+        case $app_run in
+        -f|--force)
+            force=y
+            ;;
+        -a|--append)
+            append=y
+            ;;
+        esac
+        shift
+        app_run="$1"
+    done
+    shift
+    local app_name=${app_run##*/}
+
+    [ -x "$(which $app_run)" ] || {
+    echo "Application $app_run does not exist or is not executable."
+    exit 1
+    }
+
+    [ "$force" = "y" ] && rm -f "log.$app_name"
+
+    if [ -f "log.$app_name" ]
+    then
+        if [ "$append" = "y" ]
+        then
+            echo "Running $app_run on $PWD (appending to log.$app_name)"
+            $app_run "$@" >> "log.$app_name" 2>&1
+        else
+            echo "$app_name already run on $PWD: remove log file to re-run"
+        fi
+    else
+        echo "Running $app_run on $PWD"
+        $app_run "$@" > "log.$app_name" 2>&1
+    fi
+}
+
+runParallel()
+{
+    local force=
+    local append=
+
+    local app_run="$1"
+    while [ "${app_run:0:1}" = "-" ]; do
+        case $app_run in
+        -f|--force)
+            force=y
+            ;;
+        -a|--append)
+            append=y
+            ;;
+        esac
+        shift
+        app_run="$1"
+    done
+    shift
+    local app_name=${app_run##*/}
+
+    [ -x "$(which app_run)" ] || {
+    echo "Application $app_run does not exist or is not executable."
+    exit 1
+    }
+
+    [ "$force" = "y" ] && rm -f "log.$app_name"
+
+    local n_procs="$1"
+    shift
+
+    if [ -f "log.$app_name" ]
+    then
+        if [ "$append" = "y" ]
+        then
+            echo
+        else
+            echo "$app_name already run on $PWD: remove log file to re-run"
+        fi
+    else
+        echo "Running $app_run in parallel on $PWD using $n_procs processes"
+
+        ( mpirun -np "$n_procs" $app_run -parallel "$@" < /dev/null > "log.$app_name" 2>&1 )
+    fi
+}
+
+compileApplication()
+{
+    echo "Compiling $1 application"
+    wmake "$1"
+}
+
+cloneCase()
+{
+    if [ -d "$2" ]
+    then
+        echo "Case already cloned: remove case directory $2 to clone"
+    else
+        echo "Cloning $2 case from $1"
+        mkdir "$2"
+        cpfiles="0 system constant"
+        for f in $cpfiles
+        do
+            cp -r "$1/$f" "$2"
+        done
+    fi
+}
+
+# vim: set ft=sh:
+#------------------------------------------------------------------------------
