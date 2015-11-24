@@ -42,14 +42,16 @@ isSIPEnabled()
 
 getNumberOfProcessors()
 {
-    foamLookupEntry -key numberOfSubdomains -dict system/decomposeParDict -batch
-    return $?
+    grep numberOfSubdomains system/decomposeParDict \
+        | awk '{print $2}' \
+        | tr -d ";"
 }
 
 getApplication()
 {
-    foamLookupEntry -key application -dict system/controlDict -batch
-    return $?
+    grep application system/controlDict \
+        | awk '{print $2}' \
+        | tr -d ";"
 }
 
 runApplication()
