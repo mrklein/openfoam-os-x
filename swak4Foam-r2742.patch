@@ -1,0 +1,633 @@
+diff -r 00298f94f80e Allwmake
+--- a/Allwmake	Thu Nov 05 17:30:45 2015 +0100
++++ b/Allwmake	Fri Nov 27 15:35:53 2015 +0100
+@@ -1,16 +1,16 @@
+ #! /bin/bash
+ 
+ if [ -e foamVersionThisIsCompiledFor ]; then
+-    prevVersion=$(<foamVersionThisIsCompiledFor)
+-    echo "Previously compiled for OpenFOAM $prevVersion"
+-    if [ "$WM_PROJECT_VERSION" != "$prevVersion" ]; then
+-	echo "The current OpenFOAM-version $WM_PROJECT_VERSION is different from the one used for compiling before ($prevVersion). Use ./Allwclean before compiling"
+-	exit 42
+-    fi
+-    unset prevVersion
++	prevVersion=$(<foamVersionThisIsCompiledFor)
++	echo "Previously compiled for OpenFOAM $prevVersion"
++	if [ "$WM_PROJECT_VERSION" != "$prevVersion" ]; then
++		echo "The current OpenFOAM-version $WM_PROJECT_VERSION is different from the one used for compiling before ($prevVersion). Use ./Allwclean before compiling"
++		exit 42
++	fi
++	unset prevVersion
+ else
+-    echo "This is a clean install"
+-    echo $WM_PROJECT_VERSION >foamVersionThisIsCompiledFor
++	echo "This is a clean install"
++	echo $WM_PROJECT_VERSION >foamVersionThisIsCompiledFor
+ fi
+ 
+ swakDir=$(pwd)
+@@ -18,60 +18,60 @@
+ 
+ if [ -e $requirementsBin ];
+ then
+-    echo
+-    echo "$requirementsBin existing. Prepending to PATH-variable (private version of Bison)"
+-    echo
+-    export PATH=$requirementsBin:$PATH
++	echo
++	echo "$requirementsBin existing. Prepending to PATH-variable (private version of Bison)"
++	echo
++	export PATH=$requirementsBin:$PATH
+ fi
+ 
+ if [ -e swakConfiguration ]; then
+-    echo "Reading variables from 'swakConfiguration'"
+-    source swakConfiguration
++	echo "Reading variables from 'swakConfiguration'"
++	source swakConfiguration
+ else
+-    echo "No file 'swakConfiguration'. Python etc won't work. See README for details"
+-    echo "Try 'ln -s swakConfiguration.automatic swakConfiguration' for automatic configuration. BEWARE: this does not work on some systems"
++	echo "No file 'swakConfiguration'. Python etc won't work. See README for details"
++	echo "Try 'ln -s swakConfiguration.automatic swakConfiguration' for automatic configuration. BEWARE: this does not work on certain systems"
+ fi
+ 
+ . theFiles.sh
+ 
+ SOEXT=so
+ 
+-if [ `uname -s`=="Darwin" ]; then
+-    SOEXT=dylib
++if [ $(uname -s) = "Darwin" ]; then
++	SOEXT=dylib
+ fi
+ 
+-for lib in ${SWAKLIBS[@]}
++for lib in $SWAKLIBS
+ do
+-    if [ -e $FOAM_LIBBIN/lib$lib.$SOEXT ]; then
+-	echo "$FOAM_LIBBIN/lib$lib.$SOEXT shadows library that will be compiled. This might break the compilation of the utilities"
+-	if [ -z $I_KNOW_THE_RISCS ]; then
+-	    echo "Set the environment variable I_KNOW_THE_RISCS if you want to continue nevertheless"
+-	    exit 42
++	if [ -e "$FOAM_LIBBIN/lib$lib.$SOEXT" ]; then
++		echo "$FOAM_LIBBIN/lib$lib.$SOEXT shadows library that will be compiled. This might break the compilation of the utilities"
++		if [ -z $I_KNOW_THE_RISCS ]; then
++			echo "Set the environment variable I_KNOW_THE_RISCS if you want to continue nevertheless"
++			exit 42
++		fi
+ 	fi
+-    fi
+ done
+ 
+ if [ -z $SWAK_DO_NOT_GENERATE_NEW_VERSION_FILE ]; then
+-    echo "Checking swak4Foam-version and generating file"
+-    ./maintainanceScripts/makeSwakVersionFile.py
++	echo "Checking swak4Foam-version and generating file"
++	./maintainanceScripts/makeSwakVersionFile.py
+ else
+-    echo "Not generating new version file because SWAK_DO_NOT_GENERATE_NEW_VERSION_FILE is set"
++	echo "Not generating new version file because SWAK_DO_NOT_GENERATE_NEW_VERSION_FILE is set"
+ fi
+ 
+ (cd Libraries; wmake all )
+ 
+ if [ $? != 0 ]; then
+-    echo
+-    echo "Requirements for Library not satisfied. I see no sense in going on"
+-    echo "Check the README before you go on to ask. And search: Most likely your problem occured to 5 other people before and has been solved on the MessageBoard"
+-    exit 42
++	echo
++	echo "Requirements for Library not satisfied. I see no sense in going on"
++	echo "Check the README before you go on to ask. And search: Most likely your problem occured to 5 other people before and has been solved on the MessageBoard"
++	exit 42
+ fi
+ 
+ (
+-  #revert back to the default Gcc compiler, due to some problems that Icc has
+-  #with overly complex classes
+-  [ "$WM_COMPILER" = "Icc" ] && export WM_COMPILER=Gcc
+-  cd Utilities; wmake all
++#revert back to the default Gcc compiler, due to some problems that Icc has
++#with overly complex classes
++[ "$WM_COMPILER" = "Icc" ] && export WM_COMPILER=Gcc
++cd Utilities; wmake all
+ )
+ 
+ # (cd Examples/tests/fluIntegration/libRegistered; wmake)
+@@ -79,13 +79,13 @@
+ PROPOSED_SWAK4FOAM_SRC=`pwd`"/Libraries"
+ 
+ if [ -z $SWAK4FOAM_SRC ]; then
+-    echo
+-    echo
+-    echo "If you want to use swakCoded-function object or compile software based on swak set the environment variable SWAK4FOAM_SRC to $PROPOSED_SWAK4FOAM_SRC (most people will be fine without setting that variable)"
++	echo
++	echo
++	echo "If you want to use swakCoded-function object or compile software based on swak set the environment variable SWAK4FOAM_SRC to $PROPOSED_SWAK4FOAM_SRC (most people will be fine without setting that variable)"
+ else
+-    if [ $SWAK4FOAM_SRC != $PROPOSED_SWAK4FOAM_SRC ]; then
+-	echo
+-	echo
+-	echo "The environment variable SWAK4FOAM_SRC has the value $SWAK4FOAM_SRC instead of the expected value $PROPOSED_SWAK4FOAM_SRC - Maybe it points to a different installation."
+-    fi
++	if [ $SWAK4FOAM_SRC != $PROPOSED_SWAK4FOAM_SRC ]; then
++		echo
++		echo
++		echo "The environment variable SWAK4FOAM_SRC has the value $SWAK4FOAM_SRC instead of the expected value $PROPOSED_SWAK4FOAM_SRC - Maybe it points to a different installation."
++	fi
+ fi
+diff -r 00298f94f80e Libraries/Allwmake
+--- a/Libraries/Allwmake	Thu Nov 05 17:30:45 2015 +0100
++++ b/Libraries/Allwmake	Fri Nov 27 15:35:53 2015 +0100
+@@ -1,98 +1,114 @@
+-#! /bin/bash
++#!/bin/bash
+ 
+-BISONPATH=`which bison`
++if [ -n "$SWAK_BISON" ]
++then
++	test -x "$SWAK_BISON"
++else
++	export SWAK_BISON="$(which bison)"
++fi
+ NOBISON=$?
+ 
+-if [[ $NOBISON != 0 ]]; then
+-    echo
+-    echo "No 'bison' found. This is absolutely essential for swak4Foam. Can't go on"
+-    echo "Every Linux has a binary package that installs bison (http://www.gnu.org/software/bison/). Install it. Then go on"
+-    echo "As an alternative you can install a local copy of bison by running ./maintainanceScripts/compileRequirements.sh from the installation directory"
+-    echo "BTW: it was listed as a requirement in the README. You read that, didn't you?"
+-    echo
+-    exit 42
++if [ "$NOBISON" -ne "0" ]
++then
++	echo
++	echo "No 'bison' found. This is absolutely essential for swak4Foam. Can't go on"
++	echo "Every Linux has a binary package that installs bison (http://www.gnu.org/software/bison/). Install it. Then go on"
++	echo "As an alternative you can install a local copy of bison by running ./maintainanceScripts/compileRequirements.sh from the installation directory"
++	echo "BTW: it was listed as a requirement in the README. You read that, didn't you?"
++	echo
++	exit 42
+ fi
+ 
+-FLEXPATH=`which flex`
++if [ -n "$SWAK_FLEX" ]
++then
++	test -x "$SWAK_FLEX"
++else
++	export SWAK_FLEX="$(which flex)"
++fi
+ NOFLEX=$?
+ 
+-if [[ $NOFLEX != 0 ]]; then
+-    echo
+-    echo "No 'flex' found. This is absolutely essential for swak4Foam. Can't go on"
+-    echo "Every Linux has a binary package that installs flex (http://flex.sourceforge.net). Install it. Then go on"
+-    echo "BTW: it was listed as a requirement in the README. You read that, didn't you?"
+-    echo
+-    exit 42
++if [ "$NOFLEX" -ne 0 ]
++then
++	echo
++	echo "No 'flex' found. This is absolutely essential for swak4Foam. Can't go on"
++	echo "Every Linux has a binary package that installs flex (http://flex.sourceforge.net). Install it. Then go on"
++	echo "BTW: it was listed as a requirement in the README. You read that, didn't you?"
++	echo
++	exit 42
+ fi
+ 
+-BISONVER=`bison -V | head -n 1| tr ' ' '\n' | tail -n 1`
++BISONVER=$("$SWAK_BISON" -V | head -n 1 | cut -d' ' -f4 | cut -d. -f 1-2)
+ 
+ echo "Bison is version $BISONVER"
+ 
+-if [[ $BISONVER < 2.4 ]]; then
+-    echo "swak4Foam only confirmed to work with Bison >= 2.4"
+-    echo "Compiles with 2.3 but has offset-problems with locations which break the Plugin-functionality"
+-    echo "Consider running ./maintainanceScripts/compileRequirements.sh for a local bison-installation"
+-    if [ -z $USE_OLD_BISON ]; then
+-	echo "Set the environment variable USE_OLD_BISON if you want to continue anyway"
+-	exit 42
+-    else
+-	echo "I continue under protest. Should swak4Foam work with your bison-version, then please report it"
+-	echo
+-	echo
+-    fi
++# Comparing floating numbers using recipe from http://goo.gl/3EViRm (SO)
++if [ $(bc <<< "$BISONVER < 2.4") -eq "1" ]
++then
++	echo "swak4Foam only confirmed to work with Bison >= 2.4"
++	echo "Compiles with 2.3 but has offset-problems with locations which break the Plugin-functionality"
++	echo "Consider running ./maintainanceScripts/compileRequirements.sh for a local bison-installation"
++	if [ -z $USE_OLD_BISON ]; then
++		echo "Set the environment variable USE_OLD_BISON if you want to continue anyway"
++		exit 42
++	else
++		echo "I continue under protest. Should swak4Foam work with your bison-version, then please report it"
++		echo
++		echo
++	fi
+ fi
+ 
+-if [[ $BISONVER > 2.999 ]]; then
+-    echo "swak4Foam only confirmed to work with Bison 2.x"
+-    echo "Consider running ./maintainanceScripts/compileRequirements.sh for a local bison-installation"
+-    if [ -z $DEVELOPE_FOR_NEW_BISON ]; then
+-	echo "Set the environment variable DEVELOPE_FOR_NEW_BISON if you want to continue anyway."
+-	exit 42
+-    fi
++if [ "$(bc <<< "$BISONVER > 2.999")" -eq "1" ]
++then
++	echo "swak4Foam only confirmed to work with Bison 2.x"
++	echo "Consider running ./maintainanceScripts/compileRequirements.sh for a local bison-installation"
++	if [ -z "$DEVELOPE_FOR_NEW_BISON" ]; then
++		echo "Set the environment variable DEVELOPE_FOR_NEW_BISON if you want to continue anyway."
++		exit 42
++	fi
+ fi
+ 
+-FLEXVER=`flex -V | head -n 1| tr ' ' '\n' | tail -n 1`
+-MINORVER=`echo $FLEXVER | tr '.' '\n' | tail -n 1`
++FLEXVER=$("$SWAK_FLEX" -V | head -1 | cut -d' ' -f2 | cut -d. -f1-2)
++MINORVER=$(cut -d. -f3 <<< "$("$SWAK_FLEX" -V | cut -d' ' -f2)")
+ 
+-echo "Flex is version $FLEXVER (Minor version: $MINORVER)"
++echo "Flex is version $FLEXVER (minor version: $MINORVER)"
+ 
+-if [[ $FLEXVER < 2.6 && $MINORVER -lt 35 ]]; then
+-    echo "swak4Foam only confirmed to work with Flex >= 2.5.35 (2.5.33 may work, but 2.5.4 definitely not)"
+-    if [ -z $USE_OLD_FLEX ]; then
++[ $(bc <<< "$FLEXVER < 2.6") ] && [ "$MINORVER" -lt "35" ] && {
++echo "swak4Foam only confirmed to work with Flex >= 2.5.35 (2.5.33 may work, but 2.5.4 definitely not)"
++if [ -z $USE_OLD_FLEX ]; then
+ 	echo "Set the environment variable USE_OLD_FLEX if you want to continue anyway"
+ 	exit 42
+-    else
++else
+ 	echo "I continue under protest. Should swak4Foam work with your flex-version, then please report it"
+ 	echo
+ 	echo
+-    fi
+ fi
++}
+ 
+-of_version_major=`echo $WM_PROJECT_VERSION | sed -e 's=\([0-9]*\).*=\1='`
+-of_version_minor=`echo $WM_PROJECT_VERSION | sed -e 's=[0-9]*\.\([0-9]*\).*=\1='`
+-of_version_patch=`echo $WM_PROJECT_VERSION | sed -e 's=[0-9]*\.[0-9]*\.\([0-9a-z]*\).*=\1=' -e 's=[0-9]*\.[0-9]*=x=' -e 's=x=-1='`
++of_version_major=$(echo $WM_PROJECT_VERSION | sed -e 's=\([0-9]*\).*=\1=')
++of_version_minor=$(echo $WM_PROJECT_VERSION | sed -e 's=[0-9]*\.\([0-9]*\).*=\1=')
++of_version_patch=$(echo $WM_PROJECT_VERSION | sed -e 's=[0-9]*\.[0-9]*\.\([0-9a-z]*\).*=\1=' -e 's=[0-9]*\.[0-9]*=x=' -e 's=x=-1=')
+ 
+-if [[ $of_version_minor == "dev" && $of_version_patch == "dev" ]]; then
+-    echo "This seems to be an OpenFOAM-development version"
+-    of_version_major=9
+-    of_version_minor=9
+-    of_version_patch=99
+-    of_development=1
+-fi
++[ "$of_version_minor" = "dev" ] && [ "$of_version_patch" = "dev" ] && {
++echo "This seems to be an OpenFOAM-development version"
++of_version_major=9
++of_version_minor=9
++of_version_patch=99
++of_development=1
++}
+ 
+-if [[ $of_version_patch == -1  ]]; then
+-    # Needs to be 98 so that it is smaller than version macro with 99
+-    of_version_patch_num=98
++if [ "$of_version_patch" = "-1" ]
++then
++	# Needs to be 98 so that it is smaller than version macro with 99
++	of_version_patch_num=98
+ else
+-    of_version_patch_num=$of_version_patch
++	of_version_patch_num="$of_version_patch"
+ fi
+ 
+ echo "OpenFOAM-version: Major $of_version_major Minor $of_version_minor Patch $of_version_patch (-1 == x / $of_version_patch_num)"
+ 
+ versionFile=swak4FoamParsers/foamVersion4swak.H
+ 
+-cat >$versionFile.tmp <<EOF
++cat > "$versionFile.tmp" <<EOF
+ // generated by the Allwmake-script of the swak4Foam-distro
+ #ifndef foamVersion4swak_H
+ #define foamVersion4swak_H
+@@ -103,28 +119,29 @@
+ #define FOAM_VERSION4SWAK_PATCH_NUM $of_version_patch_num
+ EOF
+ 
+-if [[ $of_development != "" ]]; then
+-    echo >>$versionFile.tmp "#define FOAM_VERSION4SWAK_OF_DEV"
+-fi
++[ "$of_development" = "" ] \
++	|| echo >> "$versionFile.tmp" "#define FOAM_VERSION4SWAK_OF_DEV"
+ 
+-cat >>$versionFile.tmp <<EOF
++cat >> "$versionFile.tmp" <<EOF
+ 
+ #endif
+ EOF
+ 
+-if [ -e $versionFile ]; then
+-    nrDiff=`diff $versionFile.tmp $versionFile | wc -l | tr -d " "`
+-    if [[ $nrDiff > 0 ]]; then
+-	echo "$versionFile changed"
+-	mv $versionFile.tmp $versionFile
+-    else
+-	# Make sure that not a complete recompilation is triggered
+-	echo "No change to $versionFile"
+-	rm $versionFile.tmp
+-    fi
++if [ -e "$versionFile" ]
++then
++	nrDiff=$(diff $versionFile.tmp $versionFile | wc -l | tr -d " ")
++	if [ "$nrDiff" -gt "0" ]
++	then
++		echo "$versionFile changed"
++		mv "$versionFile.tmp" "$versionFile"
++	else
++		# Make sure that not a complete recompilation is triggered
++		echo "No change to $versionFile"
++		rm "$versionFile.tmp"
++	fi
+ else
+-    echo "No $versionFile. Generated"
+-    mv $versionFile.tmp $versionFile
++	echo "No $versionFile. Generated"
++	mv "$versionFile.tmp" "$versionFile"
+ fi
+ 
+ wmakeLnInclude simpleFunctionObjects
+@@ -133,9 +150,10 @@
+ 
+ PARSERSOK=$?
+ 
+-if [[ $PARSERSOK != 0 ]]; then
+-    echo "Parser library did not compile OK. No sense continuing as everything else depends on it"
+-    exit 42
++if [ "$PARSERSOK" -ne "0" ]
++then
++	echo "Error happened during compilation of parser library. No sense continuing as everything else depends on it."
++	exit 42
+ fi
+ 
+ wmake libso swakLagrangianParser
+@@ -154,70 +172,67 @@
+ 
+ wmake libso swakTopoSources
+ 
+-if [ $of_version_major -ge 2 -a $of_version_minor -eq 0 ]; then
+-  wmake libso swakSourceFields Make.20
++if [ "$of_version_major" -ge "2" ] && [ "$of_version_minor" -eq "0" ]
++then
++	wmake libso swakSourceFields Make.20
+ else
+-  wmake libso swakSourceFields
++	wmake libso swakSourceFields
+ fi
+ 
+-if [[ $WM_PROJECT_VERSION > 2.2 && "$FOAM_DEV" == "" ]]
++if [ $(bc <<< "$WM_PROJECT_VERSION > 2.2") ] && [ "$FOAM_DEV" = "" ]
+ then
+-    echo "Compiling swakFvOptions"
+-    wmake libso swakFvOptions
++	echo "Compiling swakFvOptions"
++	wmake libso swakFvOptions
+ fi
+ 
+-if [ "$FOAM_DEV" != "" ]
+-then
+-    for my in mybison myflex
+-    do
++[ -z "$FOAM_DEV" ] || {
++for my in mybison myflex
++do
+ 	mysource="../../swak4FoamParsers/Make/$my"
+ 	mytarget="swakFiniteArea/Make/$my"
+ 	if [ ! -e $mytarget ]
+ 	then
+-	    echo "Creating symbolic link from $mysource to $mytarget"
+-	    ln -s $mysource $mytarget
++		echo "Creating symbolic link from $mysource to $mytarget"
++		ln -s $mysource $mytarget
+ 	fi
+-    done
++done
+ 
+-    wmake libso swakFiniteArea
+-fi
++wmake libso swakFiniteArea
++}
+ 
+ wmake libso groovyStandardBCs
+ 
+-if [ "$SWAK_PYTHON_INCLUDE" != "" ]
++if [ -z "$SWAK_PYTHON_INCLUDE" ]
+ then
+-    SOEXT=so
++	echo
++	echo "SWAK_PYTHON_INCLUDE not defined .... no Python-Integration. Most people are fine without it"
++	echo
++else
++	SOEXT=so
++	[ $(uname -s) = "Darwin" ] && SOEXT=dylib
+ 
+-    if [ `uname -s`=="Darwin" ]; then
+-	SOEXT=dylib
+-    fi
+-
+-    oldPython="$FOAM_USER_LIBBIN/libpythonIntegration.$SOEXT"
+-    if [ -e $oldPython ]
+-    then
+-	echo "Removing old python integration $oldPython"
+-	rm $oldPython
+-    fi
+-    wmake libso swakPythonIntegration
+-else
+-    echo
+-    echo "SWAK_PYTHON_INCLUDE not defined .... no Python-Integration. Most people are fine without it"
+-    echo
++	oldPython="$FOAM_USER_LIBBIN/libpythonIntegration.$SOEXT"
++	if [ -e $oldPython ]
++	then
++		echo "Removing old python integration $oldPython"
++		rm $oldPython
++	fi
++	wmake libso swakPythonIntegration
+ fi
+ 
+ (cd functionPlugins; wmake all)
+ 
+-if [ "$SWAK_USER_PLUGINS" != "" ]
++if [ -z "$SWAK_USER_PLUGINS" ]
+ then
+-    plugins=$(echo $SWAK_USER_PLUGINS | tr ";" "\n")
++	echo
++	echo "If you have your own function-plugins you can specify them using the SWAK_USER_PLUGINS environment variable and they would be compiled now. If you don't know what this means: don't bother. You propably don't need it"
++	echo
++else
++	plugins=$(echo "$SWAK_USER_PLUGINS" | tr ";" "\n")
+ 
+-    for plug in $plugins
+-    do
+-	echo "Compiling user function-plugin $plug"
+-	wmake libso $plugins
+-    done
+-else
+-    echo
+-    echo "If you have your own function-plugins you can specify them using the SWAK_USER_PLUGINS environment variable and they would be compiled now. If you don't know what this means: don't bother. You propably don't need it"
+-    echo
++	for plug in $plugins
++	do
++		echo "Compiling user function-plugin $plug"
++		wmake libso $plugins
++	done
+ fi
+diff -r 00298f94f80e Libraries/simpleFunctionObjects/functionObjectProxy/executeIfExecutableFitsFunctionObject/executeIfExecutableFitsFunctionObject.C
+--- a/Libraries/simpleFunctionObjects/functionObjectProxy/executeIfExecutableFitsFunctionObject/executeIfExecutableFitsFunctionObject.C	Thu Nov 05 17:30:45 2015 +0100
++++ b/Libraries/simpleFunctionObjects/functionObjectProxy/executeIfExecutableFitsFunctionObject/executeIfExecutableFitsFunctionObject.C	Fri Nov 27 15:35:53 2015 +0100
+@@ -98,7 +98,7 @@
+         exePath=string(path);
+     }
+ #else
+-    Not yet implemented;
++    // Not yet implemented;
+ #endif
+ 
+     executable_=exePath.name();
+diff -r 00298f94f80e Libraries/swak4FoamParsers/Make/mybison
+--- a/Libraries/swak4FoamParsers/Make/mybison	Thu Nov 05 17:30:45 2015 +0100
++++ b/Libraries/swak4FoamParsers/Make/mybison	Fri Nov 27 15:35:53 2015 +0100
+@@ -1,6 +1,6 @@
+ .SUFFIXES: .yy
+ 
+-yytoo = rm -f $*.C $*.tab.hh; mkdir $$$$; cd $$$$; [ -n "$(SWAK_TEST_RACE_CONDITIONS)" ] && sleep 30; bison -ra -v $(YYPREFIX) -d ../$$SOURCE ; mv *.tab.cc ../$*.C ; sed -i.bak "s/position.hh/$(*F)_position.hh/" location.hh ; mv location.hh ../lnInclude/$(*F)_location.hh ; mv stack.hh ../lnInclude/$(*F)_stack.hh ; mv position.hh ../lnInclude/$(*F)_position.hh ; sed -i.bak "s/stack.hh/$(*F)_stack.hh/;s/location.hh/$(*F)_location.hh/" $(*F).tab.hh ;mv *.hh ../lnInclude ; touch -r ../$$SOURCE ../lnInclude/$(*F)*.hh ; cd ..; rm -r $$$$; if [ -z "$(SWAK_COMPILE_GRAMMAR_OPTION)" ]; then echo -e "\n\nIf compilation of the grammers takes prohibitivly long set SWAK_COMPILE_GRAMMAR_OPTION to something like -O1\n\n" ; fi;  $(WM_SCHEDULER) $(CC) $(c++FLAGS) $(SWAK_COMPILE_GRAMMAR_OPTION) -c $*.C -o $@
++yytoo = rm -f $*.C $*.tab.hh; mkdir $$$$; cd $$$$; [ -n "$(SWAK_TEST_RACE_CONDITIONS)" ] && sleep 30; "$(SWAK_BISON)" -ra -v $(YYPREFIX) -d ../$$SOURCE ; mv *.tab.cc ../$*.C ; sed -i.bak "s/position.hh/$(*F)_position.hh/" location.hh ; mv location.hh ../lnInclude/$(*F)_location.hh ; mv stack.hh ../lnInclude/$(*F)_stack.hh ; mv position.hh ../lnInclude/$(*F)_position.hh ; sed -i.bak "s/stack.hh/$(*F)_stack.hh/;s/location.hh/$(*F)_location.hh/" $(*F).tab.hh ;mv *.hh ../lnInclude ; touch -r ../$$SOURCE ../lnInclude/$(*F)*.hh ; cd ..; rm -r $$$$; if [ -z "$(SWAK_COMPILE_GRAMMAR_OPTION)" ]; then echo -e "\n\nIf compilation of the grammers takes prohibitivly long set SWAK_COMPILE_GRAMMAR_OPTION to something like -O1\n\n" ; fi;  $(WM_SCHEDULER) $(CC) $(c++FLAGS) $(SWAK_COMPILE_GRAMMAR_OPTION) -c $*.C -o $@
+ 
+ .yy.dep:
+ 	$(MAKE_DEP)
+diff -r 00298f94f80e Libraries/swak4FoamParsers/Make/mybisonNew
+--- a/Libraries/swak4FoamParsers/Make/mybisonNew	Thu Nov 05 17:30:45 2015 +0100
++++ b/Libraries/swak4FoamParsers/Make/mybisonNew	Fri Nov 27 15:35:53 2015 +0100
+@@ -3,7 +3,7 @@
+ yytoo = rm -f $*.C $*.tab.hh; \
+       mkdir $$$$; cd $$$$; \
+       [ -n "$(SWAK_TEST_RACE_CONDITIONS)" ] && sleep 30; \
+-      bison -ra -v $(YYPREFIX) -d ../$< ; \
++      "$(SWAK_BISON)" -ra -v $(YYPREFIX) -d ../$< ; \
+       mv *.tab.cc ../$(@D)/$(<F).C ; \
+       sed -i.bak "s/position.hh/$(*F)_position.hh/" location.hh ; \
+       mv location.hh ../lnInclude/$(*F)_location.hh ; \
+diff -r 00298f94f80e Libraries/swak4FoamParsers/Make/myflex
+--- a/Libraries/swak4FoamParsers/Make/myflex	Thu Nov 05 17:30:45 2015 +0100
++++ b/Libraries/swak4FoamParsers/Make/myflex	Fri Nov 27 15:35:53 2015 +0100
+@@ -1,6 +1,6 @@
+ .SUFFIXES: .ll
+ 
+-lltoo = rm -f $*.C ; mkdir $$$$; cd $$$$; flex -f ../$$SOURCE ; mv *.c ../$*.C ; cd ..; rm -r $$$$; if [ -z "$(SWAK_COMPILE_LEXER_OPTION)" ]; then echo -e "\n\nIf you use aggessive optimization (O3 or so) and experience strange crahes while running with grovvyBC etc set SWAK_COMPILE_LEXER_OPTION to something like -O1\n\n" ; fi; $(WM_SCHEDULER) $(CC) $(c++FLAGS)  $(SWAK_COMPILE_LEXER_OPTION) -c $*.C -o $@
++lltoo = rm -f $*.C ; mkdir $$$$; cd $$$$; "$(SWAK_FLEX)" -f ../$$SOURCE ; mv *.c ../$*.C ; cd ..; rm -r $$$$; if [ -z "$(SWAK_COMPILE_LEXER_OPTION)" ]; then echo -e "\n\nIf you use aggessive optimization (O3 or so) and experience strange crahes while running with grovvyBC etc set SWAK_COMPILE_LEXER_OPTION to something like -O1\n\n" ; fi; $(WM_SCHEDULER) $(CC) $(c++FLAGS)  $(SWAK_COMPILE_LEXER_OPTION) -c $*.C -o $@
+ 
+ .ll.dep:
+ 	$(MAKE_DEP)
+diff -r 00298f94f80e Libraries/swak4FoamParsers/Make/myflexNew
+--- a/Libraries/swak4FoamParsers/Make/myflexNew	Thu Nov 05 17:30:45 2015 +0100
++++ b/Libraries/swak4FoamParsers/Make/myflexNew	Fri Nov 27 15:35:53 2015 +0100
+@@ -2,7 +2,7 @@
+ 
+ lltoo = rm -f $*.C ; \
+       mkdir $$$$; cd $$$$; \
+-      flex -f ../$< ; \
++      "$(SWAK_FLEX)" -f ../$< ; \
+       mv *.c ../$(@D)/$(<F).C ; cd ..; rm -r $$$$; \
+       if [ -z "$(SWAK_COMPILE_LEXER_OPTION)" ]; then echo -e "\n\nIf you use aggessive optimization (O3 or so) and experience strange crahes while running with grovvyBC etc set SWAK_COMPILE_LEXER_OPTION to something like -O1\n\n" ; fi; \
+       $(WM_SCHEDULER) $(CC) $(c++FLAGS)  $(SWAK_COMPILE_LEXER_OPTION) -c $(@D)/$(<F).C -o $@
+diff -r 00298f94f80e Libraries/swak4FoamParsers/Make/options
+--- a/Libraries/swak4FoamParsers/Make/options	Thu Nov 05 17:30:45 2015 +0100
++++ b/Libraries/swak4FoamParsers/Make/options	Fri Nov 27 15:35:53 2015 +0100
+@@ -11,6 +11,7 @@
+ endif
+ 
+ EXE_INC = -I$(OBJECTS_DIR) \
++    -Iinclude \
+     $(FOAM_DEV_OPTION) 	\
+     -I$(LIB_SRC)/finiteVolume/lnInclude \
+     -I$(LIB_SRC)/sampling/lnInclude \
+diff -r 00298f94f80e swakConfiguration.automatic
+--- a/swakConfiguration.automatic	Thu Nov 05 17:30:45 2015 +0100
++++ b/swakConfiguration.automatic	Fri Nov 27 15:35:53 2015 +0100
+@@ -1,5 +1,12 @@
+-export SWAK_PYTHON_INCLUDE="$(python-config --cflags)"
+-export SWAK_PYTHON_LINK="$(python-config --ldflags)"
++export SWAK_PYTHON_INCLUDE=
++export SWAK_PYTHON_LINK=
++
++# Querying python-config
++if which python-config > /dev/null
++then
++    export SWAK_PYTHON_INCLUDE="$(python-config --cflags)"
++    export SWAK_PYTHON_LINK="$(python-config --ldflags)"
++fi
+ 
+ # List separated by : with directories to user plugins
+ # export SWAK_USER_PLUGINS=../Examples/UserPlugins/swakTestFunctionPlugins
+@@ -10,11 +17,18 @@
+ 
+ export SWAK_COMPILE_GRAMMAR_OPTION="-O1"
+ 
+-if [ "$WM_USE_HOMEBREW" -eq "1" ]
++# On OS X with Homebrew use bison from bison27 formula
++if which brew > /dev/null
+ then
+-    export SWAK_BISON=/usr/local/opt/bison27/bin/bison
++    BREW_PREFIX=$(brew --prefix)
++    [ -e "$BREW_PREFIX/opt/bison27/bin/bison" ] && {
++    export SWAK_BISON="$BREW_PREFIX/opt/bison27/bin/bison"
++    export SWAK_BISON_LDFLAGS="-L$BREW_PREFIX/opt/bison27/lib"
++    }
+ fi
+ 
+ # If enabled, uses a 30 delay for building Bison generated files.
+ # Useful only for checking if there are any race conditions.
+ # export SWAK_TEST_RACE_CONDITIONS=1
++
++# vim: set ft=sh:
+diff -r 00298f94f80e theFiles.sh
+--- a/theFiles.sh	Thu Nov 05 17:30:45 2015 +0100
++++ b/theFiles.sh	Fri Nov 27 15:35:53 2015 +0100
+@@ -1,8 +1,8 @@
+ # Lists the files that are going to be used by other scripts
+ 
+ export SWAKLIBS=(groovyBC \
+-    groovyStandardBCs \
+-    swakSourceFields \
++	groovyStandardBCs \
++	swakSourceFields \
+     simpleFunctionObjects \
+     simpleSwakFunctionObjects \
+     simpleLagrangianFunctionObjects \
+@@ -16,10 +16,7 @@
+     swakFvOptions \
+     swakFunctionObjects)
+ 
+-if [ "$FOAM_DEV" != "" ]
+-then
+-    SWAKLIBS+=(swakFiniteArea)
+-fi
++[ "$FOAM_DEV" = "" ] || SWAKLIBS+=(swakFiniteArea)
+ 
+ export SWAKUTILS=(funkySetBoundaryField \
+     funkySetFields \
+@@ -31,7 +28,4 @@
+     funkySetLagrangianField \
+     replayTransientBC)
+ 
+-if [ "$FOAM_DEV" != "" ]
+-then
+-    SWAKUTILS+=(funkySetAreaFields)
+-fi
++[ "$FOAM_DEV" = "" ] || SWAKUTILS+=(funkySetAreaFields)

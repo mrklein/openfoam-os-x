@@ -38,7 +38,9 @@ isSIPEnabled()
 }
 
 # Workaround for cleared DYLD_LIBRARY_PATH
-[ "$(uname -s)" = "Darwin" ] && [ isSIPEnabled ] && . $WM_PROJECT_DIR/etc/bashrc
+[ "$(uname -s)" = "Darwin" ] \
+    && [ isSIPEnabled ] \
+    && source "$WM_PROJECT_DIR/etc/bashrc"
 
 getNumberOfProcessors()
 {
@@ -60,12 +62,12 @@ runApplication()
     local append=
 
     local app_run="$1"
-    while [ "${app_run:0:1}" = "-" ]; do
+    while [ "$(echo "$app_run" | cut -c1)" = "-" ]; do
         case $app_run in
-        -f|--force)
+        -f|--force|-force)
             force=y
             ;;
-        -a|--append)
+        -a|--append|-append)
             append=y
             ;;
         esac
@@ -103,12 +105,12 @@ runParallel()
     local append=
 
     local app_run="$1"
-    while [ "${app_run:0:1}" = "-" ]; do
+    while [ "$(echo "$app_run" | cut -c1)" = "-" ]; do
         case $app_run in
-        -f|--force)
+        -f|--force|-force)
             force=y
             ;;
-        -a|--append)
+        -a|--append|-force)
             append=y
             ;;
         esac
@@ -151,16 +153,33 @@ compileApplication()
 
 cloneCase()
 {
-    if [ -d "$2" ]
+    local force=
+
+    local source_case="$1"
+    while [ "$(echo "$source_case" | cut -c1)" = "-" ]; do
+        case $app_run in
+        -f|--force|-force)
+            force=y
+            ;;
+        esac
+        shift
+        source_case="$1"
+    done
+
+    local target_case="$2"
+
+    [ "$force" = "y" ] && rf -rf "$target_case"
+
+    if [ -d "$target_case" ]
     then
-        echo "Case already cloned: remove case directory $2 to clone"
+        echo "Case already cloned: remove case directory $target_case to clone"
     else
-        echo "Cloning $2 case from $1"
-        mkdir "$2"
+        echo "Cloning $target_case case from $source_case"
+        mkdir "$target_case"
         cpfiles="0 system constant"
         for f in $cpfiles
         do
-            cp -r "$1/$f" "$2"
+            cp -r "$source_case/$f" "$target_case"
         done
     fi
 }
