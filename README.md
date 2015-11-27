@@ -3,6 +3,13 @@
 Patches for OpenFOAM compilation on OS X. Detailed installation instructions
 can be found in [wiki](https://github.com/mrklein/openfoam-os-x/wiki).
 
+## November 27, 2015
+
+Added patch for [swak4Foam](https://sourceforge.net/p/openfoam-extend/swak4Foam/)
+and [wiki page](https://github.com/mrklein/openfoam-os-x/wiki/swak4Foam) with
+installation guide. Maybe one day it will be imported into Mercurial repository,
+I do not have plans to open pull request on Sourceforge.
+
 ## November 22, 2015
 
 Updated patches to include
