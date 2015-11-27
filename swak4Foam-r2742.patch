@@ -1,6 +1,6 @@
-diff -r 00298f94f80e Allwmake
---- a/Allwmake	Thu Nov 05 17:30:45 2015 +0100
-+++ b/Allwmake	Fri Nov 27 15:35:53 2015 +0100
+diff --git a/Allwmake b/Allwmake
+--- a/Allwmake
++++ b/Allwmake
 @@ -1,16 +1,16 @@
  #! /bin/bash
  
@@ -138,9 +138,9 @@ diff -r 00298f94f80e Allwmake
 +		echo "The environment variable SWAK4FOAM_SRC has the value $SWAK4FOAM_SRC instead of the expected value $PROPOSED_SWAK4FOAM_SRC - Maybe it points to a different installation."
 +	fi
  fi
-diff -r 00298f94f80e Libraries/Allwmake
---- a/Libraries/Allwmake	Thu Nov 05 17:30:45 2015 +0100
-+++ b/Libraries/Allwmake	Fri Nov 27 15:35:53 2015 +0100
+diff --git a/Libraries/Allwmake b/Libraries/Allwmake
+--- a/Libraries/Allwmake
++++ b/Libraries/Allwmake
 @@ -1,98 +1,114 @@
 -#! /bin/bash
 +#!/bin/bash
@@ -488,9 +488,27 @@ diff -r 00298f94f80e Libraries/Allwmake
 +		wmake libso $plugins
 +	done
  fi
-diff -r 00298f94f80e Libraries/simpleFunctionObjects/functionObjectProxy/executeIfExecutableFitsFunctionObject/executeIfExecutableFitsFunctionObject.C
---- a/Libraries/simpleFunctionObjects/functionObjectProxy/executeIfExecutableFitsFunctionObject/executeIfExecutableFitsFunctionObject.C	Thu Nov 05 17:30:45 2015 +0100
-+++ b/Libraries/simpleFunctionObjects/functionObjectProxy/executeIfExecutableFitsFunctionObject/executeIfExecutableFitsFunctionObject.C	Fri Nov 27 15:35:53 2015 +0100
+diff --git a/Libraries/simpleFunctionObjects/functionObjectProxy/executeIfExecutableFitsFunctionObject/executeIfExecutableFitsFunctionObject.C b/Libraries/simpleFunctionObjects/functionObjectProxy/executeIfExecutableFitsFunctionObject/executeIfExecutableFitsFunctionObject.C
+--- a/Libraries/simpleFunctionObjects/functionObjectProxy/executeIfExecutableFitsFunctionObject/executeIfExecutableFitsFunctionObject.C
++++ b/Libraries/simpleFunctionObjects/functionObjectProxy/executeIfExecutableFitsFunctionObject/executeIfExecutableFitsFunctionObject.C
+@@ -42,7 +42,7 @@
+ #include "swakTime.H"
+ #include "argList.H"
+ 
+-#ifdef darwin
++#if defined(darwin) || defined(darwin64)
+ #include "mach-o/dyld.h"
+ #endif
+ #ifdef __linux__
+@@ -81,7 +81,7 @@
+ 
+     fileName exePath;
+ 
+-#ifdef darwin
++#if defined(darwin) || defined(darwin64)
+     {
+         char path[1024];
+         uint32_t size = sizeof(path);
 @@ -98,7 +98,7 @@
          exePath=string(path);
      }
@@ -500,9 +518,45 @@ diff -r 00298f94f80e Libraries/simpleFunctionObjects/functionObjectProxy/execute
  #endif
  
      executable_=exePath.name();
-diff -r 00298f94f80e Libraries/swak4FoamParsers/Make/mybison
---- a/Libraries/swak4FoamParsers/Make/mybison	Thu Nov 05 17:30:45 2015 +0100
-+++ b/Libraries/swak4FoamParsers/Make/mybison	Fri Nov 27 15:35:53 2015 +0100
+diff --git a/Libraries/simpleFunctionObjects/functionObjectProxy/executeIfFunctionObjectPresentFunctionObject/executeIfFunctionObjectPresentFunctionObject.C b/Libraries/simpleFunctionObjects/functionObjectProxy/executeIfFunctionObjectPresentFunctionObject/executeIfFunctionObjectPresentFunctionObject.C
+--- a/Libraries/simpleFunctionObjects/functionObjectProxy/executeIfFunctionObjectPresentFunctionObject/executeIfFunctionObjectPresentFunctionObject.C
++++ b/Libraries/simpleFunctionObjects/functionObjectProxy/executeIfFunctionObjectPresentFunctionObject/executeIfFunctionObjectPresentFunctionObject.C
+@@ -42,7 +42,7 @@
+ #include "swakTime.H"
+ #include "argList.H"
+ 
+-#ifdef darwin
++#if defined(darwin) || defined(darwin64)
+ #include "mach-o/dyld.h"
+ #endif
+ #ifdef linux
+diff --git a/Libraries/simpleFunctionObjects/functionObjectProxy/executeIfParallelSerialFunctionObject/executeIfParallelSerialFunctionObject.C b/Libraries/simpleFunctionObjects/functionObjectProxy/executeIfParallelSerialFunctionObject/executeIfParallelSerialFunctionObject.C
+--- a/Libraries/simpleFunctionObjects/functionObjectProxy/executeIfParallelSerialFunctionObject/executeIfParallelSerialFunctionObject.C
++++ b/Libraries/simpleFunctionObjects/functionObjectProxy/executeIfParallelSerialFunctionObject/executeIfParallelSerialFunctionObject.C
+@@ -42,7 +42,7 @@
+ #include "swakTime.H"
+ #include "argList.H"
+ 
+-#ifdef darwin
++#if defined(darwin) || defined(darwin64)
+ #include "mach-o/dyld.h"
+ #endif
+ #ifdef __linux__
+diff --git a/Libraries/simpleFunctionObjects/functionObjectProxy/executeIfStartTimeFunctionObject/executeIfStartTimeFunctionObject.C b/Libraries/simpleFunctionObjects/functionObjectProxy/executeIfStartTimeFunctionObject/executeIfStartTimeFunctionObject.C
+--- a/Libraries/simpleFunctionObjects/functionObjectProxy/executeIfStartTimeFunctionObject/executeIfStartTimeFunctionObject.C
++++ b/Libraries/simpleFunctionObjects/functionObjectProxy/executeIfStartTimeFunctionObject/executeIfStartTimeFunctionObject.C
+@@ -42,7 +42,7 @@
+ #include "swakTime.H"
+ #include "argList.H"
+ 
+-#ifdef darwin
++#if defined(darwin) || defined(darwin64)
+ #include "mach-o/dyld.h"
+ #endif
+ #ifdef __linux__
+diff --git a/Libraries/swak4FoamParsers/Make/mybison b/Libraries/swak4FoamParsers/Make/mybison
+--- a/Libraries/swak4FoamParsers/Make/mybison
++++ b/Libraries/swak4FoamParsers/Make/mybison
 @@ -1,6 +1,6 @@
  .SUFFIXES: .yy
  
@@ -511,9 +565,9 @@ diff -r 00298f94f80e Libraries/swak4FoamParsers/Make/mybison
  
  .yy.dep:
  	$(MAKE_DEP)
-diff -r 00298f94f80e Libraries/swak4FoamParsers/Make/mybisonNew
---- a/Libraries/swak4FoamParsers/Make/mybisonNew	Thu Nov 05 17:30:45 2015 +0100
-+++ b/Libraries/swak4FoamParsers/Make/mybisonNew	Fri Nov 27 15:35:53 2015 +0100
+diff --git a/Libraries/swak4FoamParsers/Make/mybisonNew b/Libraries/swak4FoamParsers/Make/mybisonNew
+--- a/Libraries/swak4FoamParsers/Make/mybisonNew
++++ b/Libraries/swak4FoamParsers/Make/mybisonNew
 @@ -3,7 +3,7 @@
  yytoo = rm -f $*.C $*.tab.hh; \
        mkdir $$$$; cd $$$$; \
@@ -523,9 +577,9 @@ diff -r 00298f94f80e Libraries/swak4FoamParsers/Make/mybisonNew
        mv *.tab.cc ../$(@D)/$(<F).C ; \
        sed -i.bak "s/position.hh/$(*F)_position.hh/" location.hh ; \
        mv location.hh ../lnInclude/$(*F)_location.hh ; \
-diff -r 00298f94f80e Libraries/swak4FoamParsers/Make/myflex
---- a/Libraries/swak4FoamParsers/Make/myflex	Thu Nov 05 17:30:45 2015 +0100
-+++ b/Libraries/swak4FoamParsers/Make/myflex	Fri Nov 27 15:35:53 2015 +0100
+diff --git a/Libraries/swak4FoamParsers/Make/myflex b/Libraries/swak4FoamParsers/Make/myflex
+--- a/Libraries/swak4FoamParsers/Make/myflex
++++ b/Libraries/swak4FoamParsers/Make/myflex
 @@ -1,6 +1,6 @@
  .SUFFIXES: .ll
  
@@ -534,9 +588,9 @@ diff -r 00298f94f80e Libraries/swak4FoamParsers/Make/myflex
  
  .ll.dep:
  	$(MAKE_DEP)
-diff -r 00298f94f80e Libraries/swak4FoamParsers/Make/myflexNew
---- a/Libraries/swak4FoamParsers/Make/myflexNew	Thu Nov 05 17:30:45 2015 +0100
-+++ b/Libraries/swak4FoamParsers/Make/myflexNew	Fri Nov 27 15:35:53 2015 +0100
+diff --git a/Libraries/swak4FoamParsers/Make/myflexNew b/Libraries/swak4FoamParsers/Make/myflexNew
+--- a/Libraries/swak4FoamParsers/Make/myflexNew
++++ b/Libraries/swak4FoamParsers/Make/myflexNew
 @@ -2,7 +2,7 @@
  
  lltoo = rm -f $*.C ; \
@@ -546,9 +600,9 @@ diff -r 00298f94f80e Libraries/swak4FoamParsers/Make/myflexNew
        mv *.c ../$(@D)/$(<F).C ; cd ..; rm -r $$$$; \
        if [ -z "$(SWAK_COMPILE_LEXER_OPTION)" ]; then echo -e "\n\nIf you use aggessive optimization (O3 or so) and experience strange crahes while running with grovvyBC etc set SWAK_COMPILE_LEXER_OPTION to something like -O1\n\n" ; fi; \
        $(WM_SCHEDULER) $(CC) $(c++FLAGS)  $(SWAK_COMPILE_LEXER_OPTION) -c $(@D)/$(<F).C -o $@
-diff -r 00298f94f80e Libraries/swak4FoamParsers/Make/options
---- a/Libraries/swak4FoamParsers/Make/options	Thu Nov 05 17:30:45 2015 +0100
-+++ b/Libraries/swak4FoamParsers/Make/options	Fri Nov 27 15:35:53 2015 +0100
+diff --git a/Libraries/swak4FoamParsers/Make/options b/Libraries/swak4FoamParsers/Make/options
+--- a/Libraries/swak4FoamParsers/Make/options
++++ b/Libraries/swak4FoamParsers/Make/options
 @@ -11,6 +11,7 @@
  endif
  
@@ -557,9 +611,9 @@ diff -r 00298f94f80e Libraries/swak4FoamParsers/Make/options
      $(FOAM_DEV_OPTION) 	\
      -I$(LIB_SRC)/finiteVolume/lnInclude \
      -I$(LIB_SRC)/sampling/lnInclude \
-diff -r 00298f94f80e swakConfiguration.automatic
---- a/swakConfiguration.automatic	Thu Nov 05 17:30:45 2015 +0100
-+++ b/swakConfiguration.automatic	Fri Nov 27 15:35:53 2015 +0100
+diff --git a/swakConfiguration.automatic b/swakConfiguration.automatic
+--- a/swakConfiguration.automatic
++++ b/swakConfiguration.automatic
 @@ -1,5 +1,12 @@
 -export SWAK_PYTHON_INCLUDE="$(python-config --cflags)"
 -export SWAK_PYTHON_LINK="$(python-config --ldflags)"
@@ -596,9 +650,9 @@ diff -r 00298f94f80e swakConfiguration.automatic
  # export SWAK_TEST_RACE_CONDITIONS=1
 +
 +# vim: set ft=sh:
-diff -r 00298f94f80e theFiles.sh
---- a/theFiles.sh	Thu Nov 05 17:30:45 2015 +0100
-+++ b/theFiles.sh	Fri Nov 27 15:35:53 2015 +0100
+diff --git a/theFiles.sh b/theFiles.sh
+--- a/theFiles.sh
++++ b/theFiles.sh
 @@ -1,8 +1,8 @@
  # Lists the files that are going to be used by other scripts
  
