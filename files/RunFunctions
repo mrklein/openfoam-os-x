@@ -110,7 +110,7 @@ runParallel()
         -f|--force|-force)
             force=y
             ;;
-        -a|--append|-force)
+        -a|--append|-append)
             append=y
             ;;
         esac
