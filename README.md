@@ -3,6 +3,12 @@
 Patches for OpenFOAM compilation on OS X. Detailed installation instructions
 can be found in [wiki](https://github.com/mrklein/openfoam-os-x/wiki).
 
+## December 5, 2015
+
+1. Updated patch for 3.0.x.
+2. Since 3.0.x and dev branches started to diverge, returned dev patch to the
+   repository.
+
 ## November 27, 2015
 
 Added patch for [swak4Foam](https://sourceforge.net/p/openfoam-extend/swak4Foam/)

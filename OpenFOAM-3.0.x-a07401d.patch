@@ -19,7 +19,6 @@
  src/Allwmake                                       |   7 +-
  src/OSspecific/POSIX/POSIX.C                       |  36 ++++++
  src/OSspecific/POSIX/clockTime/clockTime.H         |   3 +
- src/OSspecific/POSIX/fileStat.C                    |   2 +
  src/OSspecific/POSIX/printStack.C                  |  72 +++++++++--
  src/OSspecific/POSIX/signals/sigFpe.C              |  92 +++++++++++++-
  src/OSspecific/POSIX/signals/sigFpe.H              |  14 ++-
@@ -54,7 +53,7 @@
  wmake/rules/darwin64Clang/cOpt                     |   2 +
  wmake/rules/darwin64Clang/cProf                    |   2 +
  wmake/rules/darwin64Clang/general                  |   8 ++
- 56 files changed, 1259 insertions(+), 104 deletions(-)
+ 55 files changed, 1257 insertions(+), 104 deletions(-)
 
 diff --git a/.gitignore b/.gitignore
 index 28fb901..fe1ede4 100644
@@ -173,7 +172,7 @@ index 6f6e56b..694f73f 100755
  4*)
      if [ -d "$ParaView_DIR" -a -r "$ParaView_DIR" ]
 diff --git a/bin/foamInstallationTest b/bin/foamInstallationTest
-index ed4bb9c..2fc12e7 100755
+index 17b285a..f11e61e 100755
 --- a/bin/foamInstallationTest
 +++ b/bin/foamInstallationTest
 @@ -306,13 +306,23 @@ reportExecutable()
@@ -271,7 +270,7 @@ index b032fc6..fb51332 100755
  while [ "$#" -gt 0 ]
  do
 diff --git a/bin/tools/RunFunctions b/bin/tools/RunFunctions
-index 5a254ea..0340786 100644
+index 5a254ea..c6a453d 100644
 --- a/bin/tools/RunFunctions
 +++ b/bin/tools/RunFunctions
 @@ -2,7 +2,7 @@
@@ -325,10 +324,10 @@ index 5a254ea..0340786 100644
 +    local app_run="$1"
 +    while [ "${app_run:0:1}" = "-" ]; do
 +        case $app_run in
-+        -f|--force)
++        -f|--force|-force|-o|-overwrite)
 +            force=y
 +            ;;
-+        -a|--append)
++        -a|--append|-append)
 +            append=y
 +            ;;
 +        esac
@@ -374,10 +373,10 @@ index 5a254ea..0340786 100644
 +    local app_run="$1"
 +    while [ "${app_run:0:1}" = "-" ]; do
 +        case $app_run in
-+        -f|--force)
++        -f|--force|-force|-o|-overwrite)
 +            force=y
 +            ;;
-+        -a|--append)
++        -a|--append|-append)
 +            append=y
 +            ;;
 +        esac
@@ -890,20 +889,6 @@ index 8708ba9..65f046c 100644
 +#endif
  
  // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
- 
-diff --git a/src/OSspecific/POSIX/fileStat.C b/src/OSspecific/POSIX/fileStat.C
-index bf04835..8a3c796 100644
---- a/src/OSspecific/POSIX/fileStat.C
-+++ b/src/OSspecific/POSIX/fileStat.C
-@@ -29,7 +29,9 @@ License
- 
- #include <signal.h>
- #include <unistd.h>
-+#if ! defined(darwin64)
- #include <sys/sysmacros.h>
-+#endif
- 
- // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
  
 diff --git a/src/OSspecific/POSIX/printStack.C b/src/OSspecific/POSIX/printStack.C
 index b3561ef..6f79a5b 100644
