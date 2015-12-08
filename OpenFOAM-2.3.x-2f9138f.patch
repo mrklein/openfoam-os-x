@@ -16,6 +16,7 @@
  .../postProcessing/graphics/PV3Readers/Allwmake    |   5 +
  .../postProcessing/graphics/PV4Readers/Allwmake    |   5 +
  bin/foamJob                                        |   8 ++
+ bin/paraFoam                                       |   6 +
  bin/tools/RunFunctions                             | 123 ++++++++++++++++-----
  doc/Doxygen/_Header                                |   1 +
  etc/bashrc                                         |  28 ++++-
@@ -95,7 +96,7 @@
  wmake/rules/darwin64Clang/cOpt                     |   2 +
  wmake/rules/darwin64Clang/cProf                    |   2 +
  wmake/rules/darwin64Clang/general                  |   8 ++
- 97 files changed, 919 insertions(+), 174 deletions(-)
+ 98 files changed, 925 insertions(+), 174 deletions(-)
 
 diff --git a/.gitignore b/.gitignore
 index ec46862..ead2d97 100644
@@ -443,6 +444,23 @@ index fc5e082..c69a706 100755
      #
      # run (on single processor)
      #
+diff --git a/bin/paraFoam b/bin/paraFoam
+index a902d21..081952d 100755
+--- a/bin/paraFoam
++++ b/bin/paraFoam
+@@ -72,6 +72,12 @@ extension=OpenFOAM
+ 
+ requirePV=1
+ 
++if [ "$(uname -s)" == "Darwin" ]
++then
++    extension=foam
++    requirePV=0
++fi
++
+ # parse options
+ while [ "$#" -gt 0 ]
+ do
 diff --git a/bin/tools/RunFunctions b/bin/tools/RunFunctions
 index 5a254ea..0340786 100644
 --- a/bin/tools/RunFunctions
