@@ -120,7 +120,7 @@ runParallel()
     shift
     local app_name=${app_run##*/}
 
-    [ -x "$(which app_run)" ] || {
+    [ -x "$(which $app_run)" ] || {
     echo "Application $app_run does not exist or is not executable."
     exit 1
     }
