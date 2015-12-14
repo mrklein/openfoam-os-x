@@ -8,12 +8,13 @@ can be found in [wiki](https://github.com/mrklein/openfoam-os-x/wiki).
 Major update.
 
 1. Changed wmake rules for Darwin. Hopefully this solves problems with missing
-   symbols ([1](http://www.cfd-online.com/Forums/openfoam-installation-windows-mac/130113-compile-2-3-mac-os-x-patch-7.html#post576975), [2](http://www.cfd-online.com/Forums/openfoam-installation-windows-mac/130113-compile-2-3-mac-os-x-patch-6.html#post572934)). Though since I never had this
-   problem on my laptop it is a question of external testing.
+   symbols ([1](http://www.cfd-online.com/Forums/openfoam-installation-windows-mac/130113-compile-2-3-mac-os-x-patch-7.html#post576975), [2](http://www.cfd-online.com/Forums/openfoam-installation-windows-mac/130113-compile-2-3-mac-os-x-patch-6.html#post572934)). Though, since I never had this problem on my laptop it is a question of external testing.
+
 2. Fixed bugs and typos in RunFunctions, also added overwrite flag from
    dev-repository (now run(Application|Parallel) functions has -f, -force, --force,
    -overwrite flags to run application overwriting log-file, and -a, -append,
    --append flags to run application and append to log-file).
+
 3. Just for fun added emulation of "silent rules" in 3.0.x. To turn this
    feature on you need to set WM_SILENT_RULES to non-empty value (`export
    WM_SILENT_RULES=y` in `prefs.sh` will do the trick). And instead of
