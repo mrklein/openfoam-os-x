@@ -11,7 +11,7 @@ Major update.
    symbols ([1](http://www.cfd-online.com/Forums/openfoam-installation-windows-mac/130113-compile-2-3-mac-os-x-patch-7.html#post576975), [2](http://www.cfd-online.com/Forums/openfoam-installation-windows-mac/130113-compile-2-3-mac-os-x-patch-6.html#post572934)). Though, since I never had this problem on my laptop it is a question of external testing.
 
 2. Fixed bugs and typos in RunFunctions, also added overwrite flag from
-   dev-repository (now run(Application|Parallel) functions has -f, -force, --force,
+   dev-repository (now run(Application|Parallel) functions have -f, -force, --force,
    -overwrite flags to run application overwriting log-file, and -a, -append,
    --append flags to run application and append to log-file).
 
