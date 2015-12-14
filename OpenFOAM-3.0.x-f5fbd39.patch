@@ -42,7 +42,7 @@
  src/parallel/decompose/ptscotchDecomp/Make/options |  10 +-
  src/parallel/decompose/scotchDecomp/Make/options   |   8 +-
  src/renumber/SloanRenumber/Make/options            |  31 +++--
- wmake/Makefile                                     |  65 +++++++++-
+ wmake/Makefile                                     |  64 +++++++++-
  wmake/MakefileFiles                                |   5 +-
  wmake/rules/General/transform                      |  10 ++
  wmake/rules/darwin64Clang/c                        |  17 +++
@@ -54,10 +54,10 @@
  wmake/rules/darwin64Clang/cOpt                     |   2 +
  wmake/rules/darwin64Clang/cProf                    |   2 +
  wmake/rules/darwin64Clang/general                  |  10 ++
- wmake/src/Makefile                                 |   8 +-
+ wmake/src/Makefile                                 |   7 +-
  wmake/src/wmkdep.l                                 |  11 +-
  wmake/wmakeLnInclude                               |   7 +-
- 59 files changed, 1361 insertions(+), 125 deletions(-)
+ 59 files changed, 1360 insertions(+), 124 deletions(-)
 
 diff --git a/.gitignore b/.gitignore
 index 28fb901..fe1ede4 100644
@@ -2207,7 +2207,7 @@ index 492a3ae..29597e3 100644
 +LIB_LIBS += -lboost_thread
 +endif
 diff --git a/wmake/Makefile b/wmake/Makefile
-index 38f3f1a..69f7189 100644
+index 38f3f1a..1d1a15b 100644
 --- a/wmake/Makefile
 +++ b/wmake/Makefile
 @@ -71,7 +71,6 @@ EXE_LIBS           =
@@ -2269,7 +2269,7 @@ index 38f3f1a..69f7189 100644
  
  
  #------------------------------------------------------------------------------
-@@ -156,29 +177,61 @@ $(SEXE):$(OBJECTS)
+@@ -156,29 +177,62 @@ $(SEXE):$(OBJECTS)
  objects: $(OBJECTS)
  
  libso:  $(LIB).$(SO)
@@ -2281,14 +2281,14 @@ index 38f3f1a..69f7189 100644
  
  $(LIB).$(SO): $(OBJECTS)
  	@$(WM_SCRIPTS)/makeTargetDir $(LIB)
--	$(LINKLIBSO) $(OBJECTS) -L$(LIB_PLATFORMS) \
--	    $(LIB_LIBS) $(GLIB_LIBS) -o $(LIB).$(SO)
 +ifdef WM_SILENT_RULES
 +	@echo "  [LD] $(notdir $(LIB)).$(SO)"
 +	@$(LINKLIBSO) $(OBJECTS) -L$(LIB_PLATFORMS) \
 +		$(LIB_LIBS) $(GLIB_LIBS) -o $(LIB).$(SO)
 +else
-+	@echo \'$(LIB).$(SO)\' is up to date.
+ 	$(LINKLIBSO) $(OBJECTS) -L$(LIB_PLATFORMS) \
+-	    $(LIB_LIBS) $(GLIB_LIBS) -o $(LIB).$(SO)
++		$(LIB_LIBS) $(GLIB_LIBS) -o $(LIB).$(SO)
 +endif
  
  lib:    $(LIB).a
@@ -2501,7 +2501,7 @@ index 0000000..f7377fa
 +include $(RULES)/c
 +include $(RULES)/c++
 diff --git a/wmake/src/Makefile b/wmake/src/Makefile
-index 92a2b08..ca99b94 100644
+index 92a2b08..a1b0a77 100644
 --- a/wmake/src/Makefile
 +++ b/wmake/src/Makefile
 @@ -53,6 +53,7 @@ WMAKE_BIN     = $(WM_DIR)/platforms/$(WM_ARCH)$(WM_COMPILER)
@@ -2512,7 +2512,7 @@ index 92a2b08..ca99b94 100644
  
  #------------------------------------------------------------------------------
  # targets
-@@ -61,19 +62,20 @@ include $(RULES)/$(WM_LINK_LANGUAGE)
+@@ -61,7 +62,7 @@ include $(RULES)/$(WM_LINK_LANGUAGE)
  all:  $(WMAKE_BIN)/dirToString $(WMAKE_BIN)/wmkdep
  
  clean:
@@ -2521,10 +2521,7 @@ index 92a2b08..ca99b94 100644
  
  
  $(WMAKE_BIN)/dirToString: dirToString.c
-+	@echo $(MKDIRP)
- 	@mkdir -p $(WMAKE_BIN)
- 	$(cc) $(cFLAGS) dirToString.c -o $(WMAKE_BIN)/dirToString
- 
+@@ -71,9 +72,9 @@ $(WMAKE_BIN)/dirToString: dirToString.c
  
  $(WMAKE_BIN)/wmkdep: wmkdep.l
  	@mkdir -p $(WMAKE_BIN)
