@@ -30,7 +30,7 @@
 
 isSIPEnabled()
 {
-    [ which -s csrutil ] && {
+    $(which -s csrutil) && {
     [ $(csrutil status | awk '{print $5}' | tr -d ".") = "enabled" ] \
         && return 0
     }
@@ -64,7 +64,7 @@ runApplication()
     local app_run="$1"
     while [ "$(echo "$app_run" | cut -c1)" = "-" ]; do
         case $app_run in
-        -f|--force|-force)
+        -f|--force|-force|-overwrite)
             force=y
             ;;
         -a|--append|-append)
