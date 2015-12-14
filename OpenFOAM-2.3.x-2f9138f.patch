@@ -19,12 +19,12 @@
  bin/paraFoam                                       |   6 +
  bin/tools/RunFunctions                             | 123 ++++++++++++++++-----
  doc/Doxygen/_Header                                |   1 +
- etc/bashrc                                         |  28 ++++-
+ etc/bashrc                                         |  54 +++++++--
  etc/config/CGAL.sh                                 |  26 ++++-
  etc/config/metis.sh                                |  13 ++-
  etc/config/paraview-osx.sh                         |  16 +++
  etc/config/scotch.sh                               |  13 ++-
- etc/config/settings.sh                             |  31 +++++-
+ etc/config/settings.sh                             |  36 +++++-
  src/Allwmake                                       |  12 +-
  src/OSspecific/POSIX/POSIX.C                       |  37 +++++++
  src/OSspecific/POSIX/clockTime/clockTime.H         |   3 +
@@ -88,15 +88,15 @@
  .../specie/reaction/Reactions/Reaction/Reaction.C  |   6 +-
  wmake/Makefile                                     |   4 +
  wmake/rules/darwin64Clang/c                        |  16 +++
- wmake/rules/darwin64Clang/c++                      |  28 +++++
+ wmake/rules/darwin64Clang/c++                      |  22 ++++
  wmake/rules/darwin64Clang/c++Debug                 |   2 +
  wmake/rules/darwin64Clang/c++Opt                   |   3 +
  wmake/rules/darwin64Clang/c++Prof                  |   2 +
  wmake/rules/darwin64Clang/cDebug                   |   2 +
  wmake/rules/darwin64Clang/cOpt                     |   2 +
  wmake/rules/darwin64Clang/cProf                    |   2 +
- wmake/rules/darwin64Clang/general                  |   8 ++
- 98 files changed, 925 insertions(+), 174 deletions(-)
+ wmake/rules/darwin64Clang/general                  |  10 ++
+ 98 files changed, 944 insertions(+), 182 deletions(-)
 
 diff --git a/.gitignore b/.gitignore
 index ec46862..ead2d97 100644
@@ -462,7 +462,7 @@ index a902d21..081952d 100755
  while [ "$#" -gt 0 ]
  do
 diff --git a/bin/tools/RunFunctions b/bin/tools/RunFunctions
-index 5a254ea..0340786 100644
+index 5a254ea..bc33826 100644
 --- a/bin/tools/RunFunctions
 +++ b/bin/tools/RunFunctions
 @@ -2,7 +2,7 @@
@@ -480,7 +480,7 @@ index 5a254ea..0340786 100644
  
 +isSIPEnabled()
 +{
-+    [ which -s csrutil ] && {
++    $(which -s csrutil) && {
 +    [ $(csrutil status | awk '{print $5}' | tr -d ".") = "enabled" ] \
 +        && return 0
 +    }
@@ -488,7 +488,7 @@ index 5a254ea..0340786 100644
 +}
 +
 +# Workaround for cleared DYLD_LIBRARY_PATH
-+[ "$(uname -s)" = "Darwin" ] && [ isSIPEnabled ] && . $WM_PROJECT_DIR/etc/bashrc
++[ "$(uname -s)" = "Darwin" ] && isSIPEnabled && . $WM_PROJECT_DIR/etc/bashrc
 +
  getNumberOfProcessors()
  {
@@ -514,12 +514,12 @@ index 5a254ea..0340786 100644
 +    local append=
 +
 +    local app_run="$1"
-+    while [ "${app_run:0:1}" = "-" ]; do
++    while [ "$(echo $app_run | cut -c1)" = "-" ]; do
 +        case $app_run in
-+        -f|--force)
++        -f|--force|-force|-overwrite)
 +            force=y
 +            ;;
-+        -a|--append)
++        -a|--append|-append)
 +            append=y
 +            ;;
 +        esac
@@ -563,7 +563,7 @@ index 5a254ea..0340786 100644
 +    local append=
 +
 +    local app_run="$1"
-+    while [ "${app_run:0:1}" = "-" ]; do
++    while [ "$(echo $app_run | cut -c1)" = "-" ]; do
 +        case $app_run in
 +        -f|--force)
 +            force=y
@@ -578,7 +578,7 @@ index 5a254ea..0340786 100644
 +    shift
 +    local app_name=${app_run##*/}
 +
-+    [ -x "$(which app_run)" ] || {
++    [ -x "$(which $app_run)" ] || {
 +    echo "Application $app_run does not exist or is not executable."
 +    exit 1
 +    }
@@ -657,7 +657,7 @@ index 985c43d..ea56bde 100644
  <script type="text/javascript" src="jquery.js"></script>
  <script type="text/javascript" src="dynsections.js"></script>
 diff --git a/etc/bashrc b/etc/bashrc
-index 104fd76..8d91796 100644
+index 104fd76..1b4e6a8 100644
 --- a/etc/bashrc
 +++ b/etc/bashrc
 @@ -115,7 +115,9 @@ export WM_PROJECT_DIR=$WM_PROJECT_INST_DIR/$WM_PROJECT-$WM_PROJECT_VERSION
@@ -671,26 +671,40 @@ index 104fd76..8d91796 100644
  
  # Location of site-specific templates etc
  # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-@@ -197,11 +199,18 @@ cleaned=`$foamClean "$PATH" "$foamOldDirs"` && PATH="$cleaned"
- cleaned=`$foamClean "$LD_LIBRARY_PATH" "$foamOldDirs"` \
-     && LD_LIBRARY_PATH="$cleaned"
+@@ -193,15 +195,28 @@ foamClean=$WM_PROJECT_DIR/bin/foamCleanPath
+ #- Clean PATH
+ cleaned=`$foamClean "$PATH" "$foamOldDirs"` && PATH="$cleaned"
  
-+if [ "$(uname -s)" = "Darwin" ]; then
+-#- Clean LD_LIBRARY_PATH
+-cleaned=`$foamClean "$LD_LIBRARY_PATH" "$foamOldDirs"` \
+-    && LD_LIBRARY_PATH="$cleaned"
++if [ "$(uname -s)" = "Darwin" ]
++then
 +	#- Clean DYLD_LIBRARY_PATH os OS X
 +	cleaned=`$foamClean "$DYLD_LIBRARY_PATH" "$foamOldDirs"` \
 +		&& DYLD_LIBRARY_PATH="$cleaned"
++else
++    #- Clean LD_LIBRARY_PATH
++    cleaned=`$foamClean "$LD_LIBRARY_PATH" "$foamOldDirs"` \
++        && LD_LIBRARY_PATH="$cleaned"
 +fi
-+
+ 
  #- Clean MANPATH
  cleaned=`$foamClean "$MANPATH" "$foamOldDirs"` && MANPATH="$cleaned"
  
- export PATH LD_LIBRARY_PATH MANPATH
+-export PATH LD_LIBRARY_PATH MANPATH
++export PATH MANPATH
  
-+[ "$(uname -s)" = "Darwin" ] && export DYLD_LIBRARY_PATH
++if [ "$(uname -s)" = "Darwin" ]
++then
++    export DYLD_LIBRARY_PATH
++else
++    export LD_LIBRARY_PATH
++fi
  
  # Source project setup files
  # ~~~~~~~~~~~~~~~~~~~~~~~~~~
-@@ -211,9 +220,13 @@ _foamSource $WM_PROJECT_DIR/etc/config/aliases.sh
+@@ -211,9 +226,13 @@ _foamSource $WM_PROJECT_DIR/etc/config/aliases.sh
  
  # Source user setup files for optional packages
  # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -707,25 +721,36 @@ index 104fd76..8d91796 100644
  _foamSource `$WM_PROJECT_DIR/bin/foamEtcFile config/CGAL.sh`
  
  
-@@ -225,11 +238,18 @@ cleaned=`$foamClean "$PATH"` && PATH="$cleaned"
- #- Clean LD_LIBRARY_PATH
- cleaned=`$foamClean "$LD_LIBRARY_PATH"` && LD_LIBRARY_PATH="$cleaned"
+@@ -222,13 +241,26 @@ _foamSource `$WM_PROJECT_DIR/bin/foamEtcFile config/CGAL.sh`
+ #- Clean PATH
+ cleaned=`$foamClean "$PATH"` && PATH="$cleaned"
  
-+if [ "$(uname -s)" = "Darwin" ]; then
+-#- Clean LD_LIBRARY_PATH
+-cleaned=`$foamClean "$LD_LIBRARY_PATH"` && LD_LIBRARY_PATH="$cleaned"
++if [ "$(uname -s)" = "Darwin" ]
++then
 +	#- Clean DYLD_LIBRARY_PATH on OS X
 +	cleaned=`$foamClean "$DYLD_LIBRARY_PATH"` && DYLD_LIBRARY_PATH="$cleaned"
++else
++    #- Clean LD_LIBRARY_PATH
++    cleaned=`$foamClean "$LD_LIBRARY_PATH"` && LD_LIBRARY_PATH="$cleaned"
 +fi
-+
+ 
  #- Clean MANPATH (trailing ':' to find system pages)
  cleaned=`$foamClean "$MANPATH"`: && MANPATH="$cleaned"
  
- export PATH LD_LIBRARY_PATH MANPATH
- 
-+[ "$(uname -s)" = "Darwin" ] && export DYLD_LIBRARY_PATH
+-export PATH LD_LIBRARY_PATH MANPATH
++export PATH MANPATH
 +
++if [ "$(uname -s)" = "Darwin" ]
++then
++    export DYLD_LIBRARY_PATH
++else
++    export LD_LIBRARY_PATH
++fi
+ 
  #- Clean LD_PRELOAD
  if [ -n "$LD_PRELOAD" ]
- then
 diff --git a/etc/config/CGAL.sh b/etc/config/CGAL.sh
 index dc8772d..ff79b77 100644
 --- a/etc/config/CGAL.sh
@@ -844,19 +869,24 @@ index 1ee06e8..d514d78 100644
  
  # -----------------------------------------------------------------------------
 diff --git a/etc/config/settings.sh b/etc/config/settings.sh
-index ae52902..8cdcacd 100644
+index ae52902..7d599cb 100644
 --- a/etc/config/settings.sh
 +++ b/etc/config/settings.sh
-@@ -46,6 +46,8 @@ _foamAddLib()
+@@ -45,7 +45,12 @@ _foamAddLib()
+ {
      while [ $# -ge 1 ]
      do
-         export LD_LIBRARY_PATH=$1:$LD_LIBRARY_PATH
-+        [ "$(uname -s)" = "Darwin" ] \
-+            && export DYLD_LIBRARY_PATH=$1:$DYLD_LIBRARY_PATH
+-        export LD_LIBRARY_PATH=$1:$LD_LIBRARY_PATH
++        if [ "$(uname -s)" = "Darwin" ]
++        then
++            export DYLD_LIBRARY_PATH=$1:$DYLD_LIBRARY_PATH
++        else
++            export LD_LIBRARY_PATH=$1:$LD_LIBRARY_PATH
++        fi
          shift
      done
  }
-@@ -152,6 +154,12 @@ SunOS)
+@@ -152,6 +157,12 @@ SunOS)
      export WM_LDFLAGS='-mabi=64 -G0'
      ;;
  
@@ -869,7 +899,7 @@ index ae52902..8cdcacd 100644
  *)    # an unsupported operating system
      /bin/cat <<USAGE 1>&2
  
-@@ -178,7 +186,8 @@ export FOAM_APPBIN=$WM_PROJECT_DIR/platforms/$WM_OPTIONS/bin
+@@ -178,7 +189,8 @@ export FOAM_APPBIN=$WM_PROJECT_DIR/platforms/$WM_OPTIONS/bin
  export FOAM_LIBBIN=$WM_PROJECT_DIR/platforms/$WM_OPTIONS/lib
  
  # external (ThirdParty) libraries
@@ -879,7 +909,7 @@ index ae52902..8cdcacd 100644
  
  # site-specific directory
  siteDir="${WM_PROJECT_SITE:-$WM_PROJECT_INST_DIR/site}"
-@@ -223,12 +232,15 @@ unset siteDir
+@@ -223,12 +235,15 @@ unset siteDir
  
  _foamAddPath $FOAM_USER_APPBIN:$FOAM_SITE_APPBIN:$FOAM_APPBIN
  # Make sure to pick up dummy versions of external libraries last
@@ -897,7 +927,7 @@ index ae52902..8cdcacd 100644
  
  # Location of compiler installation
  # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-@@ -582,7 +594,8 @@ esac
+@@ -582,7 +597,8 @@ esac
  # dummy MPI already added to LD_LIBRARY_PATH and has no external libraries
  if [ "$FOAM_MPI" != dummy ]
  then
@@ -907,7 +937,7 @@ index ae52902..8cdcacd 100644
  fi
  
  
-@@ -597,10 +610,20 @@ then
+@@ -597,10 +613,20 @@ then
  fi
  export MPI_BUFFER_SIZE
  
@@ -1683,7 +1713,7 @@ index a3604b2..49aa369 100644
  
  
 diff --git a/src/OpenFOAM/memory/Xfer/XferI.H b/src/OpenFOAM/memory/Xfer/XferI.H
-index 3cb5077..db76298 100644
+index 3cb5077..490ee69 100644
 --- a/src/OpenFOAM/memory/Xfer/XferI.H
 +++ b/src/OpenFOAM/memory/Xfer/XferI.H
 @@ -23,12 +23,14 @@ License
@@ -1691,7 +1721,7 @@ index 3cb5077..db76298 100644
  \*---------------------------------------------------------------------------*/
  
 +#include "nullObject.H"
-+ 
++
  // * * * * * * * * * * * * Static Member Functions * * * * * * * * * * * * * //
  
  template<class T>
@@ -2596,7 +2626,7 @@ index 96e1885..7de8c1a 100644
  EXE             = $(WM_PROJECT).out
 diff --git a/wmake/rules/darwin64Clang/c b/wmake/rules/darwin64Clang/c
 new file mode 100644
-index 0000000..9a3e872
+index 0000000..c6600bf
 --- /dev/null
 +++ b/wmake/rules/darwin64Clang/c
 @@ -0,0 +1,16 @@
@@ -2604,36 +2634,36 @@ index 0000000..9a3e872
 +
 +cWARN        = -Wall
 +
-+cc          = xcrun clang -m64
++cc          = xcrun cc -arch x86_64
 +
 +include $(RULES)/c$(WM_COMPILE_OPTION)
 +
-+cFLAGS      = $(GFLAGS) $(cWARN) $(cOPT) $(cDBUG) $(LIB_HEADER_DIRS) -fPIC
++cFLAGS      = $(GFLAGS) $(cWARN) $(cOPT) $(cDBUG) $(LIB_HEADER_DIRS) -fPIC -isysroot $(OSX_SDK_PATH)
 +
 +ctoo        = $(WM_SCHEDULER) $(cc) $(cFLAGS) -c $$SOURCE -o $@
 +
 +LINK_LIBS   = $(cDBUG)
 +
-+LINKLIBSO   = $(cc) -Xlinker -dylib -Xlinker -undefined -Xlinker suppress
-+LINKEXE     = $(cc) -Xlinker -execute
++LINKLIBSO   = $(cc) -Wl,-dylib,-undefined,dynamic_lookup
++LINKEXE     = $(cc) -Wl,-execute,-undefined,dynamic_lookup
 diff --git a/wmake/rules/darwin64Clang/c++ b/wmake/rules/darwin64Clang/c++
 new file mode 100644
-index 0000000..588f46d
+index 0000000..80c29f5
 --- /dev/null
 +++ b/wmake/rules/darwin64Clang/c++
-@@ -0,0 +1,28 @@
+@@ -0,0 +1,22 @@
 +.SUFFIXES: .C .cxx .cc .cpp
 +
 +c++WARN     = -Wall -Wextra -Wno-unused-parameter -Wno-overloaded-virtual \
 +              -Wno-c++11-extensions -Wno-unused-variable -Wno-unused-local-typedef
 +
-+CC          = xcrun clang++ -arch x86_64
++CC          = xcrun c++ -arch x86_64
 +
 +include $(RULES)/c++$(WM_COMPILE_OPTION)
 +
 +ptFLAGS     = -DNoRepository -ftemplate-depth-100
 +
-+c++FLAGS    = $(GFLAGS) $(c++WARN) $(c++OPT) $(c++DBUG) $(ptFLAGS) $(LIB_HEADER_DIRS) -fPIC
++c++FLAGS    = $(GFLAGS) $(c++WARN) $(c++OPT) $(c++DBUG) $(ptFLAGS) $(LIB_HEADER_DIRS) -fPIC -isysroot $(OSX_SDK_PATH)
 +
 +Ctoo        = $(WM_SCHEDULER) $(CC) $(c++FLAGS) -c $$SOURCE -o $@
 +cxxtoo      = $(Ctoo)
@@ -2642,14 +2672,8 @@ index 0000000..588f46d
 +
 +LINK_LIBS   = $(c++DBUG)
 +
-+LINKLIBSO   = $(CC) $(c++FLAGS) -Xlinker -dylib \
-+				-Xlinker -flat_namespace \
-+				-Xlinker -undefined \
-+				-Xlinker suppress
-+
-+LINKEXE     = $(CC) $(c++FLAGS) -Xlinker -execute \
-+				-Xlinker -undefined \
-+				-Xlinker dynamic_lookup
++LINKLIBSO   = $(CC) $(c++FLAGS) -Wl,-dylib,-undefined,dynamic_lookup
++LINKEXE     = $(CC) $(c++FLAGS) -Wl,-execute,-undefined,dynamic_lookup
 diff --git a/wmake/rules/darwin64Clang/c++Debug b/wmake/rules/darwin64Clang/c++Debug
 new file mode 100644
 index 0000000..1c63335
@@ -2701,13 +2725,15 @@ index 0000000..ca3ac9b
 +cOPT        = -O2
 diff --git a/wmake/rules/darwin64Clang/general b/wmake/rules/darwin64Clang/general
 new file mode 100644
-index 0000000..243cb7d
+index 0000000..f7377fa
 --- /dev/null
 +++ b/wmake/rules/darwin64Clang/general
-@@ -0,0 +1,8 @@
+@@ -0,0 +1,10 @@
 +CPP        = cpp -traditional-cpp $(GFLAGS)
 +
 +PROJECT_LIBS = -l$(WM_PROJECT) -ldl
++
++OSX_SDK_PATH = $(shell xcrun --show-sdk-path)
 +
 +include $(GENERAL_RULES)/standard
 +
