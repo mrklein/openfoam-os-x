@@ -3,6 +3,40 @@
 Patches for OpenFOAM compilation on OS X. Detailed installation instructions
 can be found in [wiki](https://github.com/mrklein/openfoam-os-x/wiki).
 
+## December 15, 2015
+
+Major update.
+
+1. Changed wmake rules for Darwin. Hopefully this solves problems with missing
+   symbols ([1](http://www.cfd-online.com/Forums/openfoam-installation-windows-mac/130113-compile-2-3-mac-os-x-patch-7.html#post576975), [2](http://www.cfd-online.com/Forums/openfoam-installation-windows-mac/130113-compile-2-3-mac-os-x-patch-6.html#post572934)). Though since I never had this
+   problem on my laptop it is a question of external testing.
+2. Fixed bugs and typos in RunFunctions, also added overwrite flag from
+   dev-repository (now run(Application|Parallel) functions has -f, -force, --force,
+   -overwrite flags to run application overwriting log-file, and -a, -append,
+   --append flags to run application and append to log-file).
+3. Just for fun added emulation of "silent rules" in 3.0.x. To turn this
+   feature on you need to set WM_SILENT_RULES to non-empty value (`export
+   WM_SILENT_RULES=y` in `prefs.sh` will do the trick). And instead of
+
+    ```
+    daphne:icoFoam$ wmake
+    $WM_PROJECT_DIR/applications/solvers/incompressible/icoFoam
+    Making dependency list for source file icoFoam.C
+    xcrun c++ -arch x86_64 -Ddarwin64 -DWM_ARCH_OPTION=64 -DWM_DP -DWM_LABEL_SIZE=64 -Wall -Wextra -Wno-unused-parameter -Wno-overloaded-virtual -Wno-unused-variable -Wno-unused-local-typedef -Wno-invalid-offsetof -Wno-c++11-extensions -O3  -DNoRepository -ftemplate-depth-100 -I$WM_PROJECT_DIR/src/finiteVolume/lnInclude -I$WM_PROJECT_DIR/src/meshTools/lnInclude -IlnInclude -I. -I$WM_PROJECT_DIR/src/OpenFOAM/lnInclude -I$WM_PROJECT_DIR/src/OSspecific/POSIX/lnInclude   -fPIC -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.11.sdk -c icoFoam.C -o $WM_PROJECT_DIR/platforms/darwin64ClangDPInt64Opt/applications/solvers/incompressible/icoFoam/icoFoam.o
+    xcrun c++ -arch x86_64 -Ddarwin64 -DWM_ARCH_OPTION=64 -DWM_DP -DWM_LABEL_SIZE=64 -Wall -Wextra -Wno-unused-parameter -Wno-overloaded-virtual -Wno-unused-variable -Wno-unused-local-typedef -Wno-invalid-offsetof -Wno-c++11-extensions -O3  -DNoRepository -ftemplate-depth-100 -I$WM_PROJECT_DIR/src/finiteVolume/lnInclude -I$WM_PROJECT_DIR/src/meshTools/lnInclude -IlnInclude -I. -I$WM_PROJECT_DIR/src/OpenFOAM/lnInclude -I$WM_PROJECT_DIR/src/OSspecific/POSIX/lnInclude   -fPIC -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.11.sdk -Wl,-execute,-undefined,dynamic_lookup $WM_PROJECT_DIR/platforms/darwin64ClangDPInt64Opt/applications/solvers/incompressible/icoFoam/icoFoam.o -L$WM_PROJECT_DIR/platforms/darwin64ClangDPInt64Opt/lib \
+		-lfiniteVolume -lmeshTools -lOpenFOAM -ldl  \
+		 -lm -o $WM_PROJECT_DIR/platforms/darwin64ClangDPInt64Opt/bin/icoFoam   
+   ```
+
+   you will get
+
+   ```
+   daphne:icoFoam$ wmake
+   $WM_PROJECT_DIR/applications/solvers/incompressible/icoFoam
+      [CC] icoFoam.C
+      [LD] icoFoam
+   ```
+
 ## December 5, 2015
 
 1. Updated patch for 3.0.x.
