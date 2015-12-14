@@ -37,6 +37,40 @@ Major update.
       [CC] icoFoam.C
       [LD] icoFoam
    ```
+   
+As usual, build was tested on:
+
+```
+daphne:openfoam-os-x$ sw_vers 
+ProductName:	Mac OS X
+ProductVersion:	10.11.2
+BuildVersion:	15C50
+```
+
+with the following compiler:
+
+```
+daphne:openfoam-os-x$ clang++ --version
+Apple LLVM version 7.0.2 (clang-700.1.81)
+Target: x86_64-apple-darwin15.2.0
+Thread model: posix
+```
+
+and the following thrid party packages:
+
+```
+daphne:openfoam-os-x$ brew list --versions
+boost 1.59.0
+cgal 4.6.3
+eigen 3.2.6
+gmp 6.1.0
+metis 5.1.0
+mpfr 3.1.3
+open-mpi 1.10.1
+parmetis 4.0.3_3
+parmgridgen 0.0.2
+scotch 6.0.4_1
+```
 
 ## December 5, 2015
 
