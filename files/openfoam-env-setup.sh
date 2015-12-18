@@ -89,6 +89,12 @@ of300() {
 
 export -f of300
 
+of301() {
+	ofxxx "3.0.1"
+}
+
+export -f of301
+
 of30x() {
 	ofxxx "3.0.x"
 }
