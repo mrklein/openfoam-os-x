@@ -7,7 +7,7 @@ can be found in [wiki](https://github.com/mrklein/openfoam-os-x/wiki).
 
 1. Patch for OpenFOAM 3.0.1 (it was the same as the last 3.0.x patch)
 2. Since any way I am testing success of build process, decided to upload
-   binary archives.
+   binary archives. More details can be found in [wiki](https://github.com/mrklein/openfoam-os-x/wiki/Binary-archives).
 
 ## December 15, 2015
 
