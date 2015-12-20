@@ -60,7 +60,7 @@
  wmake/rules/General/CGAL                           |   7 ++
  wmake/rules/General/transform                      |  10 ++
  wmake/rules/darwin64Clang/c                        |  17 +++
- wmake/rules/darwin64Clang/c++                      |  28 +++++
+ wmake/rules/darwin64Clang/c++                      |  27 ++++
  wmake/rules/darwin64Clang/c++Debug                 |   2 +
  wmake/rules/darwin64Clang/c++Opt                   |   3 +
  wmake/rules/darwin64Clang/c++Prof                  |   2 +
@@ -71,7 +71,7 @@
  wmake/src/Makefile                                 |   7 +-
  wmake/src/wmkdep.l                                 |  11 +-
  wmake/wmakeLnInclude                               |   7 +-
- 73 files changed, 1426 insertions(+), 124 deletions(-)
+ 73 files changed, 1425 insertions(+), 124 deletions(-)
 
 diff --git a/.gitignore b/.gitignore
 index 28fb901..fe1ede4 100644
@@ -2591,10 +2591,10 @@ index 0000000..b44832d
 +LINKEXE     = $(cc)
 diff --git a/wmake/rules/darwin64Clang/c++ b/wmake/rules/darwin64Clang/c++
 new file mode 100644
-index 0000000..4d1c719
+index 0000000..f70214d
 --- /dev/null
 +++ b/wmake/rules/darwin64Clang/c++
-@@ -0,0 +1,28 @@
+@@ -0,0 +1,27 @@
 +SUFFIXES += .C
 +SUFFIXES += .cxx
 +SUFFIXES += .cc
@@ -2621,8 +2621,7 @@ index 0000000..4d1c719
 +
 +LINKLIBSO   = $(CC) -arch x86_64 -dynamiclib -Wl,-flat_namespace,-dylib,-undefined,suppress
 +
-+LINKEXE     = $(CC) -arch x86_64 -Wl,-execute,-L$(FOAM_LIBBIN)/$(FOAM_MPI) -lPstream
-+
++LINKEXE     = $(CC) -arch x86_64 -Wl,-execute,-L$(FOAM_LIBBIN)/$(FOAM_MPI),-lPstream
 diff --git a/wmake/rules/darwin64Clang/c++Debug b/wmake/rules/darwin64Clang/c++Debug
 new file mode 100644
 index 0000000..1c63335
