@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-"""Strip full patch names from libraries and executables."""
+"""Strip full path names from libraries and executables."""
 
 from __future__ import print_function, division
 
