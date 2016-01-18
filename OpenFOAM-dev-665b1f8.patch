@@ -38,12 +38,12 @@
  .../MGridGenGamgAgglomeration/Make/options         |  16 ++-
  src/parallel/decompose/metisDecomp/Allwmake        |   6 +-
  src/parallel/decompose/metisDecomp/Make/options    |   1 -
- src/parallel/decompose/metisDecomp/metisDecomp.C   |   4 +
+ src/parallel/decompose/metisDecomp/metisDecomp.C   |   6 +-
  src/parallel/decompose/ptscotchDecomp/Make/options |  10 +-
  src/parallel/decompose/scotchDecomp/Make/options   |   8 +-
  src/renumber/SloanRenumber/Make/options            |  31 +++--
- wmake/Makefile                                     |   4 +
- wmake/MakefileFiles                                |   5 +-
+ wmake/makefiles/files                              |   5 +-
+ wmake/makefiles/general                            |   4 +
  wmake/rules/darwin64Clang/c                        |  17 +++
  wmake/rules/darwin64Clang/c++                      |  27 ++++
  wmake/rules/darwin64Clang/c++Debug                 |   2 +
@@ -53,7 +53,8 @@
  wmake/rules/darwin64Clang/cOpt                     |   2 +
  wmake/rules/darwin64Clang/cProf                    |   2 +
  wmake/rules/darwin64Clang/general                  |  10 ++
- 55 files changed, 1202 insertions(+), 90 deletions(-)
+ wmake/src/Makefile                                 |   1 +
+ 56 files changed, 1204 insertions(+), 91 deletions(-)
 
 diff --git a/.gitignore b/.gitignore
 index ec46862..ead2d97 100644
@@ -593,7 +594,7 @@ index e40e1c7..99012c6 100644
  
  # -----------------------------------------------------------------------------
 diff --git a/etc/config/settings.sh b/etc/config/settings.sh
-index 02be26b..c11a350 100644
+index de634ee..2d181fe 100644
 --- a/etc/config/settings.sh
 +++ b/etc/config/settings.sh
 @@ -30,6 +30,30 @@
@@ -679,7 +680,7 @@ index 02be26b..c11a350 100644
  
  # Compiler settings
  # ~~~~~~~~~~~~~~~~~
-@@ -607,7 +649,12 @@ esac
+@@ -619,7 +661,12 @@ esac
  # Dummy MPI already added to LD_LIBRARY_PATH and has no external libraries
  if [ "$FOAM_MPI" != dummy ]
  then
@@ -693,7 +694,7 @@ index 02be26b..c11a350 100644
  fi
  
  
-@@ -622,10 +669,11 @@ then
+@@ -634,10 +681,11 @@ then
  fi
  export MPI_BUFFER_SIZE
  
@@ -708,7 +709,7 @@ index 02be26b..c11a350 100644
  
  # ----------------------------------------------------------------- end-of-file
 diff --git a/src/Allwmake b/src/Allwmake
-index 2a3d9b7..028e377 100755
+index 2a3d9b7..f57ddb5 100755
 --- a/src/Allwmake
 +++ b/src/Allwmake
 @@ -12,19 +12,20 @@ wmakeCheckPwd "$WM_PROJECT_DIR/src" || {
@@ -730,13 +731,13 @@ index 2a3d9b7..028e377 100755
  
 -wmakeLnInclude OpenFOAM
 -wmakeLnInclude OSspecific/${WM_OSTYPE:-POSIX}
-+wmakeLnInclude -f OpenFOAM
-+wmakeLnInclude -f OSspecific/${WM_OSTYPE:-POSIX}
++wmakeLnInclude -u OpenFOAM
++wmakeLnInclude -u OSspecific/${WM_OSTYPE:-POSIX}
  Pstream/Allwmake $targetType $*
  
  OSspecific/${WM_OSTYPE:-POSIX}/Allwmake $*
 diff --git a/src/OSspecific/POSIX/POSIX.C b/src/OSspecific/POSIX/POSIX.C
-index 44ee3c7..f09b8d9 100644
+index 9188b7e..524ec89 100644
 --- a/src/OSspecific/POSIX/POSIX.C
 +++ b/src/OSspecific/POSIX/POSIX.C
 @@ -53,7 +53,11 @@ Description
@@ -751,7 +752,7 @@ index 44ee3c7..f09b8d9 100644
  
  #include <netinet/in.h>
  
-@@ -1167,6 +1171,20 @@ void* Foam::dlOpen(const fileName& lib, const bool check)
+@@ -1197,6 +1201,20 @@ void* Foam::dlOpen(const fileName& lib, const bool check)
              << " : dlopen of " << lib << std::endl;
      }
      void* handle = ::dlopen(lib.c_str(), RTLD_LAZY|RTLD_GLOBAL);
@@ -772,7 +773,7 @@ index 44ee3c7..f09b8d9 100644
  
      if (!handle && check)
      {
-@@ -1253,7 +1271,24 @@ bool Foam::dlSymFound(void* handle, const std::string& symbol)
+@@ -1283,7 +1301,24 @@ bool Foam::dlSymFound(void* handle, const std::string& symbol)
      }
  }
  
@@ -797,7 +798,7 @@ index 44ee3c7..f09b8d9 100644
  static int collectLibsCallback
  (
      struct dl_phdr_info *info,
-@@ -1280,6 +1315,7 @@ Foam::fileNameList Foam::dlLoaded()
+@@ -1310,6 +1345,7 @@ Foam::fileNameList Foam::dlLoaded()
      }
      return libs;
  }
@@ -2000,15 +2001,16 @@ index 8acd678..d4dfa96 100644
      -I../decompositionMethods/lnInclude
  
 diff --git a/src/parallel/decompose/metisDecomp/metisDecomp.C b/src/parallel/decompose/metisDecomp/metisDecomp.C
-index 1fb0ea1..7960925 100644
+index d87619b..6c7380f 100644
 --- a/src/parallel/decompose/metisDecomp/metisDecomp.C
 +++ b/src/parallel/decompose/metisDecomp/metisDecomp.C
-@@ -68,7 +68,11 @@ Foam::label Foam::metisDecomp::decompose
+@@ -67,7 +67,11 @@ Foam::label Foam::metisDecomp::decompose
  
      // processor weights initialised with no size, only used if specified in
      // a file
+-    Field<scalar> processorWeights;
 +#if REALTYPEWIDTH == 32
-     Field<floatScalar> processorWeights;
++    Field<floatScalar> processorWeights;
 +#else
 +    Field<doubleScalar> processorWeights;
 +#endif
@@ -2093,26 +2095,10 @@ index 492a3ae..29597e3 100644
 +else
 +LIB_LIBS += -lboost_thread
 +endif
-diff --git a/wmake/Makefile b/wmake/Makefile
-index 38f3f1a..3eaf65f 100644
---- a/wmake/Makefile
-+++ b/wmake/Makefile
-@@ -80,7 +80,11 @@ LIB_LIBS           =
- LIB             = libNULL
- 
- # Shared library extension
-+ifeq ($(shell uname -s),Darwin)
-+SO              = dylib
-+else
- SO              = so
-+endif
- 
- # Project executable
- EXE             = $(WM_PROJECT).out
-diff --git a/wmake/MakefileFiles b/wmake/MakefileFiles
-index 8c55353..3606fb9 100644
---- a/wmake/MakefileFiles
-+++ b/wmake/MakefileFiles
+diff --git a/wmake/makefiles/files b/wmake/makefiles/files
+index 91bff62..3835015 100644
+--- a/wmake/makefiles/files
++++ b/wmake/makefiles/files
 @@ -68,9 +68,10 @@ $(SFILES): $(MAKE_DIR)/files
  	# Add a newline to files to ensure the last line is followed by a newline
  	@echo "" >> $(SFILES)
@@ -2126,6 +2112,22 @@ index 8c55353..3606fb9 100644
  
  $(VARS): $(SFILES)
  
+diff --git a/wmake/makefiles/general b/wmake/makefiles/general
+index 2fc320d..4bfab1c 100644
+--- a/wmake/makefiles/general
++++ b/wmake/makefiles/general
+@@ -80,7 +80,11 @@ LIB_LIBS           =
+ LIB             = libNULL
+ 
+ # Shared library extension
++ifeq ($(shell uname -s),Darwin)
++SO		= dylib
++else
+ SO              = so
++endif
+ 
+ # Project executable
+ EXE             = $(WM_PROJECT).out
 diff --git a/wmake/rules/darwin64Clang/c b/wmake/rules/darwin64Clang/c
 new file mode 100644
 index 0000000..fa35e79
@@ -2151,7 +2153,7 @@ index 0000000..fa35e79
 +LINKEXE     = $(cc) -Wl,-execute,-undefined,dynamic_lookup
 diff --git a/wmake/rules/darwin64Clang/c++ b/wmake/rules/darwin64Clang/c++
 new file mode 100644
-index 0000000..1c223fb
+index 0000000..e162eb7
 --- /dev/null
 +++ b/wmake/rules/darwin64Clang/c++
 @@ -0,0 +1,27 @@
@@ -2162,9 +2164,9 @@ index 0000000..1c223fb
 +
 +c++WARN     = -Wall -Wextra -Wno-unused-parameter -Wno-overloaded-virtual \
 +              -Wno-unused-variable -Wno-unused-local-typedef -Wno-invalid-offsetof \
-+	      -Wno-c++11-extensions
++	      -Wno-deprecated-register
 +
-+CC          = xcrun c++ -arch x86_64
++CC          = xcrun c++ -arch x86_64 -std=c++14
 +
 +include $(RULES)/c++$(WM_COMPILE_OPTION)
 +
@@ -2247,3 +2249,15 @@ index 0000000..f7377fa
 +
 +include $(RULES)/c
 +include $(RULES)/c++
+diff --git a/wmake/src/Makefile b/wmake/src/Makefile
+index 92a2b08..636ee21 100644
+--- a/wmake/src/Makefile
++++ b/wmake/src/Makefile
+@@ -53,6 +53,7 @@ WMAKE_BIN     = $(WM_DIR)/platforms/$(WM_ARCH)$(WM_COMPILER)
+ include $(RULES)/general
+ include $(RULES)/$(WM_LINK_LANGUAGE)
+ 
++cFLAGS += -Wno-unused-function
+ 
+ #------------------------------------------------------------------------------
+ # targets
