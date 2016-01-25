@@ -3,6 +3,18 @@
 Patches for OpenFOAM compilation on OS X. Detailed installation instructions
 can be found in [wiki](https://github.com/mrklein/openfoam-os-x/wiki).
 
+## January 25, 2015
+
+Though OpenCFD distributes Docker images for OS X, to me native compilation
+looks more convenient (for people who does not like compilation, there is
+precompiled binaries). Installation guide is almost the same as for any other
+release ([OpenFOAM release & Homebrew](https://github.com/mrklein/openfoam-os-x/wiki/OpenFOAM%20release%20&%20Homebrew)),
+except:
+
+1. Download URL is [OpenFOAM-v3.0+.tgz](https://sourceforge.net/projects/openfoamplus/files/OpenFOAM-v3.0+.tgz).
+2. Graphics function objects (`$FOAM_SRC/postProcessing/functionObjects/graphics`) depend on [VTK](http://vtk.org). You can install the library with Homebrew (right now there is Python library path problem with bottled version, so either install using `--build-from-source` flag, or edit `$(brew --prefix)/opt/vtk/lib/cmake/vtk-6.3/Modules/vtkPython.cmake` so it points to valid Python installation).
+3. Compilation of Zoltan renumber functionality is silently skipped.
+
 ## January 18, 2015
 
 Updated patch for development OpenFOAM branch.
