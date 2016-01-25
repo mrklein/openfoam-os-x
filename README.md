@@ -6,7 +6,7 @@ can be found in [wiki](https://github.com/mrklein/openfoam-os-x/wiki).
 ## January 25, 2015
 
 Though OpenCFD distributes Docker images for OS X, to me native compilation
-looks more convenient (for people who does not like compilation, there is
+looks more convenient (for people who does not like compilation, there are
 precompiled binaries). Installation guide is almost the same as for any other
 release ([OpenFOAM release & Homebrew](https://github.com/mrklein/openfoam-os-x/wiki/OpenFOAM%20release%20&%20Homebrew)),
 except:
