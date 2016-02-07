@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-"""Strip full path names from libraries and executables."""
+"""Strip full patch names from libraries and executables."""
 
 from __future__ import print_function, division
 
@@ -117,7 +117,10 @@ def _make_archive(version):
     #   OS X kernel version: Version of OS X kernel where binaries were built
     #   For version 3.0.0 and higher value of WM_LABEL_SIZE is also added
     #   option is optimization level: opt, debug, prof
-    major, minor, patch = version.split('.')
+    if version != 'dev':
+        major, minor, patch = version.split('.')
+    else:
+        major = 999
     _dir, _opts, copt, label_size = _read_environment(version)
 
     lib_path = join('platforms', _opts, 'lib')
@@ -131,6 +134,7 @@ def _make_archive(version):
     else:
         filename = filename_fmt.format(version, _get_kernel_version(), '',
                                        copt.lower())
+
     chdir('OpenFOAM-{0}'.format(version))
     print('Creating archive {0} ... '.format(filename), end='')
     stdout.flush()
