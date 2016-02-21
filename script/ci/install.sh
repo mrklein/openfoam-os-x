@@ -19,6 +19,7 @@ prepare_release()
     tar xzf "$HOME/OpenFOAM-$VERSION.tgz"
     cd "$HOME/OpenFOAM/OpenFOAM-$VERSION"
     cp $TRAVIS_BUILD_DIR/OpenFOAM-$VERSION.patch OpenFOAM.patch
+    echo "\n\nc++WARN += -Wno-unused-comparison -Wno-unknown-warning-option" >> wmake/rules/darwin64Clang/c++
     return 0
 }
 
@@ -29,10 +30,12 @@ prepare_git_version()
     cd "$HOME/OpenFOAM/OpenFOAM-$VERSION"
     local patch_file=$(ls -1 $TRAVIS_BUILD_DIR | grep $VERSION)
     local initial_commit=$(echo $patch_file | perl -pe 's/OpenFOAM-.*-(.+)\.patch/$1/')
+    echo $patch_file
+    echo $initial_commit
     git checkout -b local-install $initial_commit
     cp $TRAVIS_BUILD_DIR/$patch_file OpenFOAM.patch
     git apply OpenFOAM.patch
-    create_prefs
+    echo "\n\nc++WARN += -Wno-unused-comparison -Wno-unknown-warning-option" >> wmake/rules/darwin64Clang/c++
     return 0
 }
 
