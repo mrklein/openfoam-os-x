@@ -28,9 +28,9 @@ prepare_git_version()
     git clone git://github.com/OpenFOAM/OpenFOAM-$VERSION.git
     cd "$HOME/OpenFOAM/OpenFOAM-$VERSION"
     local patch_file=$(ls -1 $TRAVIS_BUILD_DIR | grep $VERSION)
-    local initial_commit=$(echo $patch_file | sed 's/OpenFOAM-.*-\([[:alnum:]]+\)\.patch/\1/')
-    cp $TRAVIS_BUILD_DIR/$patch_file OpenFOAM.patch
+    local initial_commit=$(echo $patch_file | perl -pe 's/OpenFOAM-.*-(.+)\.patch/$1/')
     git checkout -b local-install $initial_commit
+    cp $TRAVIS_BUILD_DIR/$patch_file OpenFOAM.patch
     git apply OpenFOAM.patch
     create_prefs
     return 0
