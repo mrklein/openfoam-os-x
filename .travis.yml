@@ -10,6 +10,7 @@ env:
   - OPENFOAM_TEST_VERSION='3.0.x'
   - OPENFOAM_TEST_VERSION='dev'
 before_install:
+  - pwd
   - brew tap homebrew/science
   - brew update
   - brew install openmpi --without-fortran
@@ -18,6 +19,7 @@ before_install:
   - brew install parmetis
   - brew unlink boost
   - brew install boost
+  - brew unlink cgal
   - brew install cgal
   - hdiutil create -size 8g -type SPARSEBUNDLE -fs HFSX -volname OpenFOAM -fsargs -s "$HOME/OpenFOAM.sparsebundle"
   - mkdir -p "$HOME/OpenFOAM"

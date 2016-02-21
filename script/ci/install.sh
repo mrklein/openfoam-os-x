@@ -18,7 +18,7 @@ prepare_release()
     cd "$HOME/OpenFOAM"
     tar xzf "$HOME/OpenFOAM-$VERSION.tgz"
     cd "$HOME/OpenFOAM/OpenFOAM-$VERSION"
-    curl -L https://raw.githubusercontent.com/mrklein/openfoam-os-x/master/OpenFOAM-$VERSION.patch > OpenFOAM.patch
+    cp ../../mrklein/openfoam-os-x/OpenFOAM-$VERSION.patch OpenFOAM.patch
     return 0
 }
 
@@ -31,7 +31,7 @@ prepare_git_version()
     [ "$VERSION" = "2.4.x" ] && initial_commit="2b147f4"
     [ "$VERSION" = "3.0.x" ] && initial_commit="f5fbd39"
     [ "$VERSION" = "dev" ] && initial_commit="665b1f8"
-    curl -L https://raw.githubusercontent.com/mrklein/openfoam-os-x/master/OpenFOAM-$VERSION-$initial_commit.patch > OpenFOAM.patch
+    cp ../../mrklein/openfoam-os-x/OpenFOAM-$VERSION-$initial_commit.patch OpenFOAM.patch
     git chekout -b local-install $initial_commit
     git apply OpenFOAM.patch
     create_prefs
