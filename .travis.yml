@@ -23,6 +23,7 @@ before_install:
   - hdiutil attach -mountpoint "$HOME/OpenFOAM" "$HOME/OpenFOAM.sparsebundle"
 install:
   - ./script/ci/prepare.sh $OPENFOAM_TEST_VERSION
+  - cd "$HOME/OpenFOAM/OpenFOAM-$OPENFOAM_TEST_VERSION"
   - source etc/bashrc
   - (cd wmake/src && make)
   - cd src
