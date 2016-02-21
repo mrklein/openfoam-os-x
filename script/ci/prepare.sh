@@ -8,6 +8,7 @@ create_prefs()
     echo 'WM_COMPILER=Clang' > "$HOME/.OpenFOAM/prefs.sh"
     echo 'WM_COMPILE_OPTION=Opt' >> "$HOME/.OpenFOAM/prefs.sh"
     echo 'WM_MPLIB=SYSTEMOPENMPI' >> "$HOME/.OpenFOAM/prefs.sh"
+    echo 'export WM_SILENT_RULES=Y'
     echo 'export WM_NCOMPPROCS=$(sysctl -n hw.ncpu)' >> "$HOME/.OpenFOAM/prefs.sh"
 }
 
@@ -47,5 +48,3 @@ fi
 
 create_prefs
 
-source etc/bashrc
-./Allwmake
