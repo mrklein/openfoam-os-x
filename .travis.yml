@@ -8,7 +8,6 @@ env:
   - OPENFOAM_TEST_VERSION='2.4.x'
   - OPENFOAM_TEST_VERSION='3.0.1'
   - OPENFOAM_TEST_VERSION='3.0.x'
-  - OPENFOAM_TEST_VERSION='dev'
 before_install:
   - for f in $(brew list); do brew uninstall --force $f; done
   - brew tap homebrew/science
