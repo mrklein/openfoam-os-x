@@ -13,7 +13,7 @@ before_install:
   - for f in $(brew list); do brew uninstall --force $f; done
   - brew tap homebrew/science
   - brew update
-  - brew install openmpi --without-fortran
+  - brew install openmpi
   - brew install scotch
   - brew install metis
   - brew install parmetis
