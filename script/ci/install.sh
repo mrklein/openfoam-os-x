@@ -30,7 +30,7 @@ prepare_git_version()
     local patch_file=$(ls -1 $TRAVIS_BUILD_DIR | grep $VERSION)
     local initial_commit=$(echo $patch_file | sed 's/OpenFOAM-.*-\([[:alnum:]]+\)\.patch/\1/')
     cp $TRAVIS_BUILD_DIR/$patch_file OpenFOAM.patch
-    git chekout -b local-install $initial_commit
+    git checkout -b local-install $initial_commit
     git apply OpenFOAM.patch
     create_prefs
     return 0
