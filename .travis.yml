@@ -10,7 +10,7 @@ env:
   - OPENFOAM_TEST_VERSION='3.0.x'
   - OPENFOAM_TEST_VERSION='dev'
 before_install:
-  - pwd
+  - echo $TRAVIS_BUILD_DIR
   - brew tap homebrew/science
   - brew update
   - brew install openmpi --without-fortran

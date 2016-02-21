@@ -18,7 +18,7 @@ prepare_release()
     cd "$HOME/OpenFOAM"
     tar xzf "$HOME/OpenFOAM-$VERSION.tgz"
     cd "$HOME/OpenFOAM/OpenFOAM-$VERSION"
-    cp ../../mrklein/openfoam-os-x/OpenFOAM-$VERSION.patch OpenFOAM.patch
+    cp $TRAVIS_BUILD_DIR/OpenFOAM-$VERSION.patch OpenFOAM.patch
     return 0
 }
 
@@ -27,11 +27,9 @@ prepare_git_version()
     cd "$HOME/OpenFOAM"
     git clone git://github.com/OpenFOAM/OpenFOAM-$VERSION.git
     cd "$HOME/OpenFOAM/OpenFOAM-$VERSION"
-    local initial_commit=
-    [ "$VERSION" = "2.4.x" ] && initial_commit="2b147f4"
-    [ "$VERSION" = "3.0.x" ] && initial_commit="f5fbd39"
-    [ "$VERSION" = "dev" ] && initial_commit="665b1f8"
-    cp ../../mrklein/openfoam-os-x/OpenFOAM-$VERSION-$initial_commit.patch OpenFOAM.patch
+    local patch_file=$(ls -1 $TRAVIS_BUILD_DIR | grep $VERSION)
+    local initial_commit=$(echo $patch_file | sed 's/OpenFOAM-.*-\([[:alnum:]]+\)\.patch/\1/')
+    cp $TRAVIS_BUILD_DIR/$patch_file OpenFOAM.patch
     git chekout -b local-install $initial_commit
     git apply OpenFOAM.patch
     create_prefs
