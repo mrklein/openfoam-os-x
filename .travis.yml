@@ -1,21 +1,29 @@
-language: objective-c
+language: cpp
+os:
+  - osx
 compiler:
   - clang
 env:
-  matrix:
-    - OPENFOAM_TEST_VERSION='2.1.1'
-    - OPENFOAM_TEST_VERSION='2.1.x'
-    - OPENFOAM_TEST_VERSION='2.2.2'
-    - OPENFOAM_TEST_VERSION='2.2.x'
-    - OPENFOAM_TEST_VERSION='2.3.0'
-    - OPENFOAM_TEST_VERSION='2.3.x'
+  - OPENFOAM_TEST_VERSION='2.4.0'
+  - OPENFOAM_TEST_VERSION='2.4.x'
+  - OPENFOAM_TEST_VERSION='3.0.1'
+  - OPENFOAM_TEST_VERSION='3.0.x'
+  - OPENFOAM_TEST_VERSION='dev'
 before_install:
-  - ./script/ci/before_install.sh $OPENFOAM_TEST_VERSION
+  - brew update
+  - brew install -v openmpi --disable-fortran
+  - brew install -v scotch
+  - brew install -v metis
+  - brew install -v parmetis
+  - brew install -v boost
+  - brew install -v cgal
+  - hdiutil create -size 8g -type SPARSEBUNDLE -fs HFSX -volname OpenFOAM -fsargs -s "$HOME/OpenFOAM.sparsebundle"
+  - mkdir -p "$HOME/OpenFOAM"
+  - hdiutil attach -mountpoint "$HOME/OpenFOAM" "$HOME/OpenFOAM.sparsebundle"
 install:
   - ./script/ci/install.sh $OPENFOAM_TEST_VERSION
 before_script:
   - ./script/ci/before_test.sh $OPENFOAM_TEST_VERSION
 script:
   - ./script/ci/test.sh $OPENFOAM_TEST_VERSION
-os:
-  - osx
+
