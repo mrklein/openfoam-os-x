@@ -29,8 +29,8 @@ install:
   - cd src
   - makeType=libso
   - wmakePrintBuild -check || /bin/rm -f OpenFOAM/Make/*/global.? 2>/dev/null
-  - wmakeLnInclude OpenFOAM
-  - wmakeLnInclude OSspecific/${WM_OSTYPE:-POSIX}
+  - wmakeLnInclude -f OpenFOAM
+  - wmakeLnInclude -f OSspecific/${WM_OSTYPE:-POSIX}
   - Pstream/Allwmake $*
   - OSspecific/${WM_OSTYPE:-POSIX}/Allwmake $*
   - wmake libso OpenFOAM
@@ -56,6 +56,7 @@ install:
   - wmake $makeType ODE
   - wmake $makeType randomProcesses
   - thermophysicalModels/Allwmake $*
+before_script:
   - transportModels/Allwmake $*
   - turbulenceModels/Allwmake $*
   - TurbulenceModels/Allwmake $*
@@ -74,8 +75,6 @@ install:
   - cd applications
   - cd utilities && wmake all && cd ..
   - cd solvers && wmake all && cd ..
-before_script:
-  - ./script/ci/before_test.sh $OPENFOAM_TEST_VERSION
 script:
   - ./script/ci/test.sh $OPENFOAM_TEST_VERSION
 
