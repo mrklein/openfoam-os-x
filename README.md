@@ -3,6 +3,17 @@
 Patches for OpenFOAM compilation on OS X. Detailed installation instructions
 can be found in [wiki](https://github.com/mrklein/openfoam-os-x/wiki).
 
+## February 24, 2016
+
+1. Updated patches for 3.0.x and dev.
+  - in 3.0.x unsilenced wmkdep utility, so now this part of build process is
+    marked as [DEP]
+  - By accident added matrix constraining in scalar transport solver.
+2. Tried to extend third-party software configuration logic, i.e. if brew is
+   not found, try port, and fall-back to /usr/local if neither brew, nor port
+   were found. Since I have only brew on my laptop, functionality is not
+   tested.
+
 ## January 25, 2015
 
 Though OpenCFD distributes Docker images for OS X, to me native compilation
