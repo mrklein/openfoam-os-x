@@ -3,6 +3,50 @@
 Patches for OpenFOAM compilation on OS X. Detailed installation instructions
 can be found in [wiki](https://github.com/mrklein/openfoam-os-x/wiki).
 
+## March 29, 2016
+
+Updated 3.0.1 and 3.0.x patches to fix problem on CLT only systems (reported by
+Nikolai Tauber), this includes:
+
+1. Correction of wmake rules (if `xcrun --show-sdk-path` returned empty string
+   remove part of `CC` command).
+2. Small addition to `Allwmake` script to set up environment if it is not.
+   Since any way `Allwmake` script should be run from `$WM_PROJECT_DIR`, we
+   could source `etc/bashrc` in the beginning to remedy quite confusing
+   `./Allwmake: line 7: /wmake/scripts/AllwmakeParseArguments: No such file or directory`.
+
+Build process was tested on
+
+```
+$ sw_vers
+ProductName:	Mac OS X
+ProductVersion:	10.11.4
+BuildVersion:	15E65
+```
+
+with
+
+```
+$ clang++ --version
+Apple LLVM version 7.3.0 (clang-703.0.29)
+Target: x86_64-apple-darwin15.4.0
+Thread model: posix
+InstalledDir: /Library/Developer/CommandLineTools/usr/bin
+```
+
+and the following third-party software (there is still problem with new
+Homebrew's METIS, so, no METIS this time)
+
+```
+$ brew list --versions
+boost 1.60.0_1
+cgal 4.7
+gmp 6.1.0
+mpfr 3.1.3
+open-mpi 1.10.2
+scotch 6.0.4_1
+```
+
 ## February 24, 2016
 
 1. Updated patches for 3.0.x and dev.
