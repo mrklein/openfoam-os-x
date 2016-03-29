@@ -169,7 +169,7 @@ index f23a233..9c61fdc 100755
  set -x
  
 diff --git a/applications/solvers/basic/scalarTransportFoam/scalarTransportFoam.C b/applications/solvers/basic/scalarTransportFoam/scalarTransportFoam.C
-index 2430732..44a5233 100644
+index 2430732..16ed273 100644
 --- a/applications/solvers/basic/scalarTransportFoam/scalarTransportFoam.C
 +++ b/applications/solvers/basic/scalarTransportFoam/scalarTransportFoam.C
 @@ -58,7 +58,7 @@ int main(int argc, char *argv[])
@@ -186,7 +186,7 @@ index 2430732..44a5233 100644
          }
  
 +        fvOptions.constrain(TEqn);
-+        
++
 +        TEqn.solve();
 +
          runTime.write();
