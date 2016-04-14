@@ -30,6 +30,19 @@ class Metis64 < Formula
   end
 end
 __END__
+diff --git a/GKlib/error.c b/GKlib/error.c
+index e2a18cf..7a58f3d 100644
+--- a/GKlib/error.c
++++ b/GKlib/error.c
+@@ -18,7 +18,7 @@ This file contains functions dealing with error reporting and termination
+ 
+ /* These are the jmp_buf for the graceful exit in case of severe errors.
+    Multiple buffers are defined to allow for recursive invokation. */
+-#define MAX_JBUFS 128
++#define MAX_JBUFS 24
+ __thread int gk_cur_jbufs=-1;
+ __thread jmp_buf gk_jbufs[MAX_JBUFS];
+ __thread jmp_buf gk_jbuf;
 diff --git a/include/metis.h b/include/metis.h
 index dc5406a..e951270 100644
 --- a/include/metis.h
@@ -49,3 +62,17 @@ index dc5406a..e951270 100644
  --------------------------------------------------------------------------*/
 -#define REALTYPEWIDTH 32
 +#define REALTYPEWIDTH 64
+ 
+ 
+ 
+diff --git a/programs/CMakeLists.txt b/programs/CMakeLists.txt
+index 3aaf357..d948257 100644
+--- a/programs/CMakeLists.txt
++++ b/programs/CMakeLists.txt
+@@ -1,6 +1,5 @@
+ # These programs use internal metis data structures.
+ include_directories(../libmetis)
+-link_directories(/home/karypis/local/lib)
+ # Build program.
+ add_executable(gpmetis gpmetis.c cmdline_gpmetis.c io.c stat.c)
+ add_executable(ndmetis ndmetis.c cmdline_ndmetis.c io.c smbfactor.c)
