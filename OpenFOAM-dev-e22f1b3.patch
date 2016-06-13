@@ -1381,7 +1381,7 @@ index 0e3ab8a..4373535 100644
 +        #if defined(LINUX_GNUC) || defined(darwin64)
          supported = true;
  
-+        #if defined(LINIX_GNUC)
++        #if defined(LINUX_GNUC)
          feenableexcept
          (
              FE_DIVBYZERO
