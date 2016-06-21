@@ -3,6 +3,46 @@
 Patches for OpenFOAM compilation on OS X. Detailed installation instructions
 can be found in [wiki](https://github.com/mrklein/openfoam-os-x/wiki).
 
+## June 21, 2016
+
+Updated 3.0.x and dev patches. Currently by default foamyMesh is not built, if
+you need it, set `FOAMY_HEX_MESH` environment variable to non-empty value (for
+example add `export FOAMY_HEX_MESH=Y` to `prefs.sh`).
+
+Build process was tested on
+
+```
+$ sw_vers 
+ProductName:	Mac OS X
+ProductVersion:	10.11.5
+BuildVersion:	15F34
+```
+
+with
+
+```
+$ clang++ --version
+Apple LLVM version 7.3.0 (clang-703.0.31)
+Target: x86_64-apple-darwin15.5.0
+Thread model: posix
+InstalledDir: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin
+```
+
+and the following third-party packages:
+
+```
+$ brew list --versions
+boost 1.60.0_2
+cgal 4.7
+gmp 6.1.0
+metis 5.1.0
+mpfr 3.1.4
+open-mpi 1.10.2_1
+parmetis 4.0.3_3
+parmgridgen 0.0.2
+scotch 6.0.4_1
+```
+
 ## March 29, 2016
 
 Updated 3.0.1 and 3.0.x patches to fix problem on CLT only systems (reported by
