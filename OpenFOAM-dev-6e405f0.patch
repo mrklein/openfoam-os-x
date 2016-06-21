@@ -1,25 +1,25 @@
  .gitignore                                         |   1 +
- Allwmake                                           |  17 ++-
- applications/Allwmake                              |  14 ++-
- .../scalarTransportFoam/scalarTransportFoam.C      |   6 +-
- .../CGALTriangulation3DKernel.H                    |   2 +
- .../foamyQuadMesh/CGALTriangulation2DKernel.H      |   2 +
+ Allwmake                                           |   6 +-
+ applications/Allwmake                              |   3 +-
  .../mesh/generation/snappyHexMesh/Make/options     |   1 -
+ .../mesh/manipulation/renumberMesh/Allwmake        |  13 +-
  .../mesh/manipulation/renumberMesh/Make/options    |   1 -
  .../dataConversion/foamToEnsight/Make/options      |   1 -
  .../postProcessing/graphics/PV3Readers/Allwmake    |   3 +
- .../postProcessing/graphics/PV4Readers/Allwmake    |   3 +
+ .../postProcessing/graphics/PVReaders/Allwmake     |   7 +-
  bin/foamInstallationTest                           |  21 +++-
  bin/foamJob                                        |   6 +
  bin/paraFoam                                       |   5 +
- bin/tools/RunFunctions                             | 123 +++++++++++++-----
- etc/bashrc                                         |  65 ++++++++--
- etc/config/CGAL.sh                                 |  55 +++++++-
- etc/config/metis.sh                                |  39 +++++-
- etc/config/paraview-osx.sh                         |  16 +++
- etc/config/scotch.sh                               |  47 ++++++-
- etc/config/settings.sh                             | 112 +++++++++++++++--
- src/Allwmake                                       |  18 ++-
+ bin/tools/RunFunctions                             |  22 +++-
+ etc/bashrc                                         | 100 ++++++++++++---
+ etc/config.sh/mac/CGAL                             |  69 +++++++++++
+ etc/config.sh/mac/functions                        | 133 ++++++++++++++++++++
+ etc/config.sh/mac/metis                            |  44 +++++++
+ etc/config.sh/mac/paraview                         |  16 +++
+ etc/config.sh/mac/scotch                           |  47 +++++++
+ etc/config.sh/mpi                                  |   8 +-
+ etc/config.sh/settings                             |  16 ++-
+ src/Allwmake                                       |   3 +-
  src/OSspecific/POSIX/POSIX.C                       |  36 ++++++
  src/OSspecific/POSIX/clockTime/clockTime.H         |   3 +
  src/OSspecific/POSIX/printStack.C                  |  72 +++++++++--
@@ -30,7 +30,6 @@
  .../db/dynamicLibrary/dynamicCode/dynamicCode.C    |   4 +
  .../db/dynamicLibrary/dynamicCode/dynamicCode.H    |   4 +
  src/OpenFOAM/primitives/Scalar/doubleFloat.H       |  15 +++
- src/OpenFOAM/primitives/chars/char/char.C          |   0
  src/OpenFOAM/primitives/ints/int/int.H             |   8 ++
  src/OpenFOAM/primitives/ints/long/long.C           |  50 ++++++++
  src/OpenFOAM/primitives/ints/long/long.H           | 138 +++++++++++++++++++++
@@ -40,17 +39,19 @@
  src/OpenFOAM/primitives/ints/ulong/ulongIO.C       | 101 +++++++++++++++
  src/fvAgglomerationMethods/Allwmake                |   9 +-
  .../MGridGenGamgAgglomeration/Make/options         |  16 ++-
- src/parallel/decompose/metisDecomp/Allwmake        |   6 +-
+ src/parallel/decompose/Allwmake                    |   4 +-
+ src/parallel/decompose/metisDecomp/Allwmake        |  10 +-
  src/parallel/decompose/metisDecomp/Make/options    |   1 -
  src/parallel/decompose/metisDecomp/metisDecomp.C   |   6 +-
  src/parallel/decompose/ptscotchDecomp/Make/options |  10 +-
  src/parallel/decompose/scotchDecomp/Make/options   |   8 +-
+ src/renumber/Allwmake                              |  12 +-
  src/renumber/SloanRenumber/Make/options            |  31 +++--
- wmake/Makefile                                     |  64 +++++++++-
- wmake/MakefileFiles                                |   5 +-
+ wmake/makefiles/files                              |   5 +-
+ wmake/makefiles/general                            |  58 ++++++++-
  wmake/rules/General/transform                      |  10 ++
- wmake/rules/darwin64Clang/c                        |  21 ++++
- wmake/rules/darwin64Clang/c++                      |  31 +++++
+ wmake/rules/darwin64Clang/c                        |  17 +++
+ wmake/rules/darwin64Clang/c++                      |  27 ++++
  wmake/rules/darwin64Clang/c++Debug                 |   2 +
  wmake/rules/darwin64Clang/c++Opt                   |   3 +
  wmake/rules/darwin64Clang/c++Prof                  |   2 +
@@ -58,16 +59,16 @@
  wmake/rules/darwin64Clang/cOpt                     |   2 +
  wmake/rules/darwin64Clang/cProf                    |   2 +
  wmake/rules/darwin64Clang/general                  |  10 ++
- wmake/src/Makefile                                 |   7 +-
- wmake/src/wmkdep.l                                 |  16 ++-
+ wmake/src/Makefile                                 |   1 +
+ wmake/src/wmkdep.l                                 |  14 ++-
  wmake/wmakeLnInclude                               |   7 +-
- 63 files changed, 1538 insertions(+), 132 deletions(-)
+ 64 files changed, 1538 insertions(+), 98 deletions(-)
 
 diff --git a/.gitignore b/.gitignore
-index 28fb901..fe1ede4 100644
+index a897b81..8f59031 100644
 --- a/.gitignore
 +++ b/.gitignore
-@@ -39,6 +39,7 @@ linux*Gcc*/
+@@ -37,6 +37,7 @@ linux*Gcc*/
  linux*Icc*/
  solaris*Gcc*/
  SunOS*Gcc*/
@@ -76,28 +77,10 @@ index 28fb901..fe1ede4 100644
  
  # Reinstate wmake/rules that might look like build directories
 diff --git a/Allwmake b/Allwmake
-index e0dded1..af7bc9e 100755
+index cf49e40..7d397ae 100755
 --- a/Allwmake
 +++ b/Allwmake
-@@ -1,6 +1,17 @@
- #!/bin/sh
- cd ${0%/*} || exit 1    # Run from this directory
- 
-+# Check if environment is configured
-+[ -z "$WM_PROJECT_DIR" ] && {
-+# No, it is not, so we source bashrc ourselves
-+[ -f "$(pwd)/etc/bashrc" ] && {
-+echo
-+echo "You have forgotten to source etc/bashrc, so I do it myself."
-+echo
-+source $(pwd)/etc/bashrc
-+}
-+}
-+
- # Parse arguments for library compilation without documentation by default
- genDoc=0
- targetType=libso
-@@ -13,11 +24,12 @@ wmakeCheckPwd "$WM_PROJECT_DIR" || {
+@@ -13,11 +13,12 @@ wmakeCheckPwd "$WM_PROJECT_DIR" || {
      exit 1
  }
  
@@ -111,7 +94,7 @@ index e0dded1..af7bc9e 100755
  
  # Compile wmake support applications
  (cd wmake/src && make)
-@@ -27,7 +39,8 @@ if [ -d "$WM_THIRD_PARTY_DIR" ]
+@@ -27,7 +28,8 @@ if [ -d "$WM_THIRD_PARTY_DIR" ]
  then
      $WM_THIRD_PARTY_DIR/Allwmake
  else
@@ -122,28 +105,10 @@ index e0dded1..af7bc9e 100755
  
  # Compile OpenFOAM libraries and applications
 diff --git a/applications/Allwmake b/applications/Allwmake
-index f23a233..9c61fdc 100755
+index 23c5ebb..50709b0 100755
 --- a/applications/Allwmake
 +++ b/applications/Allwmake
-@@ -1,6 +1,17 @@
- #!/bin/sh
- cd ${0%/*} || exit 1    # Run from this directory
- 
-+# Check if environment is configured
-+[ -z "$WM_PROJECT_DIR" ] && {
-+# No, it is not, so we source bashrc ourselves
-+[ -f "$(pwd)/../etc/bashrc" ] && {
-+echo
-+echo "You have forgotten to source etc/bashrc, so I do it myself."
-+echo
-+source $(pwd)/../etc/bashrc
-+}
-+}
-+
- # Parse arguments for library compilation
- targetType=libso
- . $WM_PROJECT_DIR/wmake/scripts/AllwmakeParseArguments
-@@ -12,11 +23,12 @@ wmakeCheckPwd "$WM_PROJECT_DIR/applications" || {
+@@ -12,11 +12,12 @@ wmakeCheckPwd "$WM_PROJECT_DIR/applications" || {
      exit 1
  }
  
@@ -157,66 +122,54 @@ index f23a233..9c61fdc 100755
  
  set -x
  
-diff --git a/applications/solvers/basic/scalarTransportFoam/scalarTransportFoam.C b/applications/solvers/basic/scalarTransportFoam/scalarTransportFoam.C
-index 2430732..5c4937b 100644
---- a/applications/solvers/basic/scalarTransportFoam/scalarTransportFoam.C
-+++ b/applications/solvers/basic/scalarTransportFoam/scalarTransportFoam.C
-@@ -58,7 +58,7 @@ int main(int argc, char *argv[])
- 
-         while (simple.correctNonOrthogonal())
-         {
--            solve
-+            fvScalarMatrix TEqn
-             (
-                 fvm::ddt(T)
-               + fvm::div(phi, T)
-@@ -66,6 +66,10 @@ int main(int argc, char *argv[])
-              ==
-                 fvOptions(T)
-             );
-+
-+            fvOptions.constrain(TEqn);
-+
-+            TEqn.solve();
-         }
- 
-         runTime.write();
-diff --git a/applications/utilities/mesh/generation/foamyMesh/conformalVoronoiMesh/conformalVoronoiMesh/CGALTriangulation3DKernel.H b/applications/utilities/mesh/generation/foamyMesh/conformalVoronoiMesh/conformalVoronoiMesh/CGALTriangulation3DKernel.H
-index cdafc7a..2f52a34 100644
---- a/applications/utilities/mesh/generation/foamyMesh/conformalVoronoiMesh/conformalVoronoiMesh/CGALTriangulation3DKernel.H
-+++ b/applications/utilities/mesh/generation/foamyMesh/conformalVoronoiMesh/conformalVoronoiMesh/CGALTriangulation3DKernel.H
-@@ -31,6 +31,8 @@ Description
- #ifndef CGALTriangulation3DKernel_H
- #define CGALTriangulation3DKernel_H
- 
-+#pragma clang diagnostic ignored "-Wshift-negative-value"
-+
- // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
- 
- #include "CGAL/Delaunay_triangulation_3.h"
-diff --git a/applications/utilities/mesh/generation/foamyMesh/foamyQuadMesh/CGALTriangulation2DKernel.H b/applications/utilities/mesh/generation/foamyMesh/foamyQuadMesh/CGALTriangulation2DKernel.H
-index 012192b..31129a2 100644
---- a/applications/utilities/mesh/generation/foamyMesh/foamyQuadMesh/CGALTriangulation2DKernel.H
-+++ b/applications/utilities/mesh/generation/foamyMesh/foamyQuadMesh/CGALTriangulation2DKernel.H
-@@ -31,6 +31,8 @@ Description
- #ifndef CGALTriangulation2DKernel_H
- #define CGALTriangulation2DKernel_H
- 
-+#pragma clang diagnostic ignored "-Wshift-negative-value"
-+
- // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
- 
- #include "CGAL/Delaunay_triangulation_2.h"
 diff --git a/applications/utilities/mesh/generation/snappyHexMesh/Make/options b/applications/utilities/mesh/generation/snappyHexMesh/Make/options
-index 219e3d4..e8b0688 100644
+index c233730..af1af95 100644
 --- a/applications/utilities/mesh/generation/snappyHexMesh/Make/options
 +++ b/applications/utilities/mesh/generation/snappyHexMesh/Make/options
 @@ -1,5 +1,4 @@
  EXE_INC = \
 -    /* -g -DFULLDEBUG -O0 */ \
      -I$(LIB_SRC)/parallel/decompose/decompositionMethods/lnInclude \
-     -I$(LIB_SRC)/mesh/autoMesh/lnInclude \
+     -I$(LIB_SRC)/mesh/snappyHexMesh/lnInclude \
      -I$(LIB_SRC)/meshTools/lnInclude \
+diff --git a/applications/utilities/mesh/manipulation/renumberMesh/Allwmake b/applications/utilities/mesh/manipulation/renumberMesh/Allwmake
+index 34b8b78..29e0f50 100755
+--- a/applications/utilities/mesh/manipulation/renumberMesh/Allwmake
++++ b/applications/utilities/mesh/manipulation/renumberMesh/Allwmake
+@@ -3,24 +3,29 @@ cd ${0%/*} || exit 1    # Run from this directory
+ 
+ # Parse arguments for compilation (at least for error catching)
+ . $WM_PROJECT_DIR/wmake/scripts/AllwmakeParseArguments
++_soExt=so
++[ "$(uname -s)" = "Darwin" ] && _soExt=dylib
++
+ set -x
+ 
+ export COMPILE_FLAGS=''
+ export LINK_FLAGS=''
+ 
+-if [ -f "${FOAM_LIBBIN}/libSloanRenumber.so" ]
++if [ -f "${FOAM_LIBBIN}/libSloanRenumber.$_soExt" ]
+ then
+-    echo "Found libSloanRenumber.so  --  enabling Sloan renumbering support."
++    echo "Found libSloanRenumber.$_soExt  --  enabling Sloan renumbering support."
+     export LINK_FLAGS="${LINK_FLAGS} -lSloanRenumber"
+ fi
+ 
+-if [ -f "${ZOLTAN_ARCH_PATH}/lib/libzoltan.a" -a -f "${FOAM_LIBBIN}/libzoltanRenumber.so" ]
++if [ -f "${ZOLTAN_ARCH_PATH}/lib/libzoltan.a" -a -f "${FOAM_LIBBIN}/libzoltanRenumber.$_soExt" ]
+ then
+-    echo "Found libzoltanRenumber.so  --  enabling zoltan renumbering support."
++    echo "Found libzoltanRenumber.$_soExt  --  enabling zoltan renumbering support."
+     export COMPILE_FLAGS="-DFOAM_USE_ZOLTAN"
+     export LINK_FLAGS="${LINK_FLAGS} -lzoltanRenumber -L${ZOLTAN_ARCH_PATH}/lib -lzoltan"
+ fi
+ 
++unset _soExt
++
+ wmake
+ 
+ #------------------------------------------------------------------------------
 diff --git a/applications/utilities/mesh/manipulation/renumberMesh/Make/options b/applications/utilities/mesh/manipulation/renumberMesh/Make/options
 index 49a1c3d..882d1e4 100644
 --- a/applications/utilities/mesh/manipulation/renumberMesh/Make/options
@@ -228,7 +181,7 @@ index 49a1c3d..882d1e4 100644
      -I$(LIB_SRC)/meshTools/lnInclude \
      -I$(LIB_SRC)/dynamicMesh/lnInclude \
 diff --git a/applications/utilities/postProcessing/dataConversion/foamToEnsight/Make/options b/applications/utilities/postProcessing/dataConversion/foamToEnsight/Make/options
-index 7799242..b4382c4 100644
+index 18bbc7a..0b17fd3 100644
 --- a/applications/utilities/postProcessing/dataConversion/foamToEnsight/Make/options
 +++ b/applications/utilities/postProcessing/dataConversion/foamToEnsight/Make/options
 @@ -1,5 +1,4 @@
@@ -236,13 +189,13 @@ index 7799242..b4382c4 100644
 -    /* -DFULLDEBUG -g -O0 */ \
      -I$(LIB_SRC)/finiteVolume/lnInclude \
      -I$(LIB_SRC)/meshTools/lnInclude \
-     -I$(LIB_SRC)/sampling/lnInclude \
+     -I$(LIB_SRC)/dynamicMesh/lnInclude \
 diff --git a/applications/utilities/postProcessing/graphics/PV3Readers/Allwmake b/applications/utilities/postProcessing/graphics/PV3Readers/Allwmake
-index ae0915f..f974dbb 100755
+index 049c1bf..4ad9bdc 100755
 --- a/applications/utilities/postProcessing/graphics/PV3Readers/Allwmake
 +++ b/applications/utilities/postProcessing/graphics/PV3Readers/Allwmake
-@@ -2,6 +2,9 @@
- cd ${0%/*} || exit 1    # Run from this directory
+@@ -6,6 +6,9 @@ targetType=libso
+ . $WM_PROJECT_DIR/wmake/scripts/AllwmakeParseArguments
  #set -x
  
 +# Skip on OS X
@@ -251,20 +204,24 @@ index ae0915f..f974dbb 100755
  case "$ParaView_VERSION" in
  3*)
      if [ -d "$ParaView_DIR" -a -r "$ParaView_DIR" ]
-diff --git a/applications/utilities/postProcessing/graphics/PV4Readers/Allwmake b/applications/utilities/postProcessing/graphics/PV4Readers/Allwmake
-index 6f6e56b..694f73f 100755
---- a/applications/utilities/postProcessing/graphics/PV4Readers/Allwmake
-+++ b/applications/utilities/postProcessing/graphics/PV4Readers/Allwmake
-@@ -2,6 +2,9 @@
- cd ${0%/*} || exit 1    # Run from this directory
- #set -x
+diff --git a/applications/utilities/postProcessing/graphics/PVReaders/Allwmake b/applications/utilities/postProcessing/graphics/PVReaders/Allwmake
+index edaa31a..96728b2 100755
+--- a/applications/utilities/postProcessing/graphics/PVReaders/Allwmake
++++ b/applications/utilities/postProcessing/graphics/PVReaders/Allwmake
+@@ -26,7 +26,12 @@ case "$ParaView_VERSION" in
+     fi
+     ;;
+ *)
+-    echo "WARN: PV readers not building: ParaView_VERSION=$ParaView_VERSION"
++    if [ "$(uname -s)" = "Darwin" ]
++    then
++        echo "INFO: Skipping PV readers."
++    else
++        echo "WARN: PV readers not building: ParaView_VERSION=$ParaView_VERSION"
++    fi
+     ;;
+ esac
  
-+# Skip on OS X
-+[ "$(uname -s)" = "Darwin" ] && exit 0
-+
- case "$ParaView_VERSION" in
- 4*)
-     if [ -d "$ParaView_DIR" -a -r "$ParaView_DIR" ]
 diff --git a/bin/foamInstallationTest b/bin/foamInstallationTest
 index 17b285a..f11e61e 100755
 --- a/bin/foamInstallationTest
@@ -348,7 +305,7 @@ index 6646e5d..479ddad 100755
      # Run (on single processor)
      #
 diff --git a/bin/paraFoam b/bin/paraFoam
-index b032fc6..fb51332 100755
+index 84b82ec..e965e69 100755
 --- a/bin/paraFoam
 +++ b/bin/paraFoam
 @@ -72,6 +72,11 @@ extension=OpenFOAM
@@ -364,19 +321,10 @@ index b032fc6..fb51332 100755
  while [ "$#" -gt 0 ]
  do
 diff --git a/bin/tools/RunFunctions b/bin/tools/RunFunctions
-index 5a254ea..b36c525 100644
+index 4703fee..15d6ab9 100644
 --- a/bin/tools/RunFunctions
 +++ b/bin/tools/RunFunctions
-@@ -2,7 +2,7 @@
- # =========                 |
- # \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
- #  \\    /   O peration     |
--#   \\  /    A nd           | Copyright (C) 2011-2015 OpenFOAM Foundation
-+#   \\  /    A nd           | Copyright (C) 2011-2012 OpenFOAM Foundation
- #    \\/     M anipulation  |
- #------------------------------------------------------------------------------
- # License
-@@ -28,75 +28,142 @@
+@@ -28,6 +28,18 @@
  #     Miscellaneous functions for running tutorial cases
  #------------------------------------------------------------------------------
  
@@ -390,15 +338,12 @@ index 5a254ea..b36c525 100644
 +}
 +
 +# Workaround for cleared DYLD_LIBRARY_PATH
-+[ "$(uname -s)" = "Darwin" ] && isSIPEnabled && . $WM_PROJECT_DIR/etc/bashrc
++[ "$(uname -s)" = "Darwin" ] && [ isSIPEnabled ] && . $WM_PROJECT_DIR/etc/bashrc
 +
- getNumberOfProcessors()
+ isTest()
  {
--    sed -ne 's/^numberOfSubdomains\s*\(.*\);/\1/p' system/decomposeParDict
-+    grep numberOfSubdomains system/decomposeParDict \
-+        | awk '{print $2}' \
-+        | tr -d ";"
- }
+     for i in "$@"; do
+@@ -46,7 +58,9 @@ getNumberOfProcessors()
  
  getApplication()
  {
@@ -409,178 +354,98 @@ index 5a254ea..b36c525 100644
  }
  
  runApplication()
- {
--    APP_RUN=$1
--    APP_NAME=${1##*/}
-+    local force=
-+    local append=
-+
-+    local app_run="$1"
-+    while [ "$(echo $app_run | cut -c1)" = "-" ]; do
-+        case $app_run in
-+        -f|--force|-force|-overwrite)
-+            force=y
-+            ;;
-+        -a|--append|-append)
-+            append=y
-+            ;;
-+        esac
-+        shift
-+        app_run="$1"
-+    done
-     shift
-+    local app_name=${app_run##*/}
-+
-+    [ -x "$(which $app_run)" ] || {
-+    echo "Application $app_run does not exist or is not executable."
-+    exit 1
-+    }
-+
-+    [ "$force" = "y" ] && rm -f "log.$app_name"
- 
--    if [ -f log.$APP_NAME ]
-+    if [ -f "log.$app_name" ]
-     then
--        echo "$APP_NAME already run on $PWD: remove log file to re-run"
-+        if [ "$append" = "y" ]
-+        then
-+            echo "Running $app_run on $PWD (appending to log.$app_name)"
-+            $app_run "$@" >> "log.$app_name" 2>&1
-+        else
-+            echo "$app_name already run on $PWD: remove log file to re-run"
-+        fi
-     else
--        echo "Running $APP_RUN on $PWD"
--        $APP_RUN "$@" > log.$APP_NAME 2>&1
-+        echo "Running $app_run on $PWD"
-+        $app_run "$@" > "log.$app_name" 2>&1
+@@ -64,7 +78,7 @@ runApplication()
+                 LOG_IGNORE=true
+                 LOG_APPEND=true
+                 ;;
+-            -overwrite|-o)
++            -overwrite|-o|-f)
+                 LOG_IGNORE=true
+                 ;;
+             -suffix|-s)
+@@ -111,7 +125,7 @@ runParallel()
+                 LOG_IGNORE=true
+                 LOG_APPEND=true
+                 ;;
+-            -overwrite|-o)
++            -overwrite|-o|-f)
+                 LOG_IGNORE=true
+                 ;;
+             -suffix|-s)
+@@ -168,4 +182,4 @@ cloneCase()
      fi
  }
  
- runParallel()
- {
--    APP_RUN=$1
--    APP_NAME=${1##*/}
-+    local force=
-+    local append=
-+
-+    local app_run="$1"
-+    while [ "$(echo $app_run | cut -c1)" = "-" ]; do
-+        case $app_run in
-+        -f|--force|-force|-o|-overwrite)
-+            force=y
-+            ;;
-+        -a|--append|-append)
-+            append=y
-+            ;;
-+        esac
-+        shift
-+        app_run="$1"
-+    done
-+    shift
-+    local app_name=${app_run##*/}
-+
-+    [ -x "$(which $app_run)" ] || {
-+    echo "Application $app_run does not exist or is not executable."
-+    exit 1
-+    }
-+
-+    [ "$force" = "y" ] && rm -f "log.$app_name"
-+
-+    local n_procs="$1"
-     shift
- 
--    if [ -f log.$APP_NAME ]
-+    if [ -f "log.$app_name" ]
-     then
--        echo "$APP_NAME already run on $PWD: remove log file to re-run"
-+        if [ "$append" = "y" ]
-+        then
-+            echo
-+        else
-+            echo "$app_name already run on $PWD: remove log file to re-run"
-+        fi
-     else
--        nProcs=$1
--        shift
--        echo "Running $APP_RUN in parallel on $PWD using $nProcs processes"
--
--        #if [ "$WM_SCHEDULER" ]
--        #then
--        #    echo "$PWD: $WM_SCHEDULER -np $nProcs" 1>&2
--        #    $WM_SCHEDULER -np $nProcs "( mpirun -np $nProcs $APP_RUN -parallel "$@" < /dev/null > log.$APP_NAME 2>&1 )"
--        #else
--            ( mpirun -np $nProcs $APP_RUN -parallel "$@" < /dev/null > log.$APP_NAME 2>&1 )
--        #fi
-+        echo "Running $app_run in parallel on $PWD using $n_procs processes"
-+
-+        ( mpirun -np "$n_procs" $app_run -parallel "$@" < /dev/null > "log.$app_name" 2>&1 )
-     fi
- }
- 
- compileApplication()
- {
-     echo "Compiling $1 application"
--    wmake $1
-+    wmake "$1"
- }
- 
- cloneCase()
- {
--    if [ -d $2 ]
-+    if [ -d "$2" ]
-     then
-         echo "Case already cloned: remove case directory $2 to clone"
-     else
-         echo "Cloning $2 case from $1"
--        mkdir $2
-+        mkdir "$2"
-         cpfiles="0 system constant"
-         for f in $cpfiles
-         do
--            cp -r $1/$f $2
-+            cp -r "$1/$f" "$2"
-         done
-     fi
- }
- 
-+# vim: set ft=sh:
- #------------------------------------------------------------------------------
+-#------------------------------------------------------------------------------
++# vim: set ft=sh et sw=4 ts=4 sts=4:
 diff --git a/etc/bashrc b/etc/bashrc
-index 4f7a701..2cb81b3 100644
+index 4df0d6c..385732b 100644
 --- a/etc/bashrc
 +++ b/etc/bashrc
-@@ -121,7 +121,8 @@ export WM_PROJECT_DIR=$WM_PROJECT_INST_DIR/$WM_PROJECT-$WM_PROJECT_VERSION
+@@ -42,9 +42,20 @@ export WM_PROJECT_VERSION=dev
+ #
+ # Please set to the appropriate path if the default is not correct.
+ #
+-[ $BASH_SOURCE ] && \
+-export FOAM_INST_DIR=${BASH_SOURCE%/*/*/*} || \
+-export FOAM_INST_DIR=$HOME/$WM_PROJECT
++if [ $BASH_SOURCE ]
++then
++    case $BASH_SOURCE in
++    /*)
++        export FOAM_INST_DIR=${BASH_SOURCE%/*/*/*}
++        ;;
++    *)
++        location=$PWD/$BASH_SOURCE
++        export FOAM_INST_DIR=${location%/*/*/*}
++        unset location
++    esac
++else
++    export FOAM_INST_DIR=$HOME/$WM_PROJECT
++fi
+ # export FOAM_INST_DIR=~$WM_PROJECT
+ # export FOAM_INST_DIR=/opt/$WM_PROJECT
+ # export FOAM_INST_DIR=/usr/local/$WM_PROJECT
+@@ -112,9 +123,22 @@ foamOldDirs="$WM_PROJECT_DIR $WM_THIRD_PARTY_DIR $HOME/$WM_PROJECT/$USER \
+ export WM_PROJECT_INST_DIR=$FOAM_INST_DIR
+ export WM_PROJECT_DIR=$WM_PROJECT_INST_DIR/$WM_PROJECT-$WM_PROJECT_VERSION
  
++# Check if we are building OpenFOAM on OS X
++_foamOnOSX ()
++{
++    # For portability we do not rely on $?
++    if [ "$(uname -s)" = "Darwin" ]
++    then
++        return 0
++    else
++        return 1
++    fi
++}
++
  # Location of third-party software
  # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 -export WM_THIRD_PARTY_DIR=$WM_PROJECT_INST_DIR/ThirdParty-$WM_PROJECT_VERSION
-+[ "$(uname -s)" = "Darwin" ] || \
++_foamOnOSX || \
 +	export WM_THIRD_PARTY_DIR=$WM_PROJECT_INST_DIR/ThirdParty-$WM_PROJECT_VERSION
  
  # Location of site-specific templates etc
  # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-@@ -137,6 +138,17 @@ fi
- # ~~~~~~~~~~~~~~~~~~~~~~
- export WM_PROJECT_USER_DIR=$HOME/$WM_PROJECT/$USER-$WM_PROJECT_VERSION
+@@ -134,6 +158,9 @@ export WM_PROJECT_USER_DIR=$HOME/$WM_PROJECT/$USER-$WM_PROJECT_VERSION
+ # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ . $WM_PROJECT_DIR/etc/config.sh/functions
  
-+# Check if we are building OpenFOAM on OS X
-+_foamOnOSX()
-+{
-+	# For portability we will not rely on $?
-+	if [ "$(uname -s)" = "Darwin" ]
-+	then
-+		return 0
-+	else
-+		return 1
-+	fi
-+}
++# Additional function for OS X
++_foamOnOSX && . $WM_PROJECT_DIR/etc/config.sh/mac/functions
++
+ # Add in preset user or site preferences:
+ _foamSource `$WM_PROJECT_DIR/bin/foamEtcFile prefs.sh`
  
- # Source files, possibly with some verbosity
- _foamSource()
-@@ -199,14 +211,28 @@ foamClean=$WM_PROJECT_DIR/bin/foamCleanPath
+@@ -147,17 +174,30 @@ _foamEval $@
+ foamClean=$WM_PROJECT_DIR/bin/foamCleanPath
+ 
  #- Clean PATH
- cleaned=`$foamClean "$PATH" "$foamOldDirs"` && PATH="$cleaned"
+-cleaned=`$foamClean "$PATH" "$foamOldDirs"` && PATH="$cleaned"
++cleaned=$($foamClean "$PATH" "$foamOldDirs") && PATH="$cleaned"
  
 -#- Clean LD_LIBRARY_PATH
 -cleaned=`$foamClean "$LD_LIBRARY_PATH" "$foamOldDirs"` \
@@ -588,20 +453,21 @@ index 4f7a701..2cb81b3 100644
 +if _foamOnOSX
 +then
 +    #- Clean DYLD_LIBRARY_PATH
-+    cleaned=`$foamClean "$DYLD_LIBRARY_PATH" "$foamOldDirs"` \
-+        && DYLD_LIBRARY_PATH="$cleaned"
++	cleaned=$($foamClean "$DYLD_LIBRARY_PATH" "$foamOldDirs") \
++		&& DYLD_LIBRARY_PATH="$cleaned"
 +else
 +    #- Clean LD_LIBRARY_PATH
-+    cleaned=`$foamClean "$LD_LIBRARY_PATH" "$foamOldDirs"` \
++    cleaned=$($foamClean "$LD_LIBRARY_PATH" "$foamOldDirs") \
 +        && LD_LIBRARY_PATH="$cleaned"
 +fi
  
  #- Clean MANPATH
- cleaned=`$foamClean "$MANPATH" "$foamOldDirs"` && MANPATH="$cleaned"
+-cleaned=`$foamClean "$MANPATH" "$foamOldDirs"` && MANPATH="$cleaned"
++cleaned=$($foamClean "$MANPATH" "$foamOldDirs") && MANPATH="$cleaned"
  
 -export PATH LD_LIBRARY_PATH MANPATH
 +export PATH MANPATH
-+
+ 
 +if _foamOnOSX
 +then
 +    export DYLD_LIBRARY_PATH
@@ -609,25 +475,38 @@ index 4f7a701..2cb81b3 100644
 +    export LD_LIBRARY_PATH
 +fi
  
- 
  # Source project setup files
-@@ -217,9 +243,14 @@ _foamSource $WM_PROJECT_DIR/etc/config/aliases.sh
- 
+ # ~~~~~~~~~~~~~~~~~~~~~~~~~~
+@@ -168,13 +208,24 @@ _foamSource $WM_PROJECT_DIR/etc/config.sh/aliases
  # Source user setup files for optional packages
  # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
--_foamSource `$WM_PROJECT_DIR/bin/foamEtcFile config/paraview.sh`
-+_foamOnOSX \
-+	&& _foamSource `$WM_PROJECT_DIR/bin/foamEtcFile config/paraview-osx.sh` \
-+	|| _foamSource `$WM_PROJECT_DIR/bin/foamEtcFile config/paraview.sh`
+ _foamSource `$WM_PROJECT_DIR/bin/foamEtcFile config.sh/mpi`
+-_foamSource `$WM_PROJECT_DIR/bin/foamEtcFile config.sh/paraview`
+-_foamSource `$WM_PROJECT_DIR/bin/foamEtcFile config.sh/ensight`
+-_foamSource `$WM_PROJECT_DIR/bin/foamEtcFile config.sh/gperftools`
++if _foamOnOSX
++then
++    _foamSource `$WM_PROJECT_DIR/bin/foamEtcFile config.sh/mac/paraview`
++else
++    _foamSource `$WM_PROJECT_DIR/bin/foamEtcFile config.sh/paraview`
++    _foamSource `$WM_PROJECT_DIR/bin/foamEtcFile config.sh/ensight`
++    _foamSource `$WM_PROJECT_DIR/bin/foamEtcFile config.sh/gperftools`
++fi
 +
-+_foamOnOSX || {
- _foamSource `$WM_PROJECT_DIR/bin/foamEtcFile config/ensight.sh`
- _foamSource `$WM_PROJECT_DIR/bin/foamEtcFile config/gperftools.sh`
-+}
- _foamSource `$WM_PROJECT_DIR/bin/foamEtcFile config/CGAL.sh`
+ 
+ if [ ! -z "$FOAMY_HEX_MESH" ]
+ then
+-    _foamSource `$WM_PROJECT_DIR/bin/foamEtcFile config.sh/CGAL`
++    if _foamOnOSX
++    then
++        _foamSource `$WM_PROJECT_DIR/bin/foamEtcFile config.sh/mac/CGAL`
++    else
++        _foamSource `$WM_PROJECT_DIR/bin/foamEtcFile config.sh/CGAL`
++    fi
+ fi
  
  
-@@ -228,13 +259,27 @@ _foamSource `$WM_PROJECT_DIR/bin/foamEtcFile config/CGAL.sh`
+@@ -183,13 +234,26 @@ fi
  #- Clean PATH
  cleaned=`$foamClean "$PATH"` && PATH="$cleaned"
  
@@ -636,8 +515,7 @@ index 4f7a701..2cb81b3 100644
 +if _foamOnOSX
 +then
 +    #- Clean DYLD_LIBRARY_PATH
-+    cleaned=`$foamClean "$DYLD_LIBRARY_PATH"` \
-+        && DYLD_LIBRARY_PATH="$cleaned"
++    cleaned=`$foamClean "$DYLD_LIBRARY_PATH"` && DYLD_LIBRARY_PATH="$cleaned"
 +else
 +    #- Clean LD_LIBRARY_PATH
 +    cleaned=`$foamClean "$LD_LIBRARY_PATH"` && LD_LIBRARY_PATH="$cleaned"
@@ -658,326 +536,357 @@ index 4f7a701..2cb81b3 100644
  
  #- Clean LD_PRELOAD
  if [ -n "$LD_PRELOAD" ]
-@@ -247,6 +292,6 @@ fi
- # cleanup environment:
- # ~~~~~~~~~~~~~~~~~~~~
- unset cleaned foamClean foamInstall foamOldDirs
--unset _foamSource _foamEval
-+unset _foamSource _foamEval _foamOnOSX
+@@ -208,4 +272,6 @@ unset cleaned foamClean foamOldDirs
+ # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ . $WM_PROJECT_DIR/etc/config.sh/functions
  
- # ----------------------------------------------------------------- end-of-file
-diff --git a/etc/config/CGAL.sh b/etc/config/CGAL.sh
-index 7a59fc6..6138340 100644
---- a/etc/config/CGAL.sh
-+++ b/etc/config/CGAL.sh
-@@ -29,11 +29,54 @@
- #     Sourced from OpenFOAM-<VERSION>/etc/bashrc
++_foamOnOSX && . $WM_PROJECT_DIR/etc/config.sh/mac/functions
++
  #------------------------------------------------------------------------------
- 
--boost_version=boost-system
--cgal_version=CGAL-4.7
-+if [ "$(uname -s)" = "Darwin" ]
-+then
-+    cgal_version=
-+    _have_brew=$(which -s brew && echo "Y")
-+    _have_port=$(which -s port && echo "Y")
-+
-+    if [ -n "$_have_brew" ]
-+    then
-+        _brew_prefix="$(brew --prefix)"
-+        boost_version="boost-$(basename $(readlink "$_brew_prefix/opt/boost"))"
-+        cgal_version="CGAL-$(basename $(readlink "$_brew_prefix/opt/cgal"))"
-+
-+        export BOOST_ARCH_PATH="$_brew_prefix/opt/boost"
-+        export CGAL_ARCH_PATH="$_brew_prefix/opt/cgal"
-+        export GMP_ARCH_PATH="$_brew_prefix/opt/gmp"
-+        export MPFR_ARCH_PATH="$_brew_prefix/opt/mpfr"
-+
-+        unset _brew_prefix
-+    elif [ -n "$_have_port" ]
-+    then
-+        _port_prefix=$(dirname $(dirname $(which port)))
-+        boost_version="boost-macports"
-+        cgal_version="CGAL-macports"
-+
-+        export BOOST_ARCH_PATH="$_port_prefix"
-+        export CGAL_ARCH_PATH="$_port_prefix"
-+        export GMP_ARCH_PATH="$_port_prefix"
-+        export MPFR_ARCH_PATH="$_port_prefix"
- 
--export BOOST_ARCH_PATH=$WM_THIRD_PARTY_DIR/platforms/$WM_ARCH$WM_COMPILER/$boost_version
--export CGAL_ARCH_PATH=$WM_THIRD_PARTY_DIR/platforms/$WM_ARCH$WM_COMPILER/$cgal_version
-+        unset _port_prefix
-+    else
-+        boost_version="boost-unknown"
-+        cgal_version="CGAL-unknown"
-+
-+        export BOOST_ARCH_PATH="/usr/local"
-+        export CGAL_ARCH_PATH="/usr/local"
-+        export GMP_ARCH_PATH="/usr/local"
-+        export MPFR_ARCH_PATH="/usr/local"
-+    fi
-+
-+    unset _have_brew _have_port
-+else
-+	boost_version=boost-system
-+	cgal_version=CGAL-4.7
-+
-+	export BOOST_ARCH_PATH=$WM_THIRD_PARTY_DIR/platforms/$WM_ARCH$WM_COMPILER/$boost_version
-+	export CGAL_ARCH_PATH=$WM_THIRD_PARTY_DIR/platforms/$WM_ARCH$WM_COMPILER/$cgal_version
-+fi
- 
- if [ "$FOAM_VERBOSE" -a "$PS1" ]
- then
-@@ -44,12 +87,12 @@ fi
- 
- if [ -d "$CGAL_ARCH_PATH" ]
- then
--    _foamAddLib $CGAL_ARCH_PATH/lib
-+    _foamOnOSX || _foamAddLib "$CGAL_ARCH_PATH/lib"
- fi
- 
- if [ -d "$BOOST_ARCH_PATH" ]
- then
--    _foamAddLib $BOOST_ARCH_PATH/lib
-+    _foamOnOSX || _foamAddLib "$BOOST_ARCH_PATH/lib"
- fi
- 
- unset boost_version cgal_version
-diff --git a/etc/config/metis.sh b/etc/config/metis.sh
-index af7efde..51a927e 100644
---- a/etc/config/metis.sh
-+++ b/etc/config/metis.sh
-@@ -33,7 +33,42 @@
- #     during the wmake process
- #------------------------------------------------------------------------------
- 
--export METIS_VERSION=metis-5.1.0
--export METIS_ARCH_PATH=$WM_THIRD_PARTY_DIR/platforms/$WM_ARCH$WM_COMPILER/$METIS_VERSION
-+if [ "$(uname -s)" = "Darwin" ]
-+then
-+    METIS_VERSION=
-+
-+    set +e
-+    _have_brew=$(which -s brew && echo "Y")
-+    _have_port=$(which -s port && echo "Y")
-+    set -e
-+
-+    if [ -n "$_have_brew" ]
-+    then
-+        _brew_prefix=$(brew --prefix)
-+        if [ "$WM_LABEL_SIZE" -eq 32 ]
-+        then
-+            export METIS_VERSION="metis-$(basename $(readlink "$_brew_prefix/opt/metis"))"
-+            export METIS_ARCH_PATH="$_brew_prefix/opt/metis"
-+        else
-+            export METIS_VERSION="metis-$(basename $(readlink "$_brew_prefix/opt/metis64"))"
-+            export METIS_ARCH_PATH="$_brew_prefix/opt/metis64"
-+        fi
-+        unset _brew_prefix
-+    elif [ -n "$_have_port" ]
-+    then
-+        _port_prefix=$(dirname $(dirname $(which port)))
-+        export METIS_VERSION="metis-macports"
-+        export METIS_ARCH_PATH="$_port_prefix"
-+        unset _port_prefix
-+    else
-+        export METIS_VERSION="metis-unknown"
-+        export METIS_ARCH_PATH="/usr/local"
-+    fi
-+
-+    unset _have_brew _have_port
-+else
-+	export METIS_VERSION=metis-5.1.0
-+	export METIS_ARCH_PATH=$WM_THIRD_PARTY_DIR/platforms/$WM_ARCH$WM_COMPILER/$METIS_VERSION
-+fi
- 
- # -----------------------------------------------------------------------------
-diff --git a/etc/config/paraview-osx.sh b/etc/config/paraview-osx.sh
+diff --git a/etc/config.sh/mac/CGAL b/etc/config.sh/mac/CGAL
 new file mode 100644
-index 0000000..709e497
+index 0000000..3e53043
 --- /dev/null
-+++ b/etc/config/paraview-osx.sh
-@@ -0,0 +1,16 @@
-+if [ -d "/Applications/paraview.app" ]; then
++++ b/etc/config.sh/mac/CGAL
+@@ -0,0 +1,69 @@
++# CGAL configuration for OS X
 +
-+	[ "$FOAM_VERBOSE" -a "$PS1" ] && echo "Using /Applications/paraview.app"
-+
-+	paraview () {
-+		"/Applications/paraview.app/Contents/MacOS/paraview" "$@"
-+	}
-+
-+	export -f paraview
-+else
-+	echo
-+	echo "Please download binary Paraview release from"
-+	echo "http://paraview.org and install it in /Applications"
-+	echo "folder."
-+	echo
-+fi
-diff --git a/etc/config/scotch.sh b/etc/config/scotch.sh
-index e40e1c7..a4c5509 100644
---- a/etc/config/scotch.sh
-+++ b/etc/config/scotch.sh
-@@ -33,7 +33,50 @@
- #     during the wmake process
- #------------------------------------------------------------------------------
- 
--export SCOTCH_VERSION=scotch_6.0.3
--export SCOTCH_ARCH_PATH=$WM_THIRD_PARTY_DIR/platforms/$WM_ARCH$WM_COMPILER$WM_LABEL_OPTION/$SCOTCH_VERSION
-+if [ $(uname -s) = "Darwin" ]
++if [ -n "$SOURCE_CGAL_VERSIONS_ONLY" ]
 +then
-+    SCOTCH_VERSION=
-+    set +e
-+    _have_brew="$(which -s brew && echo "Y")"
-+    _have_port="$(which -s port && echo "Y")"
-+    set -e
-+
-+    if [ -n "$_have_brew" ]
++    . $WM_PROJECT_DIR/etc/config.sh/mac/functions
++    if [ "x$(_foamBrew)" = "xY" ]
 +    then
-+        _brew_prefix="$(brew --prefix)"
-+        if [ "$WM_LABEL_SIZE" -eq "32" ]
-+        then
-+            export SCOTCH_VERSION="scotch-$(basename $(readlink "$_brew_prefix/opt/scotch"))"
-+            export SCOTCH_ARCH_PATH="$_brew_prefix/opt/scotch"
-+        else
-+            export SCOTCH_VERSION="scotch-$(basename $(readlink "$_brew_prefix/opt/scotch64"))"
-+            export SCOTCH_ARCH_PATH="$_brew_prefix/opt/scotch64"
-+        fi
-+        unset _brew_prefix
-+    elif [ -n "$_have_port" ]
++        _prefix=$(_foamBrewPrefix)
++        boost_version="boost-$(_foamGetPackageVersion boost)"
++        export BOOST_ARCH_PATH="$_prefix/opt/boost"
++        unset _prefix
++    elif [ "x$(_foamPort)" = "xY" ]
 +    then
-+        _port_prefix=$(dirname $(dirname $(which port)))
-+
-+        export SCOTCH_VERSION="scotch-macports"
-+        export SCOTCH_ARCH_PATH="$_port_prefix"
-+
-+        unset _port_prefix
++        _prefix=$(_foamPortPrefix)
++        boost_version=$(_foamGetPackageVersion boost)
++        export BOOST_ARCH_PATH="$_prefix"
++        unset _prefix
 +    else
-+        # We are on Darwin, yet we do not have neither Homebrew, nor Macports.
-+        # So there are several variants
-+        # - Scotch is self-installed
-+        # - pkgsrc is used
-+        # - nix is used
-+        # - something else
-+        # For all these cases we happily assume that library is installed in
-+        # /usr/local
-+        export SCOTCH_VERSION="scotch-unknown"
-+        export SCOTCH_ARCH_PATH="/usr/local"
++        boost_version=boost-unknown
++        export BOOST_ARCH_PATH=/usr/local
 +    fi
-+    unset _have_brew _have_port
++    unset boost_version
++    . $WM_PROJECT_DIR/etc/config.sh/mac/functions
 +else
-+	export SCOTCH_VERSION=scotch-6.0.3
-+	export SCOTCH_ARCH_PATH=$WM_THIRD_PARTY_DIR/platforms/$WM_ARCH$WM_COMPILER$WM_LABEL_OPTION/$SCOTCH_VERSION
++    if [ "x$(_foamBrew)" = "xY" ]
++    then
++        _prefix=$(_foamBrewPrefix)
++
++        boost_version="boost-$(_foamGetPackageVersion boost)"
++        cgal_version="CGAL-$(_foamGetPackageVersion cgal)"
++
++        export BOOST_ARCH_PATH="$_prefix/opt/boost"
++        export CGAL_ARCH_PATH="$_prefix/opt/cgal"
++        export GMP_ARCH_PATH="$_prefix/opt/gmp"
++        export MPFR_ARCH_PATH="$_prefix/opt/mpfr"
++
++        unset _prefix
++    elif [ "x$(_foamPort)" = "xY" ]
++    then
++        _prefix=$(_foamPortPrefix)
++
++        boost_version=$(_foamGetPackageVersion boost)
++        cgal_version=$(_foamGetPackageVersion cgal)
++
++        export BOOST_ARCH_PATH="$_prefix"
++        export CGAL_ARCH_PATH="$_prefix"
++        export GMP_ARCH_PATH="$_prefix"
++        export MPFR_ARCH_PATH="$_prefix"
++
++        unset _prefix
++    else
++        boost_version=boost-unknown
++        cgal_version=CGAL-unknown
++
++        export BOOST_ARCH_PATH=/usr/local
++        export CGAL_ARCH_PATH=/usr/local
++    fi
++
++    if [ "$FOAM_VERBOSE" -a "$PS1" ]
++    then
++        echo "Using CGAL and boost" 1>&2
++        echo "    $cgal_version at $CGAL_ARCH_PATH" 1>&2
++        echo "    $boost_version at $BOOST_ARCH_PATH" 1>&2
++    fi
++    unset boost_version cgal_version
 +fi
- 
- # -----------------------------------------------------------------------------
-diff --git a/etc/config/settings.sh b/etc/config/settings.sh
-index 02be26b..06e2819 100644
---- a/etc/config/settings.sh
-+++ b/etc/config/settings.sh
-@@ -30,6 +30,48 @@
- #
- #------------------------------------------------------------------------------
- 
-+_macportsPrefix() {
-+    if $(which -s port)
-+    then
-+        echo $(dirname $(dirname $(which port)))
-+    else
-+        echo ""
-+    fi
-+}
 +
-+_homebrewPrefix() {
-+    if $(which -s brew)
-+    then
-+        echo $(brew --prefix)
-+    else
-+        echo ""
-+    fi
-+}
 +
-+# Increase maximum number of open files if it is below limit
-+_increaseMaxOpenFiles()
-+{
-+    # Default value
-+    local lim=4096
++# vim: set ft=sh:
+diff --git a/etc/config.sh/mac/functions b/etc/config.sh/mac/functions
+new file mode 100644
+index 0000000..e5e70e7
+--- /dev/null
++++ b/etc/config.sh/mac/functions
+@@ -0,0 +1,133 @@
++# Additional functions for OS X
 +
-+    # Reset if parameter passed
-+    [ -n "$1" ] && lim="$1"
++if [ -z "$WM_BASH_FUNCTIONS_MAC" ]
++then
++    WM_BASH_FUNCTIONS_MAC=loaded
 +
-+    # Silencing the errors
-+    [ "$(ulimit -n)" -lt "$lim" ] && ulimit -n "$lim" > /dev/null 2>&1
-+}
-+
-+# Check if OpenFOAM is built on OS X
-+_foamOnOSX()
-+{
-+    if [ "$(uname -s)" = "Darwin" ]
-+    then
-+        return 0
-+    else
-+        return 1
-+    fi
-+}
-+
- # Prefix to PATH
- _foamAddPath()
- {
-@@ -45,7 +87,12 @@ _foamAddLib()
- {
-     while [ $# -ge 1 ]
-     do
--        export LD_LIBRARY_PATH=$1:$LD_LIBRARY_PATH
-+        if _foamOnOSX
-+        then
++    # Prefix to DYLD_LIBRARY_PATH
++    _foamAddLib ()
++    {
++        while [ $# -ge 1 ]
++        do
 +            export DYLD_LIBRARY_PATH=$1:$DYLD_LIBRARY_PATH
-+        else
-+            export LD_LIBRARY_PATH=$1:$LD_LIBRARY_PATH
-+        fi
-         shift
-     done
- }
-@@ -152,6 +199,13 @@ SunOS)
-     export WM_LDFLAGS='-mabi=64 -G0'
-     ;;
- 
-+Darwin)
-+    WM_ARCH=darwin64
-+    export WM_COMPILER_LIB_ARCH=64
-+    export WM_CC='clang'
-+    export WM_CXX='clang++'
-+    ;;
++            shift
++        done
++    }
 +
- *)    # an unsupported operating system
-     /bin/cat <<USAGE 1>&2
- 
-@@ -179,7 +233,8 @@ export FOAM_APPBIN=$WM_PROJECT_DIR/platforms/$WM_OPTIONS/bin
- export FOAM_LIBBIN=$WM_PROJECT_DIR/platforms/$WM_OPTIONS/lib
- 
- # External (ThirdParty) libraries
--export FOAM_EXT_LIBBIN=$WM_THIRD_PARTY_DIR/platforms/$WM_OPTIONS/lib
-+_foamOnOSX \
-+    || export FOAM_EXT_LIBBIN=$WM_THIRD_PARTY_DIR/platforms/$WM_OPTIONS/lib
- 
- # Site-specific directory
- siteDir="${WM_PROJECT_SITE:-$WM_PROJECT_INST_DIR/site}"
-@@ -224,7 +279,12 @@ unset siteDir
- 
- _foamAddPath $FOAM_USER_APPBIN:$FOAM_SITE_APPBIN:$FOAM_APPBIN
- # Make sure to pick up dummy versions of external libraries last
--_foamAddLib  $FOAM_USER_LIBBIN:$FOAM_SITE_LIBBIN:$FOAM_LIBBIN:$FOAM_EXT_LIBBIN:$FOAM_LIBBIN/dummy
-+if [ -n "$FOAM_EXT_LIBBIN" ]
-+then
-+    _foamAddLib  $FOAM_USER_LIBBIN:$FOAM_SITE_LIBBIN:$FOAM_LIBBIN:$FOAM_EXT_LIBBIN:$FOAM_LIBBIN/dummy
++    _foamBrew ()
++    {
++        if $(which -s brew)
++        then
++            echo Y
++            return 0
++        else
++            echo N
++            return 1
++        fi
++    }
++
++    _foamPort ()
++    {
++        if $(which -s port)
++        then
++            echo Y
++            return 0
++        else
++            echo N
++            return 1
++        fi
++    }
++
++    _foamPortPrefix ()
++    {
++        echo "$(dirname $(dirname $(which port)))"
++    }
++
++    _foamBrewPrefix ()
++    {
++        echo $(brew --prefix)
++    }
++
++    _foamGetPackageVersion ()
++    {
++        local version="?"
++        local ret=0
++        local pkg="$1"
++
++        if [ "x$(_foamBrew)" = "xY" ]
++        then
++            local prefix="$(_foamBrewPrefix)"
++            if [ -d "$prefix/opt/$pkg" ]
++            then
++                version="$(basename $(readlink "$prefix/opt/$pkg"))"
++            elif [ -d "$prefix/opt/${pkg}64" ]
++            then
++                version="$(basename $(readlink "$prefix/opt/${pkg}64"))"
++            else
++                ret=1
++            fi
++        elif [ "x$(_foamPort)" = "xY" ]
++        then
++            version="0.0.x"
++        else
++            ret=1
++        fi
++        echo $version
++        return $ret
++    }
++
++    _foamGetPackageArchPath ()
++    {
++        local arch_path="/usr/local"
++        local ret=0
++        local pkg="$1"
++        if [ "x$(_foamBrew)" = "xY" ]
++        then
++            local prefix="$(_foamBrewPrefix)"
++            if [ -d "$prefix/opt/$pkg" ]
++            then
++                arch_path="$prefix/opt/$pkg"
++            elif [ -d "$prefix/opt/${pkg}64" ]
++            then
++                arch_path="$prefix/opt/${pkg}64"
++            else
++                ret=1
++            fi
++        elif [ "x$(_foamPort)" = "xY" ]
++        then
++            arch_path="$(_foamPortPrefix)"
++        else
++            ret=1
++        fi
++        echo $arch_path
++        return $ret
++    }
++
++    _foamIncreaseMaxOpenFiles ()
++    {
++        # Default value
++        local lim=4096
++
++        # Reset if parameter passed
++        [ -n "$1" ] && lim="$1"
++
++        # Silencing the errors
++        local current_limit=$(ulimit -n)
++        if [ "$current_limit" = "unlimited" ]
++        then
++            return 0
++        elif [ "$current_limit" -lt "$lim" ]
++        then
++            ulimit -n "$lim" > /dev/null 2>&1
++            return 0
++        fi
++        return 0
++    }
 +else
-+    _foamAddLib  $FOAM_USER_LIBBIN:$FOAM_SITE_LIBBIN:$FOAM_LIBBIN:$FOAM_LIBBIN/dummy
++    unset WM_BASH_FUNCTIONS_MAC
++    unset _foamAddLib _foamBrew _foamPort _foamPortPrefix _foamBrewPrefix \
++        _foamGetPackageVersion _foamGetPackageArchPath \
++        _foamIncreaseMaxOpenFiles
 +fi
- 
- # Compiler settings
- # ~~~~~~~~~~~~~~~~~
-@@ -392,13 +452,13 @@ SYSTEMOPENMPI)
++
++# vim: set ft=sh:
+diff --git a/etc/config.sh/mac/metis b/etc/config.sh/mac/metis
+new file mode 100644
+index 0000000..bb87346
+--- /dev/null
++++ b/etc/config.sh/mac/metis
+@@ -0,0 +1,44 @@
++#----------------------------------*-sh-*--------------------------------------
++# =========                 |
++# \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
++#  \\    /   O peration     |
++#   \\  /    A nd           | Copyright (C) 2013-2016 OpenFOAM Foundation
++#    \\/     M anipulation  |
++#------------------------------------------------------------------------------
++# License
++#     This file is part of OpenFOAM.
++#
++#     OpenFOAM is free software: you can redistribute it and/or modify it
++#     under the terms of the GNU General Public License as published by
++#     the Free Software Foundation, either version 3 of the License, or
++#     (at your option) any later version.
++#
++#     OpenFOAM is distributed in the hope that it will be useful, but WITHOUT
++#     ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
++#     FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
++#     for more details.
++#
++#     You should have received a copy of the GNU General Public License
++#     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
++#
++# File
++#     etc/config.sh/metis
++#
++# Description
++#     Setup file for metis include/libraries.
++#     Sourced during wmake process only.
++#
++# Note
++#     A csh version is not needed, since the values here are only sourced
++#     during the wmake process
++#
++#------------------------------------------------------------------------------
++
++. $WM_PROJECT_DIR/etc/config.sh/mac/functions
++
++export METIS_VERSION=$(_foamGetPackageVersion metis)
++export METIS_ARCH_PATH=$(_foamGetPackageArchPath metis)
++
++. $WM_PROJECT_DIR/etc/config.sh/mac/functions
++
++#------------------------------------------------------------------------------
+diff --git a/etc/config.sh/mac/paraview b/etc/config.sh/mac/paraview
+new file mode 100644
+index 0000000..0836c4a
+--- /dev/null
++++ b/etc/config.sh/mac/paraview
+@@ -0,0 +1,16 @@
++if [ -d "/Applications/paraview.app" ];
++then
++    [ "$FOAM_VERBOSE" -a "$PS1" ] && echo "Using /Applications/paraview.app"
++
++    paraview () {
++        "/Applications/paraview.app/Contents/MacOS/paraview" "$@"
++    }
++
++    export -f paraview
++else
++    echo
++    echo "Please download binary Paraview release from"
++    echo "http://paraview.org and install it in /Applications"
++    echo "folder."
++    echo
++fi
+diff --git a/etc/config.sh/mac/scotch b/etc/config.sh/mac/scotch
+new file mode 100644
+index 0000000..e62931c
+--- /dev/null
++++ b/etc/config.sh/mac/scotch
+@@ -0,0 +1,47 @@
++#----------------------------------*-sh-*--------------------------------------
++# =========                 |
++# \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
++#  \\    /   O peration     |
++#   \\  /    A nd           | Copyright (C) 2011-2016 OpenFOAM Foundation
++#    \\/     M anipulation  |
++#------------------------------------------------------------------------------
++# License
++#     This file is part of OpenFOAM.
++#
++#     OpenFOAM is free software: you can redistribute it and/or modify it
++#     under the terms of the GNU General Public License as published by
++#     the Free Software Foundation, either version 3 of the License, or
++#     (at your option) any later version.
++#
++#     OpenFOAM is distributed in the hope that it will be useful, but WITHOUT
++#     ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
++#     FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
++#     for more details.
++#
++#     You should have received a copy of the GNU General Public License
++#     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
++#
++# File
++#     etc/config.sh/scotch
++#
++# Description
++#     Setup file for scotch include/libraries.
++#     Sourced during wmake process only.
++#
++# Note
++#     A csh version is not needed, since the values here are only sourced
++#     during the wmake process
++#
++#     If Scotch is to be entirely disabled, either rename this file or create
++#     an empty one with the same name at a user or site location.
++#
++#------------------------------------------------------------------------------
++
++. $WM_PROJECT_DIR/etc/config.sh/mac/functions
++
++export SCOTCH_VERSION=$(_foamGetPackageVersion scotch)
++export SCOTCH_ARCH_PATH=$(_foamGetPackageArchPath scotch)
++
++. $WM_PROJECT_DIR/etc/config.sh/mac/functions
++
++#------------------------------------------------------------------------------
+diff --git a/etc/config.sh/mpi b/etc/config.sh/mpi
+index 36b651e..6d76c9e 100644
+--- a/etc/config.sh/mpi
++++ b/etc/config.sh/mpi
+@@ -37,13 +37,13 @@ SYSTEMOPENMPI)
      # Use the system installed openmpi, get library directory via mpicc
      export FOAM_MPI=openmpi-system
  
@@ -993,37 +902,7 @@ index 02be26b..06e2819 100644
      unset libDir
      ;;
  
-@@ -470,15 +530,35 @@ SYSTEMMPI)
-     ;;
- 
- MPICH)
--    export FOAM_MPI=mpich2-1.1.1p1
--    export MPI_HOME=$WM_THIRD_PARTY_DIR/$FOAM_MPI
--    export MPI_ARCH_PATH=$WM_THIRD_PARTY_DIR/platforms/$WM_ARCH$WM_COMPILER/$FOAM_MPI
-+    if _foamOnOSX
-+    then
-+        _prefix=$(_macportsPrefix)
-+        # Macports
-+        [ -n "$_prefix" ] && {
-+        export FOAM_MPI=mpich-macports
-+        export MPI_HOME="$_prefix"
-+        export MPI_ARCH_PATH="$_prefix"
-+        }
-+
-+        # Brew
-+        _prefix=$(_homebrewPrefix)
-+        [ -n "$_prefix" ] && {
-+        export FOAM_MPI=mpich-$(basename $(readlink $_brew_prefix/opt/mpich))
-+        export MPI_HOME="$_brew_prefix/opt/mpich"
-+        export MPI_ARCH_PATH="$_brew_prefix/opt/mpich"
-+        }
-+        unset _prefix
-+    else
-+        export FOAM_MPI=mpich2-1.1.1p1
-+        export MPI_HOME=$WM_THIRD_PARTY_DIR/$FOAM_MPI
-+        export MPI_ARCH_PATH=$WM_THIRD_PARTY_DIR/platforms/$WM_ARCH$WM_COMPILER/$FOAM_MPI
-+    fi
- 
+@@ -60,8 +60,8 @@ OPENMPI)
      _foamAddPath    $MPI_ARCH_PATH/bin
  
      # 64-bit on OpenSuSE 12.1 uses lib64 others use lib
@@ -1034,57 +913,50 @@ index 02be26b..06e2819 100644
  
      _foamAddMan     $MPI_ARCH_PATH/share/man
      ;;
-@@ -607,7 +687,12 @@ esac
- # Dummy MPI already added to LD_LIBRARY_PATH and has no external libraries
- if [ "$FOAM_MPI" != dummy ]
- then
--    _foamAddLib $FOAM_LIBBIN/$FOAM_MPI:$FOAM_EXT_LIBBIN/$FOAM_MPI
-+    if _foamOnOSX
-+    then
-+        _foamAddLib $FOAM_LIBBIN/$FOAM_MPI
-+    else
-+        _foamAddLib $FOAM_LIBBIN/$FOAM_MPI:$FOAM_EXT_LIBBIN/$FOAM_MPI
-+    fi
- fi
+diff --git a/etc/config.sh/settings b/etc/config.sh/settings
+index 438a325..760e990 100644
+--- a/etc/config.sh/settings
++++ b/etc/config.sh/settings
+@@ -121,6 +121,13 @@ SunOS)
+     export WM_LDFLAGS='-mabi=64 -G0'
+     ;;
  
++Darwin)
++    WM_ARCH=darwin64
++    export WM_COMPILER_LIB_ARCH=64
++    export WM_CC='clang'
++    export WM_CXX='clang++'
++    ;;
++
+ *)    # An unsupported operating system
+     /bin/cat <<USAGE 1>&2
  
-@@ -622,10 +707,11 @@ then
- fi
- export MPI_BUFFER_SIZE
+@@ -193,7 +200,12 @@ unset siteDir
  
-+_foamOnOSX && _increaseMaxOpenFiles 4096
+ _foamAddPath $FOAM_USER_APPBIN:$FOAM_SITE_APPBIN:$FOAM_APPBIN
+ # Make sure to pick up dummy versions of external libraries last
+-_foamAddLib  $FOAM_USER_LIBBIN:$FOAM_SITE_LIBBIN:$FOAM_LIBBIN:$FOAM_EXT_LIBBIN:$FOAM_LIBBIN/dummy
++if [ -n "$FOAM_EXT_LIBBIN" ]
++then
++    _foamAddLib  $FOAM_USER_LIBBIN:$FOAM_SITE_LIBBIN:$FOAM_LIBBIN:$FOAM_EXT_LIBBIN:$FOAM_LIBBIN/dummy
++else
++    _foamAddLib  $FOAM_USER_LIBBIN:$FOAM_SITE_LIBBIN:$FOAM_LIBBIN:$FOAM_LIBBIN/dummy
++fi
  
- # Cleanup environment:
- # ~~~~~~~~~~~~~~~~~~~~
--#keep _foamAddPath _foamAddLib _foamAddMan
--unset foamCompiler minBufferSize
-+#keep _foamAddPath _foamAddLib _foamAddMan _foamOnOSX
-+unset foamCompiler minBufferSize _increaseMaxOpenFiles _macports
+ # Compiler settings
+ # ~~~~~~~~~~~~~~~~~
+@@ -286,4 +298,6 @@ system)
+     ;;
+ esac
  
- # ----------------------------------------------------------------- end-of-file
++_foamOnOSX && _foamIncreaseMaxOpenFiles 4096
++
+ #------------------------------------------------------------------------------
 diff --git a/src/Allwmake b/src/Allwmake
-index c0ea041..bb0e267 100755
+index ef59d69..e0fb2e0 100755
 --- a/src/Allwmake
 +++ b/src/Allwmake
-@@ -1,6 +1,17 @@
- #!/bin/sh
- cd ${0%/*} || exit 1    # Run from this directory
- 
-+# Check if environment is configured
-+[ -z "$WM_PROJECT_DIR" ] && {
-+# No, it is not, so we source bashrc ourselves
-+[ -f "$(pwd)/../etc/bashrc" ] && {
-+echo
-+echo "You have forgotten to source etc/bashrc, so I do it myself."
-+echo
-+source $(pwd)/../etc/bashrc
-+}
-+}
-+
- # Parse arguments for library compilation
- targetType=libso
- . $WM_PROJECT_DIR/wmake/scripts/AllwmakeParseArguments
-@@ -12,19 +23,20 @@ wmakeCheckPwd "$WM_PROJECT_DIR/src" || {
+@@ -12,11 +12,12 @@ wmakeCheckPwd "$WM_PROJECT_DIR/src" || {
      exit 1
  }
  
@@ -1098,18 +970,8 @@ index c0ea041..bb0e267 100755
  
  set -x
  
- # Update OpenFOAM version strings if required
- wmakePrintBuild -check || /bin/rm -f OpenFOAM/Make/*/global.? 2>/dev/null
- 
--wmakeLnInclude OpenFOAM
--wmakeLnInclude OSspecific/${WM_OSTYPE:-POSIX}
-+wmakeLnInclude -f OpenFOAM
-+wmakeLnInclude -f OSspecific/${WM_OSTYPE:-POSIX}
- Pstream/Allwmake $targetType $*
- 
- OSspecific/${WM_OSTYPE:-POSIX}/Allwmake $*
 diff --git a/src/OSspecific/POSIX/POSIX.C b/src/OSspecific/POSIX/POSIX.C
-index 5374c0b..8108190 100644
+index aa76bd2..600ac7e 100644
 --- a/src/OSspecific/POSIX/POSIX.C
 +++ b/src/OSspecific/POSIX/POSIX.C
 @@ -53,7 +53,11 @@ Description
@@ -1124,7 +986,7 @@ index 5374c0b..8108190 100644
  
  #include <netinet/in.h>
  
-@@ -1173,6 +1177,20 @@ void* Foam::dlOpen(const fileName& lib, const bool check)
+@@ -1031,6 +1035,20 @@ void* Foam::dlOpen(const fileName& lib, const bool check)
              << " : dlopen of " << lib << std::endl;
      }
      void* handle = ::dlopen(lib.c_str(), RTLD_LAZY|RTLD_GLOBAL);
@@ -1145,7 +1007,7 @@ index 5374c0b..8108190 100644
  
      if (!handle && check)
      {
-@@ -1259,7 +1277,24 @@ bool Foam::dlSymFound(void* handle, const std::string& symbol)
+@@ -1117,7 +1135,24 @@ bool Foam::dlSymFound(void* handle, const std::string& symbol)
      }
  }
  
@@ -1170,7 +1032,7 @@ index 5374c0b..8108190 100644
  static int collectLibsCallback
  (
      struct dl_phdr_info *info,
-@@ -1286,6 +1321,7 @@ Foam::fileNameList Foam::dlLoaded()
+@@ -1144,6 +1179,7 @@ Foam::fileNameList Foam::dlLoaded()
      }
      return libs;
  }
@@ -1335,7 +1197,7 @@ index b3561ef..6f79a5b 100644
  
      return res;
 diff --git a/src/OSspecific/POSIX/signals/sigFpe.C b/src/OSspecific/POSIX/signals/sigFpe.C
-index 5488f2e..d00b554 100644
+index 0e3ab8a..f747b9f 100644
 --- a/src/OSspecific/POSIX/signals/sigFpe.C
 +++ b/src/OSspecific/POSIX/signals/sigFpe.C
 @@ -39,6 +39,13 @@ License
@@ -1392,7 +1254,7 @@ index 5488f2e..d00b554 100644
  void Foam::sigFpe::sigHandler(int)
  {
      // Reset old handling
-@@ -124,9 +155,13 @@ Foam::sigFpe::~sigFpe()
+@@ -122,9 +153,13 @@ Foam::sigFpe::~sigFpe()
  {
      if (env("FOAM_SIGFPE"))
      {
@@ -1405,9 +1267,9 @@ index 5488f2e..d00b554 100644
          if (oldAction_.sa_handler && sigaction(SIGFPE, &oldAction_, NULL) < 0)
 +        #endif
          {
-             FatalErrorIn
-             (
-@@ -139,10 +174,24 @@ Foam::sigFpe::~sigFpe()
+             FatalErrorInFunction
+                 << "Cannot reset SIGFPE trapping"
+@@ -135,10 +170,24 @@ Foam::sigFpe::~sigFpe()
  
      if (env("FOAM_SETNAN"))
      {
@@ -1433,7 +1295,7 @@ index 5488f2e..d00b554 100644
      }
  }
  
-@@ -164,21 +213,31 @@ void Foam::sigFpe::set(const bool verbose)
+@@ -158,21 +207,31 @@ void Foam::sigFpe::set(const bool verbose)
      {
          bool supported = false;
  
@@ -1452,7 +1314,7 @@ index 5488f2e..d00b554 100644
 +        #if defined(darwin64)
 +        _mm_setcsr(_MM_MASK_MASK &~
 +                   (_MM_MASK_OVERFLOW|_MM_MASK_INVALID|_MM_MASK_DIV_ZERO));
-+        #endif  // darwin64
++        #endif
  
          struct sigaction newAction;
          newAction.sa_handler = sigHandler;
@@ -1464,9 +1326,9 @@ index 5488f2e..d00b554 100644
          if (sigaction(SIGFPE, &newAction, &oldAction_) < 0)
 +        #endif
          {
-             FatalErrorIn
-             (
-@@ -230,10 +289,33 @@ void Foam::sigFpe::set(const bool verbose)
+             FatalErrorInFunction
+                 << "Cannot set SIGFPE trapping"
+@@ -222,10 +281,33 @@ void Foam::sigFpe::set(const bool verbose)
  
      if (env("FOAM_SETNAN"))
      {
@@ -1502,7 +1364,7 @@ index 5488f2e..d00b554 100644
          {
              if (mallocNanActive_)
 diff --git a/src/OSspecific/POSIX/signals/sigFpe.H b/src/OSspecific/POSIX/signals/sigFpe.H
-index 603c4b5..d81deec 100644
+index 14dbcae..4b60327 100644
 --- a/src/OSspecific/POSIX/signals/sigFpe.H
 +++ b/src/OSspecific/POSIX/signals/sigFpe.H
 @@ -54,6 +54,10 @@ SourceFiles
@@ -1544,10 +1406,10 @@ index 603c4b5..d81deec 100644
          static void* mallocNan(size_t size);
          #endif
 diff --git a/src/OpenFOAM/Make/files b/src/OpenFOAM/Make/files
-index 6b271cf..b3b47fa 100644
+index c975296..4ba87b7 100644
 --- a/src/OpenFOAM/Make/files
 +++ b/src/OpenFOAM/Make/files
-@@ -30,6 +30,12 @@ $(ints)/label/label.C
+@@ -33,6 +33,12 @@ $(ints)/label/label.C
  $(ints)/uLabel/uLabel.C
  $(ints)/lists/labelIOList.C
  $(ints)/lists/labelListIOList.C
@@ -1576,10 +1438,10 @@ index 438133d..64b7f9f 100644
  // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
  // Global predefined streams for standard input, output
 diff --git a/src/OpenFOAM/db/dynamicLibrary/dynamicCode/dynamicCode.C b/src/OpenFOAM/db/dynamicLibrary/dynamicCode/dynamicCode.C
-index 2f97577..026519c 100644
+index 1537c8c..e978428 100644
 --- a/src/OpenFOAM/db/dynamicLibrary/dynamicCode/dynamicCode.C
 +++ b/src/OpenFOAM/db/dynamicLibrary/dynamicCode/dynamicCode.C
-@@ -334,7 +334,11 @@ Foam::fileName Foam::dynamicCode::codeRelPath() const
+@@ -317,7 +317,11 @@ Foam::fileName Foam::dynamicCode::codeRelPath() const
  
  Foam::fileName Foam::dynamicCode::libRelPath() const
  {
@@ -1640,9 +1502,6 @@ index 57373e0..b560586 100644
  
  #undef MAXMINPOW
  
-diff --git a/src/OpenFOAM/primitives/chars/char/char.C b/src/OpenFOAM/primitives/chars/char/char.C
-new file mode 100644
-index 0000000..e69de29
 diff --git a/src/OpenFOAM/primitives/ints/int/int.H b/src/OpenFOAM/primitives/ints/int/int.H
 index a3ab4b5..84940bd 100644
 --- a/src/OpenFOAM/primitives/ints/int/int.H
@@ -2289,7 +2148,7 @@ index 0000000..aa62c61
 +
 +// ************************************************************************* //
 diff --git a/src/fvAgglomerationMethods/Allwmake b/src/fvAgglomerationMethods/Allwmake
-index 16340f0..5381cfe 100755
+index f5cfa2c..10c3cbb 100755
 --- a/src/fvAgglomerationMethods/Allwmake
 +++ b/src/fvAgglomerationMethods/Allwmake
 @@ -8,9 +8,14 @@ set -x
@@ -2335,36 +2194,56 @@ index a58b65f..a135baf 100644
 +endif
 +
 +/* vim:set ft=make sw=4 ts=4 et: */
+diff --git a/src/parallel/decompose/Allwmake b/src/parallel/decompose/Allwmake
+index c692633..7c68146 100755
+--- a/src/parallel/decompose/Allwmake
++++ b/src/parallel/decompose/Allwmake
+@@ -6,7 +6,9 @@ targetType=libso
+ . $WM_PROJECT_DIR/wmake/scripts/AllwmakeParseArguments
+ 
+ # get SCOTCH_VERSION, SCOTCH_ARCH_PATH
+-if settings=`$WM_PROJECT_DIR/bin/foamEtcFile config.sh/scotch`
++_scotchConf="config.sh/scotch"
++[ "$(uname -s)" = "Darwin" ] && _scotchConf="config.sh/mac/scotch"
++if settings=`$WM_PROJECT_DIR/bin/foamEtcFile "$_scotchConf"`
+ then
+     . $settings
+     echo "using SCOTCH_ARCH_PATH=$SCOTCH_ARCH_PATH"
 diff --git a/src/parallel/decompose/metisDecomp/Allwmake b/src/parallel/decompose/metisDecomp/Allwmake
-index 549e422..c31d07d 100755
+index d968333..b5620b8 100755
 --- a/src/parallel/decompose/metisDecomp/Allwmake
 +++ b/src/parallel/decompose/metisDecomp/Allwmake
-@@ -1,6 +1,9 @@
+@@ -1,16 +1,21 @@
  #!/bin/sh
  cd ${0%/*} || exit 1    # Run from this directory
  
-+SO_EXT=so
-+[ "$(uname -s)" = "Darwin" ] && SO_EXT=dylib
++_soExt=so
++_metisConf="config.sh/metis"
++[ "$(uname -s)" = "Darwin" ] && _soExt=dylib
++[ "$(uname -s)" = "Darwin" ] && _metisConf="config.sh/mac/metis"
 +
  # Parse arguments for library compilation
  targetType=libso
  . $WM_PROJECT_DIR/wmake/scripts/AllwmakeParseArguments
-@@ -10,7 +13,7 @@ if settings=`$WM_PROJECT_DIR/bin/foamEtcFile config/metis.sh`
+ 
+ # get METIS_VERSION, METIS_ARCH_PATH
+-if settings=`$WM_PROJECT_DIR/bin/foamEtcFile config.sh/metis`
++if settings=`$WM_PROJECT_DIR/bin/foamEtcFile "$_metisConf"`
  then
      . $settings
      echo "using METIS_ARCH_PATH=$METIS_ARCH_PATH"
 -    if [ -r $METIS_ARCH_PATH/lib/libmetis.so ]
-+    if [ -r "$METIS_ARCH_PATH/lib/libmetis.$SO_EXT" ]
++    if [ -r "$METIS_ARCH_PATH/lib/libmetis.$_soExt" ]
      then
          wmake $targetType
      fi
-@@ -20,5 +23,6 @@ else
+@@ -20,5 +25,6 @@ else
      echo
  fi
  
-+unset SO_EXT
++unset _soExt _metisConf
  
- # ----------------------------------------------------------------- end-of-file
+ #------------------------------------------------------------------------------
 diff --git a/src/parallel/decompose/metisDecomp/Make/options b/src/parallel/decompose/metisDecomp/Make/options
 index 8acd678..d4dfa96 100644
 --- a/src/parallel/decompose/metisDecomp/Make/options
@@ -2376,21 +2255,21 @@ index 8acd678..d4dfa96 100644
      -I../decompositionMethods/lnInclude
  
 diff --git a/src/parallel/decompose/metisDecomp/metisDecomp.C b/src/parallel/decompose/metisDecomp/metisDecomp.C
-index d87619b..6c7380f 100644
+index 9015184..6ea8eee 100644
 --- a/src/parallel/decompose/metisDecomp/metisDecomp.C
 +++ b/src/parallel/decompose/metisDecomp/metisDecomp.C
 @@ -67,7 +67,11 @@ Foam::label Foam::metisDecomp::decompose
  
-     // processor weights initialised with no size, only used if specified in
+     // Processor weights initialised with no size, only used if specified in
      // a file
 -    Field<scalar> processorWeights;
-+#if REALTYPEWIDTH == 32
++    #if REALTYPEWIDTH == 32
 +    Field<floatScalar> processorWeights;
-+#else
++    #else
 +    Field<doubleScalar> processorWeights;
-+#endif
++    #endif
  
-     // cell weights (so on the vertices of the dual)
+     // Cell weights (so on the vertices of the dual)
      List<label> cellWeights;
 diff --git a/src/parallel/decompose/ptscotchDecomp/Make/options b/src/parallel/decompose/ptscotchDecomp/Make/options
 index 25ca6e9..2cace47 100644
@@ -2433,6 +2312,30 @@ index 3bb11fb..23701f5 100644
 +ifneq ($(shell uname -s),Darwin)
 +LIB_LIBS += -lrt
 +endif
+diff --git a/src/renumber/Allwmake b/src/renumber/Allwmake
+index a44d239..5fa67c0 100755
+--- a/src/renumber/Allwmake
++++ b/src/renumber/Allwmake
+@@ -5,10 +5,16 @@ cd ${0%/*} || exit 1    # Run from this directory
+ targetType=libso
+ . $WM_PROJECT_DIR/wmake/scripts/AllwmakeParseArguments
+ 
+-# Get CGAL and scotch versions
++# Get boost version
+ . $WM_PROJECT_DIR/etc/config.sh/functions
+-_foamEval SOURCE_CGAL_VERSIONS_ONLY=yes \
+-          $($WM_PROJECT_DIR/bin/foamEtcFile config.sh/CGAL)
++if [ "$(uname -s)" = "Darwin" ]
++then
++    _foamEval SOURCE_CGAL_VERSIONS_ONLY=yes \
++        $($WM_PROJECT_DIR/bin/foamEtcFile config.sh/mac/CGAL)
++else
++    _foamEval SOURCE_CGAL_VERSIONS_ONLY=yes \
++        $($WM_PROJECT_DIR/bin/foamEtcFile config.sh/CGAL)
++fi
+ 
+ ## Get ZOLTAN_ARCH_PATH
+ #if settings=`$WM_PROJECT_DIR/bin/foamEtcFile config.sh/zoltan`
 diff --git a/src/renumber/SloanRenumber/Make/options b/src/renumber/SloanRenumber/Make/options
 index 492a3ae..29597e3 100644
 --- a/src/renumber/SloanRenumber/Make/options
@@ -2470,31 +2373,40 @@ index 492a3ae..29597e3 100644
 +else
 +LIB_LIBS += -lboost_thread
 +endif
-diff --git a/wmake/Makefile b/wmake/Makefile
-index 38f3f1a..1d1a15b 100644
---- a/wmake/Makefile
-+++ b/wmake/Makefile
-@@ -71,7 +71,6 @@ EXE_LIBS           =
+diff --git a/wmake/makefiles/files b/wmake/makefiles/files
+index c17179e..bb0e3d4 100644
+--- a/wmake/makefiles/files
++++ b/wmake/makefiles/files
+@@ -67,9 +67,10 @@ $(SFILES): $(MAKE_DIR)/files
+ 	# Add a newline to files to ensure the last line is followed by a newline
+ 	@echo "" >> $(SFILES)
+ 	# Remove commented lines, blank lines, and trailing blanks from files
+-	@sed -i -e '/^#/ d' -e '/^[ \t]*$$/ d' -e 's,[ \t]*$$,,' $(SFILES)
++	@sed -i~ -e '/^#/ d' -e '/^[ \t]*$$/ d' -e 's,[ \t]*$$,,' $(SFILES)
+ 	# Add backslashes
+-	@sed -i -e 's,$$, \\,' -e '$$s,\\,,' $(SFILES)
++	@sed -i~ -e 's,$$, \\,' -e '$$s,\\,,' $(SFILES)
++	@rm $(SFILES)~
  
- LIB_LIBS           =
+ $(VARS): $(SFILES)
  
--
- #------------------------------------------------------------------------------
- # Declare default name of libraries and executables
- #------------------------------------------------------------------------------
-@@ -80,7 +79,11 @@ LIB_LIBS           =
+diff --git a/wmake/makefiles/general b/wmake/makefiles/general
+index b9a4f99..6a32b74 100644
+--- a/wmake/makefiles/general
++++ b/wmake/makefiles/general
+@@ -80,7 +80,11 @@ LIB_LIBS        =
  LIB             = libNULL
  
  # Shared library extension
 +ifeq ($(shell uname -s),Darwin)
-+SO              = dylib
++SO		= dylib
 +else
  SO              = so
 +endif
  
  # Project executable
  EXE             = $(WM_PROJECT).out
-@@ -136,17 +139,35 @@ LIB_HEADER_DIRS = \
+@@ -130,17 +134,34 @@ LIB_HEADER_DIRS = \
  
  $(EXE): $(OBJECTS)
  	@$(WM_SCRIPTS)/makeTargetDir $(EXE)
@@ -2505,10 +2417,8 @@ index 38f3f1a..1d1a15b 100644
 +		$(LINK_LIBS) $(GLIBS) -o $(EXE)
 +else
  	$(LINKEXE) $(OBJECTS) -L$(LIB_PLATFORMS) \
--	    $(EXE_LIBS) $(PROJECT_LIBS) $(SYS_LIBS) \
--	    $(LINK_LIBS) $(GLIBS) -o $(EXE)
-+		$(EXE_LIBS) $(PROJECT_LIBS) $(SYS_LIBS) \
-+		$(LINK_LIBS) $(GLIBS) -o $(EXE)
+ 	    $(EXE_LIBS) $(PROJECT_LIBS) $(SYS_LIBS) \
+ 	    $(LINK_LIBS) $(GLIBS) -o $(EXE)
 +endif
  
  exe:    $(SEXE)
@@ -2528,12 +2438,11 @@ index 38f3f1a..1d1a15b 100644
  	$(LINKEXE) $(OBJECTS) $(EXE_LIBS) \
 -	    $(SYS_LIBS) $(LINK_LIBS) $(GLIBS) -o $(SEXE)
 +		$(SYS_LIBS) $(LINK_LIBS) $(GLIBS) -o $(SEXE)
-+
 +endif
  
  
  #------------------------------------------------------------------------------
-@@ -156,29 +177,62 @@ $(SEXE):$(OBJECTS)
+@@ -150,29 +171,62 @@ $(SEXE):$(OBJECTS)
  objects: $(OBJECTS)
  
  libso:  $(LIB).$(SO)
@@ -2597,23 +2506,6 @@ index 38f3f1a..1d1a15b 100644
  
  
  #------------------------------------------------------------------------------
-diff --git a/wmake/MakefileFiles b/wmake/MakefileFiles
-index 8c55353..3606fb9 100644
---- a/wmake/MakefileFiles
-+++ b/wmake/MakefileFiles
-@@ -68,9 +68,10 @@ $(SFILES): $(MAKE_DIR)/files
- 	# Add a newline to files to ensure the last line is followed by a newline
- 	@echo "" >> $(SFILES)
- 	# Remove commented lines, blank lines, and trailing blanks from files
--	@sed -i -e '/^#/ d' -e '/^[ \t]*$$/ d' -e 's,[ \t]*$$,,' $(SFILES)
-+	@sed -i~ -e '/^#/ d' -e '/^[ \t]*$$/ d' -e 's,[ \t]*$$,,' $(SFILES)
- 	# Add backslashes
--	@sed -i -e 's,$$, \\,' -e '$$s,\\,,' $(SFILES)
-+	@sed -i~ -e 's,$$, \\,' -e '$$s,\\,,' $(SFILES)
-+	@rm $(SFILES)~
- 
- $(VARS): $(SFILES)
- 
 diff --git a/wmake/rules/General/transform b/wmake/rules/General/transform
 index bffe605..3551999 100644
 --- a/wmake/rules/General/transform
@@ -2645,10 +2537,10 @@ index bffe605..3551999 100644
  #------------------------------------------------------------------------------
 diff --git a/wmake/rules/darwin64Clang/c b/wmake/rules/darwin64Clang/c
 new file mode 100644
-index 0000000..a712270
+index 0000000..fa35e79
 --- /dev/null
 +++ b/wmake/rules/darwin64Clang/c
-@@ -0,0 +1,21 @@
+@@ -0,0 +1,17 @@
 +SUFFIXES += .c
 +
 +cWARN        = -Wall
@@ -2657,11 +2549,7 @@ index 0000000..a712270
 +
 +include $(RULES)/c$(WM_COMPILE_OPTION)
 +
-+cFLAGS      = $(GFLAGS) $(cWARN) $(cOPT) $(cDBUG) $(LIB_HEADER_DIRS) -fPIC
-+
-+ifneq (,$(OSX_SDK_PATH))
-+cFLAGS += -isysroot $(OSX_SDK_PATH)
-+endif
++cFLAGS      = $(GFLAGS) $(cWARN) $(cOPT) $(cDBUG) $(LIB_HEADER_DIRS) -fPIC -isysroot $(OSX_SDK_PATH)
 +
 +ctoo        = $(WM_SCHEDULER) $(cc) $(cFLAGS) -c $< -o $@
 +
@@ -2672,10 +2560,10 @@ index 0000000..a712270
 +LINKEXE     = $(cc) -Wl,-execute,-undefined,dynamic_lookup
 diff --git a/wmake/rules/darwin64Clang/c++ b/wmake/rules/darwin64Clang/c++
 new file mode 100644
-index 0000000..268c3b1
+index 0000000..e162eb7
 --- /dev/null
 +++ b/wmake/rules/darwin64Clang/c++
-@@ -0,0 +1,31 @@
+@@ -0,0 +1,27 @@
 +SUFFIXES += .C
 +SUFFIXES += .cxx
 +SUFFIXES += .cc
@@ -2683,19 +2571,15 @@ index 0000000..268c3b1
 +
 +c++WARN     = -Wall -Wextra -Wno-unused-parameter -Wno-overloaded-virtual \
 +              -Wno-unused-variable -Wno-unused-local-typedef -Wno-invalid-offsetof \
-+	      -Wno-c++11-extensions
++	      -Wno-deprecated-register
 +
-+CC          = xcrun c++ -arch x86_64
++CC          = xcrun c++ -arch x86_64 -std=c++14
 +
 +include $(RULES)/c++$(WM_COMPILE_OPTION)
 +
 +ptFLAGS     = -DNoRepository -ftemplate-depth-100
 +
-+c++FLAGS    = $(GFLAGS) $(c++WARN) $(c++OPT) $(c++DBUG) $(ptFLAGS) $(LIB_HEADER_DIRS) -fPIC
-+
-+ifneq (,$(OSX_SDK_PATH))
-+c++FLAGS += -isysroot $(OSX_SDK_PATH)
-+endif
++c++FLAGS    = $(GFLAGS) $(c++WARN) $(c++OPT) $(c++DBUG) $(ptFLAGS) $(LIB_HEADER_DIRS) -fPIC -isysroot $(OSX_SDK_PATH)
 +
 +Ctoo        = $(WM_SCHEDULER) $(CC) $(c++FLAGS) -c $< -o $@
 +cxxtoo      = $(Ctoo)
@@ -2726,11 +2610,11 @@ index 0000000..3363be8
 +c++OPT      = -O3
 diff --git a/wmake/rules/darwin64Clang/c++Prof b/wmake/rules/darwin64Clang/c++Prof
 new file mode 100644
-index 0000000..3bda4da
+index 0000000..f65166b
 --- /dev/null
 +++ b/wmake/rules/darwin64Clang/c++Prof
 @@ -0,0 +1,2 @@
-+c++DBUG    = -pg
++c++DBUG    = -gline-tables-only
 +c++OPT     = -O2
 diff --git a/wmake/rules/darwin64Clang/cDebug b/wmake/rules/darwin64Clang/cDebug
 new file mode 100644
@@ -2773,51 +2657,21 @@ index 0000000..f7377fa
 +include $(RULES)/c
 +include $(RULES)/c++
 diff --git a/wmake/src/Makefile b/wmake/src/Makefile
-index 92a2b08..a1b0a77 100644
+index f14baad..f5d81e2 100644
 --- a/wmake/src/Makefile
 +++ b/wmake/src/Makefile
-@@ -53,6 +53,7 @@ WMAKE_BIN     = $(WM_DIR)/platforms/$(WM_ARCH)$(WM_COMPILER)
- include $(RULES)/general
- include $(RULES)/$(WM_LINK_LANGUAGE)
+@@ -52,6 +52,7 @@ WM_COMPILE_OPTION = Opt
+ GENERAL_RULES   = $(WM_DIR)/rules/General
+ include $(GENERAL_RULES)/general
  
-+cFLAGS += -Wno-unneeded-internal-declaration -Wno-unused-function
- 
- #------------------------------------------------------------------------------
- # targets
-@@ -61,7 +62,7 @@ include $(RULES)/$(WM_LINK_LANGUAGE)
- all:  $(WMAKE_BIN)/dirToString $(WMAKE_BIN)/wmkdep
- 
- clean:
--	rm -f $(WMAKE_BIN)/* 2>/dev/null
-+	@$(RM) $(WMAKE_BIN)/* 2>/dev/null
- 
- 
- $(WMAKE_BIN)/dirToString: dirToString.c
-@@ -71,9 +72,9 @@ $(WMAKE_BIN)/dirToString: dirToString.c
- 
- $(WMAKE_BIN)/wmkdep: wmkdep.l
- 	@mkdir -p $(WMAKE_BIN)
--	flex wmkdep.l
-+	$(LEX) wmkdep.l
- 	$(cc) $(cFLAGS) lex.yy.c -o $(WMAKE_BIN)/wmkdep
--	@rm -f lex.yy.c 2>/dev/null
-+	@$(RM) lex.yy.c 2>/dev/null
- 
++cFLAGS += -Wno-unused-function
  
  #------------------------------------------------------------------------------
+ # Targets
 diff --git a/wmake/src/wmkdep.l b/wmake/src/wmkdep.l
-index cf0be5e..a5e2cb7 100644
+index a98a597..d16b2fb 100644
 --- a/wmake/src/wmkdep.l
 +++ b/wmake/src/wmkdep.l
-@@ -35,7 +35,7 @@ Description
-     only once.  This is why this program is faster than cpp.
- 
- Usage
--    wmkdep [ -Idir ... -Idir ] [ -iheader .. -iheader ] filename
-+    wmkdep [-v] [ -Idir ... -Idir ] [ -iheader .. -iheader ] filename
- 
- \*---------------------------------------------------------------------------*/
- 
 @@ -47,6 +47,7 @@ Usage
  #include <sys/types.h>
  #include <dirent.h>
@@ -2826,25 +2680,25 @@ index cf0be5e..a5e2cb7 100644
  
  void nextFile(const char* fileName);
  void importFile(const char* fileName);
-@@ -146,6 +147,7 @@ int main(int argc, char* argv[])
+@@ -145,7 +146,7 @@ const char* bufferPaths[FILE_STACK_SIZE];
+ int main(int argc, char* argv[])
  {
      char *basePos, *dotPos;
-     int i;
-+    static char verbose;
+-    int i;
++    int i, verbose;
  
      if (argc == 1)
      {
-@@ -154,7 +156,17 @@ int main(int argc, char* argv[])
+@@ -154,7 +155,16 @@ int main(int argc, char* argv[])
      }
  
      sourceFile = strdup(argv[argc-1]);
 -    fprintf(stderr, "Making dependency list for source file %s\n", sourceFile);
 +    verbose = (strncmp(argv[1], "-v", 2) == 0);
-+
 +    if (verbose)
 +    {
 +        fprintf(stderr, "Making dependency list for source file %s\n",
-+                sourceFile);
++	        sourceFile);
 +    }
 +    else
 +    {
@@ -2854,7 +2708,7 @@ index cf0be5e..a5e2cb7 100644
  
      if ((basePos = strrchr(sourceFile, '/')) == NULL)
 diff --git a/wmake/wmakeLnInclude b/wmake/wmakeLnInclude
-index b68c31a..1b1bc5f 100755
+index 28f4276..7de858b 100755
 --- a/wmake/wmakeLnInclude
 +++ b/wmake/wmakeLnInclude
 @@ -143,7 +143,12 @@ cd $incDir || exit 1
