@@ -101,6 +101,18 @@ of30x() {
 
 export -f of30x
 
+of40() {
+    ofxxx '4.0'
+}
+
+export -f of40
+
+of4x() {
+    ofxxx '4.x'
+}
+
+export -f of4x
+
 ofdev() {
     ofxxx "dev"
 }
