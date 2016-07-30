@@ -3,6 +3,11 @@
 Patches for OpenFOAM compilation on OS X. Detailed installation instructions
 can be found in [wiki](https://github.com/mrklein/openfoam-os-x/wiki).
 
+## July 30, 2016
+
+Updated 2.4.x (problem with `/usr/include` in -I flags for CGAL) and 4.x
+(new commits in this branch) patches.
+
 ## June 29, 2016
 
 Patches for 4.0 and 4.x (well, slight modification of the last -dev patch).

@@ -53,6 +53,8 @@ ofxxx () {
 	fi
 }
 
+export -f ofxxx
+
 of22x () {
 	ofxxx "2.2.x"
 }

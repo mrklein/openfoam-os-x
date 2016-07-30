@@ -3,7 +3,7 @@
  applications/Allwmake                              |  12 +-
  .../mesh/conversion/kivaToFoam/readKivaGrid.H      |   2 +-
  .../mesh/generation/foamyHexMesh/Make/options      |   4 +
- .../foamyHexMesh/conformalVoronoiMesh/Make/options |   4 +
+ .../foamyHexMesh/conformalVoronoiMesh/Make/options |   7 +-
  .../backgroundMeshDecompositionTemplates.C         |   4 +-
  .../CGALTriangulation3DKernel.H                    |   8 ++
  .../conformalVoronoiMesh/conformalVoronoiMesh.C    |   2 +-
@@ -92,7 +92,7 @@
  .../specie/reaction/Reactions/Reaction/Reaction.C  |   6 +-
  wmake/Makefile                                     |   4 +
  wmake/rules/darwin64Clang/c                        |  16 +++
- wmake/rules/darwin64Clang/c++                      |  23 ++++
+ wmake/rules/darwin64Clang/c++                      |  26 +++++
  wmake/rules/darwin64Clang/c++Debug                 |   2 +
  wmake/rules/darwin64Clang/c++Opt                   |   3 +
  wmake/rules/darwin64Clang/c++Prof                  |   2 +
@@ -100,7 +100,7 @@
  wmake/rules/darwin64Clang/cOpt                     |   2 +
  wmake/rules/darwin64Clang/cProf                    |   2 +
  wmake/rules/darwin64Clang/general                  |  10 ++
- 102 files changed, 964 insertions(+), 186 deletions(-)
+ 102 files changed, 968 insertions(+), 188 deletions(-)
 
 diff --git a/.gitignore b/.gitignore
 index ec46862..ead2d97 100644
@@ -206,7 +206,7 @@ index 2f96261..0d15c60 100644
  
  CGAL_EXACT = /*-DCGAL_DONT_USE_LAZY_KERNEL*/
 diff --git a/applications/utilities/mesh/generation/foamyHexMesh/conformalVoronoiMesh/Make/options b/applications/utilities/mesh/generation/foamyHexMesh/conformalVoronoiMesh/Make/options
-index cd23364..d1c9939 100644
+index cd23364..4a76976 100644
 --- a/applications/utilities/mesh/generation/foamyHexMesh/conformalVoronoiMesh/Make/options
 +++ b/applications/utilities/mesh/generation/foamyHexMesh/conformalVoronoiMesh/Make/options
 @@ -1,5 +1,9 @@
@@ -219,6 +219,16 @@ index cd23364..d1c9939 100644
  EXE_NDEBUG = -DNDEBUG
  
  CGAL_EXACT = /*-DCGAL_DONT_USE_LAZY_KERNEL*/
+@@ -25,8 +29,7 @@ EXE_INC = \
+     -I$(LIB_SRC)/sampling/lnInclude \
+     -I$(LIB_SRC)/mesh/autoMesh/lnInclude \
+     -IPrintTable \
+-    -I../vectorTools \
+-    -I/usr/include
++    -I../vectorTools
+ 
+ LIB_LIBS = \
+     ${CGAL_LIBS} \
 diff --git a/applications/utilities/mesh/generation/foamyHexMesh/conformalVoronoiMesh/backgroundMeshDecomposition/backgroundMeshDecompositionTemplates.C b/applications/utilities/mesh/generation/foamyHexMesh/conformalVoronoiMesh/backgroundMeshDecomposition/backgroundMeshDecompositionTemplates.C
 index 148de2b..e49e35f 100644
 --- a/applications/utilities/mesh/generation/foamyHexMesh/conformalVoronoiMesh/backgroundMeshDecomposition/backgroundMeshDecompositionTemplates.C
@@ -2729,16 +2739,19 @@ index 0000000..c6600bf
 +LINKEXE     = $(cc) -Wl,-execute,-undefined,dynamic_lookup
 diff --git a/wmake/rules/darwin64Clang/c++ b/wmake/rules/darwin64Clang/c++
 new file mode 100644
-index 0000000..6228651
+index 0000000..f452dbb
 --- /dev/null
 +++ b/wmake/rules/darwin64Clang/c++
-@@ -0,0 +1,23 @@
+@@ -0,0 +1,26 @@
 +.SUFFIXES: .C .cxx .cc .cpp
 +
 +c++WARN     = -Wall -Wextra -Wno-unused-parameter -Wno-overloaded-virtual \
-+              -Wno-c++11-extensions -Wno-unused-variable -Wno-unused-local-typedef
++              -Wno-c++11-extensions -Wno-unused-variable -Wno-unused-local-typedef \
++	      -Wno-deprecated-register
 +
-+CC          = xcrun c++ -arch x86_64
++c++CGALWARN = -Wno-shift-negative-value
++
++CC          = xcrun c++ -arch x86_64 -std=c++14
 +
 +include $(RULES)/c++$(WM_COMPILE_OPTION)
 +
