@@ -14,11 +14,11 @@
  .../mesh/manipulation/renumberMesh/Make/options    |   1 -
  .../miscellaneous/foamDebugSwitches/Make/options   |   2 -
  .../dataConversion/foamToEnsight/Make/options      |   1 -
- .../postProcessing/graphics/PV3Readers/Allwmake    |   7 +-
- .../postProcessing/graphics/PV4Readers/Allwmake    |   5 +
+ .../postProcessing/graphics/PV3Readers/Allwmake    |   8 +-
+ .../postProcessing/graphics/PV4Readers/Allwmake    |   6 +
  .../surfaceBooleanFeatures.C                       |   2 +
  bin/foamJob                                        |   8 ++
- bin/paraFoam                                       |   5 +
+ bin/paraFoam                                       |   6 +
  bin/tools/RunFunctions                             | 125 ++++++++++++++++-----
  etc/bashrc                                         |  54 +++++++--
  etc/config/CGAL.sh                                 |  27 ++++-
@@ -76,7 +76,7 @@
  .../coordinateRotation/STARCDCoordinateRotation.C  |   2 +-
  .../coordinateRotation/axesRotation.C              |   2 +-
  src/parallel/decompose/Allwmake                    |   6 +-
- src/parallel/decompose/metisDecomp/Allwmake        |   8 +-
+ src/parallel/decompose/metisDecomp/Allwmake        |   6 +-
  src/parallel/decompose/metisDecomp/Make/options    |   1 -
  src/parallel/decompose/ptscotchDecomp/Make/options |  10 +-
  src/parallel/decompose/scotchDecomp/Make/options   |   8 +-
@@ -100,7 +100,7 @@
  wmake/rules/darwin64Clang/cOpt                     |   2 +
  wmake/rules/darwin64Clang/cProf                    |   2 +
  wmake/rules/darwin64Clang/general                  |  10 ++
- 102 files changed, 968 insertions(+), 188 deletions(-)
+ 102 files changed, 969 insertions(+), 188 deletions(-)
 
 diff --git a/.gitignore b/.gitignore
 index ec46862..ead2d97 100644
@@ -337,7 +337,7 @@ index 219e3d4..e8b0688 100644
      -I$(LIB_SRC)/mesh/autoMesh/lnInclude \
      -I$(LIB_SRC)/meshTools/lnInclude \
 diff --git a/applications/utilities/mesh/manipulation/renumberMesh/Allwmake b/applications/utilities/mesh/manipulation/renumberMesh/Allwmake
-index 2509145..b7aecb7 100755
+index 2509145..abf6e42 100755
 --- a/applications/utilities/mesh/manipulation/renumberMesh/Allwmake
 +++ b/applications/utilities/mesh/manipulation/renumberMesh/Allwmake
 @@ -4,15 +4,18 @@ cd ${0%/*} || exit 1    # run from this directory
@@ -346,7 +346,7 @@ index 2509145..b7aecb7 100755
  
 -if [ -f "${FOAM_LIBBIN}/libSloanRenumber.so" ]
 +libExt=so
-+[ "$(uname -s)" == "Darwin" ] && libExt=dylib
++[ "$(uname -s)" = "Darwin" ] && libExt=dylib
 +
 +if [ -f "${FOAM_LIBBIN}/libSloanRenumber.$libExt" ]
  then
@@ -399,14 +399,15 @@ index 7799242..b4382c4 100644
      -I$(LIB_SRC)/meshTools/lnInclude \
      -I$(LIB_SRC)/sampling/lnInclude \
 diff --git a/applications/utilities/postProcessing/graphics/PV3Readers/Allwmake b/applications/utilities/postProcessing/graphics/PV3Readers/Allwmake
-index 3bddd64..91194ce 100755
+index 3bddd64..25f9c56 100755
 --- a/applications/utilities/postProcessing/graphics/PV3Readers/Allwmake
 +++ b/applications/utilities/postProcessing/graphics/PV3Readers/Allwmake
-@@ -2,6 +2,11 @@
+@@ -2,6 +2,12 @@
  cd ${0%/*} || exit 1    # run from this directory
  #set -x
  
-+if [ "$(uname -s)" == "Darwin" ]; then
++if [ "$(uname -s)" = "Darwin" ]
++then
 +	echo "INFO: PV3 readers not building."
 +	exit 0
 +fi
@@ -414,7 +415,7 @@ index 3bddd64..91194ce 100755
  case "$ParaView_VERSION" in
  3*)
      if [ -d "$ParaView_DIR" -a -r "$ParaView_DIR" ]
-@@ -22,7 +27,7 @@ case "$ParaView_VERSION" in
+@@ -22,7 +28,7 @@ case "$ParaView_VERSION" in
      fi
      ;;
  *)
@@ -424,14 +425,15 @@ index 3bddd64..91194ce 100755
  esac
  
 diff --git a/applications/utilities/postProcessing/graphics/PV4Readers/Allwmake b/applications/utilities/postProcessing/graphics/PV4Readers/Allwmake
-index aa102b5..97be197 100755
+index aa102b5..63aa6f9 100755
 --- a/applications/utilities/postProcessing/graphics/PV4Readers/Allwmake
 +++ b/applications/utilities/postProcessing/graphics/PV4Readers/Allwmake
-@@ -2,6 +2,11 @@
+@@ -2,6 +2,12 @@
  cd ${0%/*} || exit 1    # run from this directory
  #set -x
  
-+if [ "$(uname -s)" == "Darwin" ]; then
++if [ "$(uname -s)" = "Darwin" ]
++then
 +	echo "INFO: PV4 readers not building."
 +	exit 0
 +fi
@@ -475,14 +477,15 @@ index fc5e082..c69a706 100755
      # run (on single processor)
      #
 diff --git a/bin/paraFoam b/bin/paraFoam
-index b032fc6..8089c6e 100755
+index b032fc6..4d5f7e7 100755
 --- a/bin/paraFoam
 +++ b/bin/paraFoam
-@@ -72,6 +72,11 @@ extension=OpenFOAM
+@@ -72,6 +72,12 @@ extension=OpenFOAM
  
  requirePV=1
  
-+if [ "$(uname -s)" == "Darwin" ]; then
++if [ "$(uname -s)" = "Darwin" ]
++then
 +	extension=foam
 +	requirePV=0
 +fi
@@ -2331,17 +2334,15 @@ index 1b221c8..8c24d17 100755
      echo
      echo "Skipping scotchDecomp (ptscotchDecomp)"
 diff --git a/src/parallel/decompose/metisDecomp/Allwmake b/src/parallel/decompose/metisDecomp/Allwmake
-index a97d63a..007e58e 100755
+index a97d63a..5301a75 100755
 --- a/src/parallel/decompose/metisDecomp/Allwmake
 +++ b/src/parallel/decompose/metisDecomp/Allwmake
-@@ -2,12 +2,17 @@
+@@ -2,12 +2,15 @@
  cd ${0%/*} || exit 1    # run from this directory
  makeType=${1:-libso}
  
 +DYN_LIB_EXT=so
-+if [ "$(uname -s)" == "Darwin" ]; then
-+	DYN_LIB_EXT=dylib
-+fi
++[ "$(uname -s)" = "Darwin" ] && DYN_LIB_EXT=dylib
 +
  # get METIS_VERSION, METIS_ARCH_PATH
  if settings=`$WM_PROJECT_DIR/bin/foamEtcFile config/metis.sh`
@@ -2353,7 +2354,7 @@ index a97d63a..007e58e 100755
      then
          wmake $makeType
      fi
-@@ -17,5 +22,6 @@ else
+@@ -17,5 +20,6 @@ else
      echo
  fi
  
