@@ -4,7 +4,6 @@
  .../mesh/generation/snappyHexMesh/Make/options     |   1 -
  .../mesh/manipulation/renumberMesh/Allwmake        |  13 +-
  .../mesh/manipulation/renumberMesh/Make/options    |   1 -
- .../dataConversion/foamToEnsight/Make/options      |   1 -
  .../postProcessing/graphics/PV3Readers/Allwmake    |   3 +
  .../postProcessing/graphics/PVReaders/Allwmake     |   7 +-
  bin/foamInstallationTest                           |  21 +++-
@@ -23,7 +22,7 @@
  src/OSspecific/POSIX/POSIX.C                       |  36 ++++++
  src/OSspecific/POSIX/clockTime/clockTime.H         |   3 +
  src/OSspecific/POSIX/printStack.C                  |  72 +++++++++--
- src/OSspecific/POSIX/signals/sigFpe.C              |  92 +++++++++++++-
+ src/OSspecific/POSIX/signals/sigFpe.C              |  90 +++++++++++++-
  src/OSspecific/POSIX/signals/sigFpe.H              |  14 ++-
  src/OpenFOAM/Make/files                            |   6 +
  src/OpenFOAM/db/IOstreams/IOstreams.H              |   4 +
@@ -40,13 +39,12 @@
  src/fvAgglomerationMethods/Allwmake                |   9 +-
  .../MGridGenGamgAgglomeration/Make/options         |  16 ++-
  src/parallel/decompose/Allwmake                    |   4 +-
- src/parallel/decompose/metisDecomp/Allwmake        |  10 +-
+ src/parallel/decompose/metisDecomp/Allwmake        |  12 +-
  src/parallel/decompose/metisDecomp/Make/options    |   1 -
  src/parallel/decompose/metisDecomp/metisDecomp.C   |   6 +-
  src/parallel/decompose/ptscotchDecomp/Make/options |  10 +-
  src/parallel/decompose/scotchDecomp/Make/options   |   8 +-
- src/renumber/Allwmake                              |  12 +-
- src/renumber/SloanRenumber/Make/options            |  31 +++--
+ src/renumber/SloanRenumber/Make/options            |  14 ++-
  wmake/makefiles/files                              |   5 +-
  wmake/makefiles/general                            |  58 ++++++++-
  wmake/rules/General/transform                      |  10 ++
@@ -62,7 +60,7 @@
  wmake/src/Makefile                                 |   1 +
  wmake/src/wmkdep.l                                 |  14 ++-
  wmake/wmakeLnInclude                               |   7 +-
- 64 files changed, 1538 insertions(+), 98 deletions(-)
+ 62 files changed, 1523 insertions(+), 83 deletions(-)
 
 diff --git a/.gitignore b/.gitignore
 index a897b81..8f59031 100644
@@ -77,10 +75,10 @@ index a897b81..8f59031 100644
  
  # Reinstate wmake/rules that might look like build directories
 diff --git a/Allwmake b/Allwmake
-index cf49e40..7d397ae 100755
+index 67c26d0..72d1e0e 100755
 --- a/Allwmake
 +++ b/Allwmake
-@@ -13,11 +13,12 @@ wmakeCheckPwd "$WM_PROJECT_DIR" || {
+@@ -11,11 +11,12 @@ wmakeCheckPwd "$WM_PROJECT_DIR" || {
      exit 1
  }
  
@@ -94,7 +92,7 @@ index cf49e40..7d397ae 100755
  
  # Compile wmake support applications
  (cd wmake/src && make)
-@@ -27,7 +28,8 @@ if [ -d "$WM_THIRD_PARTY_DIR" ]
+@@ -25,7 +26,8 @@ if [ -d "$WM_THIRD_PARTY_DIR" ]
  then
      $WM_THIRD_PARTY_DIR/Allwmake
  else
@@ -105,10 +103,10 @@ index cf49e40..7d397ae 100755
  
  # Compile OpenFOAM libraries and applications
 diff --git a/applications/Allwmake b/applications/Allwmake
-index 23c5ebb..50709b0 100755
+index 14ba388..c35d896 100755
 --- a/applications/Allwmake
 +++ b/applications/Allwmake
-@@ -12,11 +12,12 @@ wmakeCheckPwd "$WM_PROJECT_DIR/applications" || {
+@@ -11,11 +11,12 @@ wmakeCheckPwd "$WM_PROJECT_DIR/applications" || {
      exit 1
  }
  
@@ -133,26 +131,21 @@ index c233730..af1af95 100644
      -I$(LIB_SRC)/mesh/snappyHexMesh/lnInclude \
      -I$(LIB_SRC)/meshTools/lnInclude \
 diff --git a/applications/utilities/mesh/manipulation/renumberMesh/Allwmake b/applications/utilities/mesh/manipulation/renumberMesh/Allwmake
-index 34b8b78..29e0f50 100755
+index 3acf4a1..90e0f02 100755
 --- a/applications/utilities/mesh/manipulation/renumberMesh/Allwmake
 +++ b/applications/utilities/mesh/manipulation/renumberMesh/Allwmake
-@@ -3,24 +3,29 @@ cd ${0%/*} || exit 1    # Run from this directory
- 
- # Parse arguments for compilation (at least for error catching)
- . $WM_PROJECT_DIR/wmake/scripts/AllwmakeParseArguments
-+_soExt=so
-+[ "$(uname -s)" = "Darwin" ] && _soExt=dylib
-+
- set -x
- 
+@@ -8,19 +8,24 @@ set -x
  export COMPILE_FLAGS=''
  export LINK_FLAGS=''
  
 -if [ -f "${FOAM_LIBBIN}/libSloanRenumber.so" ]
++_soExt=so
++[ "$(uname -s)" = "Darwin" ] && _soExt=dylib
++
 +if [ -f "${FOAM_LIBBIN}/libSloanRenumber.$_soExt" ]
  then
 -    echo "Found libSloanRenumber.so  --  enabling Sloan renumbering support."
-+    echo "Found libSloanRenumber.$_soExt  --  enabling Sloan renumbering support."
++    echo "Found libSloanRenumber.$soExt  --  enabling Sloan renumbering support."
      export LINK_FLAGS="${LINK_FLAGS} -lSloanRenumber"
  fi
  
@@ -165,10 +158,10 @@ index 34b8b78..29e0f50 100755
      export LINK_FLAGS="${LINK_FLAGS} -lzoltanRenumber -L${ZOLTAN_ARCH_PATH}/lib -lzoltan"
  fi
  
+ wmake $targetType
+ 
 +unset _soExt
 +
- wmake
- 
  #------------------------------------------------------------------------------
 diff --git a/applications/utilities/mesh/manipulation/renumberMesh/Make/options b/applications/utilities/mesh/manipulation/renumberMesh/Make/options
 index 49a1c3d..882d1e4 100644
@@ -180,21 +173,11 @@ index 49a1c3d..882d1e4 100644
      ${COMPILE_FLAGS} \
      -I$(LIB_SRC)/meshTools/lnInclude \
      -I$(LIB_SRC)/dynamicMesh/lnInclude \
-diff --git a/applications/utilities/postProcessing/dataConversion/foamToEnsight/Make/options b/applications/utilities/postProcessing/dataConversion/foamToEnsight/Make/options
-index 18bbc7a..0b17fd3 100644
---- a/applications/utilities/postProcessing/dataConversion/foamToEnsight/Make/options
-+++ b/applications/utilities/postProcessing/dataConversion/foamToEnsight/Make/options
-@@ -1,5 +1,4 @@
- EXE_INC = \
--    /* -DFULLDEBUG -g -O0 */ \
-     -I$(LIB_SRC)/finiteVolume/lnInclude \
-     -I$(LIB_SRC)/meshTools/lnInclude \
-     -I$(LIB_SRC)/dynamicMesh/lnInclude \
 diff --git a/applications/utilities/postProcessing/graphics/PV3Readers/Allwmake b/applications/utilities/postProcessing/graphics/PV3Readers/Allwmake
-index 049c1bf..4ad9bdc 100755
+index 60fdc49..29a0af9 100755
 --- a/applications/utilities/postProcessing/graphics/PV3Readers/Allwmake
 +++ b/applications/utilities/postProcessing/graphics/PV3Readers/Allwmake
-@@ -6,6 +6,9 @@ targetType=libso
+@@ -5,6 +5,9 @@ cd ${0%/*} || exit 1    # Run from this directory
  . $WM_PROJECT_DIR/wmake/scripts/AllwmakeParseArguments
  #set -x
  
@@ -205,10 +188,10 @@ index 049c1bf..4ad9bdc 100755
  3*)
      if [ -d "$ParaView_DIR" -a -r "$ParaView_DIR" ]
 diff --git a/applications/utilities/postProcessing/graphics/PVReaders/Allwmake b/applications/utilities/postProcessing/graphics/PVReaders/Allwmake
-index edaa31a..96728b2 100755
+index 85bd204..7996d77 100755
 --- a/applications/utilities/postProcessing/graphics/PVReaders/Allwmake
 +++ b/applications/utilities/postProcessing/graphics/PVReaders/Allwmake
-@@ -26,7 +26,12 @@ case "$ParaView_VERSION" in
+@@ -25,7 +25,12 @@ case "$ParaView_VERSION" in
      fi
      ;;
  *)
@@ -321,7 +304,7 @@ index 84b82ec..e965e69 100755
  while [ "$#" -gt 0 ]
  do
 diff --git a/bin/tools/RunFunctions b/bin/tools/RunFunctions
-index 4703fee..15d6ab9 100644
+index ed101f9..769ee94 100644
 --- a/bin/tools/RunFunctions
 +++ b/bin/tools/RunFunctions
 @@ -28,6 +28,18 @@
@@ -953,10 +936,10 @@ index 438a325..760e990 100644
 +
  #------------------------------------------------------------------------------
 diff --git a/src/Allwmake b/src/Allwmake
-index ef59d69..e0fb2e0 100755
+index 6419e51..6cfdf38 100755
 --- a/src/Allwmake
 +++ b/src/Allwmake
-@@ -12,11 +12,12 @@ wmakeCheckPwd "$WM_PROJECT_DIR/src" || {
+@@ -11,11 +11,12 @@ wmakeCheckPwd "$WM_PROJECT_DIR/src" || {
      exit 1
  }
  
@@ -971,7 +954,7 @@ index ef59d69..e0fb2e0 100755
  set -x
  
 diff --git a/src/OSspecific/POSIX/POSIX.C b/src/OSspecific/POSIX/POSIX.C
-index aa76bd2..600ac7e 100644
+index da4bf88..83dcbce 100644
 --- a/src/OSspecific/POSIX/POSIX.C
 +++ b/src/OSspecific/POSIX/POSIX.C
 @@ -53,7 +53,11 @@ Description
@@ -1055,7 +1038,7 @@ index 8708ba9..65f046c 100644
  // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
  
 diff --git a/src/OSspecific/POSIX/printStack.C b/src/OSspecific/POSIX/printStack.C
-index b3561ef..6f79a5b 100644
+index 660f82d..aaf94de 100644
 --- a/src/OSspecific/POSIX/printStack.C
 +++ b/src/OSspecific/POSIX/printStack.C
 @@ -27,11 +27,17 @@ License
@@ -1197,7 +1180,7 @@ index b3561ef..6f79a5b 100644
  
      return res;
 diff --git a/src/OSspecific/POSIX/signals/sigFpe.C b/src/OSspecific/POSIX/signals/sigFpe.C
-index 0e3ab8a..f747b9f 100644
+index 8485103..a47e019 100644
 --- a/src/OSspecific/POSIX/signals/sigFpe.C
 +++ b/src/OSspecific/POSIX/signals/sigFpe.C
 @@ -39,6 +39,13 @@ License
@@ -1245,7 +1228,7 @@ index 0e3ab8a..f747b9f 100644
  
  #ifdef LINUX
  extern "C"
-@@ -86,7 +117,7 @@ void* Foam::sigFpe::mallocNan(size_t size)
+@@ -86,11 +117,15 @@ void* Foam::sigFpe::mallocNan(size_t size)
  #endif
  
  
@@ -1254,22 +1237,15 @@ index 0e3ab8a..f747b9f 100644
  void Foam::sigFpe::sigHandler(int)
  {
      // Reset old handling
-@@ -122,9 +153,13 @@ Foam::sigFpe::~sigFpe()
- {
-     if (env("FOAM_SIGFPE"))
++#if defined(darwin64)
++    if (sigaction(SIGFPE, nullptr, nullptr) < 0)
++#else
+     if (sigaction(SIGFPE, &oldAction_, nullptr) < 0)
++#endif
      {
--        #ifdef LINUX_GNUC
-+        #if defined(LINUX_GNUC) || defined(darwin64)
-         // Reset signal
-+        #if defined(darwin64)
-+        if (oldAction_.sa_handler && sigaction(SIGFPE, NULL, NULL) < 0)
-+        #else
-         if (oldAction_.sa_handler && sigaction(SIGFPE, &oldAction_, NULL) < 0)
-+        #endif
-         {
-             FatalErrorInFunction
-                 << "Cannot reset SIGFPE trapping"
-@@ -135,10 +170,24 @@ Foam::sigFpe::~sigFpe()
+         FatalErrorInFunction
+             << "Cannot reset SIGFPE trapping"
+@@ -139,10 +174,24 @@ Foam::sigFpe::~sigFpe()
  
      if (env("FOAM_SETNAN"))
      {
@@ -1295,7 +1271,7 @@ index 0e3ab8a..f747b9f 100644
      }
  }
  
-@@ -158,21 +207,31 @@ void Foam::sigFpe::set(const bool verbose)
+@@ -162,21 +211,31 @@ void Foam::sigFpe::set(const bool verbose)
      {
          bool supported = false;
  
@@ -1328,7 +1304,7 @@ index 0e3ab8a..f747b9f 100644
          {
              FatalErrorInFunction
                  << "Cannot set SIGFPE trapping"
-@@ -222,10 +281,33 @@ void Foam::sigFpe::set(const bool verbose)
+@@ -226,10 +285,33 @@ void Foam::sigFpe::set(const bool verbose)
  
      if (env("FOAM_SETNAN"))
      {
@@ -1406,7 +1382,7 @@ index 14dbcae..4b60327 100644
          static void* mallocNan(size_t size);
          #endif
 diff --git a/src/OpenFOAM/Make/files b/src/OpenFOAM/Make/files
-index c975296..4ba87b7 100644
+index e530cb2..4faf389 100644
 --- a/src/OpenFOAM/Make/files
 +++ b/src/OpenFOAM/Make/files
 @@ -33,6 +33,12 @@ $(ints)/label/label.C
@@ -2148,10 +2124,10 @@ index 0000000..aa62c61
 +
 +// ************************************************************************* //
 diff --git a/src/fvAgglomerationMethods/Allwmake b/src/fvAgglomerationMethods/Allwmake
-index f5cfa2c..10c3cbb 100755
+index 9a5ad4b..6bd8e1e 100755
 --- a/src/fvAgglomerationMethods/Allwmake
 +++ b/src/fvAgglomerationMethods/Allwmake
-@@ -8,9 +8,14 @@ set -x
+@@ -7,9 +7,14 @@ set -x
  
  export ParMGridGen=$WM_THIRD_PARTY_DIR/ParMGridGen-1.0
  
@@ -2195,10 +2171,10 @@ index a58b65f..a135baf 100644
 +
 +/* vim:set ft=make sw=4 ts=4 et: */
 diff --git a/src/parallel/decompose/Allwmake b/src/parallel/decompose/Allwmake
-index c692633..7c68146 100755
+index 3be5235..a441322 100755
 --- a/src/parallel/decompose/Allwmake
 +++ b/src/parallel/decompose/Allwmake
-@@ -6,7 +6,9 @@ targetType=libso
+@@ -5,7 +5,9 @@ cd ${0%/*} || exit 1    # Run from this directory
  . $WM_PROJECT_DIR/wmake/scripts/AllwmakeParseArguments
  
  # get SCOTCH_VERSION, SCOTCH_ARCH_PATH
@@ -2210,34 +2186,32 @@ index c692633..7c68146 100755
      . $settings
      echo "using SCOTCH_ARCH_PATH=$SCOTCH_ARCH_PATH"
 diff --git a/src/parallel/decompose/metisDecomp/Allwmake b/src/parallel/decompose/metisDecomp/Allwmake
-index d968333..b5620b8 100755
+index 2f666ab..c7597df 100755
 --- a/src/parallel/decompose/metisDecomp/Allwmake
 +++ b/src/parallel/decompose/metisDecomp/Allwmake
-@@ -1,16 +1,21 @@
- #!/bin/sh
- cd ${0%/*} || exit 1    # Run from this directory
- 
-+_soExt=so
-+_metisConf="config.sh/metis"
-+[ "$(uname -s)" = "Darwin" ] && _soExt=dylib
-+[ "$(uname -s)" = "Darwin" ] && _metisConf="config.sh/mac/metis"
-+
+@@ -4,12 +4,19 @@ cd ${0%/*} || exit 1    # Run from this directory
  # Parse arguments for library compilation
- targetType=libso
  . $WM_PROJECT_DIR/wmake/scripts/AllwmakeParseArguments
  
++_soExt="so"
++_metisConf="config.sh/metis"
++[ "$(uname -s)" = "Darwin" ] && {
++_soExt="dylib"
++_metisConf="config.sh/mac/metis"
++}
++
  # get METIS_VERSION, METIS_ARCH_PATH
 -if settings=`$WM_PROJECT_DIR/bin/foamEtcFile config.sh/metis`
-+if settings=`$WM_PROJECT_DIR/bin/foamEtcFile "$_metisConf"`
++if settings=`$WM_PROJECT_DIR/bin/foamEtcFile $_metisConf`
  then
      . $settings
      echo "using METIS_ARCH_PATH=$METIS_ARCH_PATH"
 -    if [ -r $METIS_ARCH_PATH/lib/libmetis.so ]
-+    if [ -r "$METIS_ARCH_PATH/lib/libmetis.$_soExt" ]
++    if [ -r $METIS_ARCH_PATH/lib/libmetis.$_soExt ]
      then
          wmake $targetType
      fi
-@@ -20,5 +25,6 @@ else
+@@ -19,5 +26,6 @@ else
      echo
  fi
  
@@ -2255,7 +2229,7 @@ index 8acd678..d4dfa96 100644
      -I../decompositionMethods/lnInclude
  
 diff --git a/src/parallel/decompose/metisDecomp/metisDecomp.C b/src/parallel/decompose/metisDecomp/metisDecomp.C
-index 9015184..6ea8eee 100644
+index 3ede45d..50b3a39 100644
 --- a/src/parallel/decompose/metisDecomp/metisDecomp.C
 +++ b/src/parallel/decompose/metisDecomp/metisDecomp.C
 @@ -67,7 +67,11 @@ Foam::label Foam::metisDecomp::decompose
@@ -2312,66 +2286,30 @@ index 3bb11fb..23701f5 100644
 +ifneq ($(shell uname -s),Darwin)
 +LIB_LIBS += -lrt
 +endif
-diff --git a/src/renumber/Allwmake b/src/renumber/Allwmake
-index a44d239..5fa67c0 100755
---- a/src/renumber/Allwmake
-+++ b/src/renumber/Allwmake
-@@ -5,10 +5,16 @@ cd ${0%/*} || exit 1    # Run from this directory
- targetType=libso
- . $WM_PROJECT_DIR/wmake/scripts/AllwmakeParseArguments
- 
--# Get CGAL and scotch versions
-+# Get boost version
- . $WM_PROJECT_DIR/etc/config.sh/functions
--_foamEval SOURCE_CGAL_VERSIONS_ONLY=yes \
--          $($WM_PROJECT_DIR/bin/foamEtcFile config.sh/CGAL)
-+if [ "$(uname -s)" = "Darwin" ]
-+then
-+    _foamEval SOURCE_CGAL_VERSIONS_ONLY=yes \
-+        $($WM_PROJECT_DIR/bin/foamEtcFile config.sh/mac/CGAL)
-+else
-+    _foamEval SOURCE_CGAL_VERSIONS_ONLY=yes \
-+        $($WM_PROJECT_DIR/bin/foamEtcFile config.sh/CGAL)
-+fi
- 
- ## Get ZOLTAN_ARCH_PATH
- #if settings=`$WM_PROJECT_DIR/bin/foamEtcFile config.sh/zoltan`
 diff --git a/src/renumber/SloanRenumber/Make/options b/src/renumber/SloanRenumber/Make/options
-index 492a3ae..29597e3 100644
+index cf6e548..e3b7eff 100644
 --- a/src/renumber/SloanRenumber/Make/options
 +++ b/src/renumber/SloanRenumber/Make/options
-@@ -1,12 +1,21 @@
--EXE_INC = \
--    /* -DFULLDEBUG -g -O0 */ \
--    -I$(BOOST_ARCH_PATH)/include \
--    -I$(LIB_SRC)/meshTools/lnInclude \
--    -I$(LIB_SRC)/parallel/decompose/decompositionMethods/lnInclude \
--    -I$(LIB_SRC)/renumber/renumberMethods/lnInclude
-+EXE_INC = -I$(BOOST_ARCH_PATH)/include \
-+	  -I$(LIB_SRC)/meshTools/lnInclude \
-+	  -I$(LIB_SRC)/parallel/decompose/decompositionMethods/lnInclude \
-+	  -I$(LIB_SRC)/renumber/renumberMethods/lnInclude
+@@ -5,7 +5,19 @@ EXE_INC = \
+     -I$(LIB_SRC)/renumber/renumberMethods/lnInclude
  
--LIB_LIBS = \
--    -L$(BOOST_ARCH_PATH)/lib -lboost_thread \
--    -lmeshTools \
--    -ldecompositionMethods \
--    -lrenumberMethods
-+LIB_LIBS = -L$(BOOST_ARCH_PATH)/lib \
-+	   -lmeshTools \
-+	   -ldecompositionMethods \
-+	   -lrenumberMethods
+ LIB_LIBS = \
+-    -L$(BOOST_ARCH_PATH)/lib -lboost_system \
++    -L$(BOOST_ARCH_PATH)/lib \
+     -lmeshTools \
+     -ldecompositionMethods \
+     -lrenumberMethods
 +
-+ifeq ($(shell uname -s),Darwin)
++ifeq ("$(shell uname -s)","Darwin")
 +SO = dylib
 +else
 +SO = so
 +endif
 +
-+ifneq ("$(wildcard $(BOOST_ARCH_PATH)/lib/libboost_thread-mt.$(SO))","")
-+LIB_LIBS += -lboost_thread-mt
++ifneq ("$(wildcard $(BOOST_ARCH_PATH)/lib/libboost_system-mt.$(SO))","")
++LIB_LIBS += -lboost_system-mt
 +else
-+LIB_LIBS += -lboost_thread
++LIB_LIBS += -lboost_system
 +endif
 diff --git a/wmake/makefiles/files b/wmake/makefiles/files
 index c17179e..bb0e3d4 100644
@@ -2708,13 +2646,13 @@ index a98a597..d16b2fb 100644
  
      if ((basePos = strrchr(sourceFile, '/')) == NULL)
 diff --git a/wmake/wmakeLnInclude b/wmake/wmakeLnInclude
-index 28f4276..7de858b 100755
+index a9195b9..523db1a 100755
 --- a/wmake/wmakeLnInclude
 +++ b/wmake/wmakeLnInclude
-@@ -143,7 +143,12 @@ cd $incDir || exit 1
+@@ -139,7 +139,12 @@ fi
+ cd $incDir || exit 1
  
- if [ "$silentOpt" != true ]
- then
+ [ "$silentOpt" = true ] || {
 -    echo "$Script: linking include files to $incDir" 1>&2
 +    if [ -n "$WM_SILENT_RULES" ]
 +    then
@@ -2722,6 +2660,6 @@ index 28f4276..7de858b 100755
 +    else
 +        echo "$Script: linking include files to $incDir" 1>&2
 +    fi
- fi
+ }
  
  
