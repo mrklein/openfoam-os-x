@@ -9,6 +9,7 @@ class Parmgridgen < Formula
     ENV.deparallelize
 
     system "make", "parallel"
+
     bin.install "bin/mgridgen"
     bin.install "bin/parmgridgen"
     include.install "mgridgen.h"
@@ -16,7 +17,7 @@ class Parmgridgen < Formula
     lib.install "libmgrid.a"
     lib.install "libparmgrid.a"
     lib.install "ParMGridGen/IMParMetis-2.0/libIMparmetis.a"
-    lib.install "MGridGen/IMLib/libIMlib.a"
+    lib.install "MGridGen/IMlib/libIMlib.a"
     doc.install "Doc/manual-parmgridgen.pdf"
     doc.install "Graphs/M6.metis"
     doc.install "Graphs/README"
