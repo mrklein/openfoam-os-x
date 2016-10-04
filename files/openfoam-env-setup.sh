@@ -4,8 +4,10 @@
 # create .OpenFOAM/OpenFOAM-release file in your home folder. In the file put
 # the string with a version you'd like to use. This can be done with:
 # $ mkdir -p .OpenFOAM
-# $ cat '2.X.Y' > .OpenFOAM/OpenFOAM-release
-# If you'd like to switch environment between versions use of2xy commands.
+# $ cat 'N.X.Y' > .OpenFOAM/OpenFOAM-release
+# If you'd like to switch environment between versions use ofNxy commands.
+#
+# Currently N could be 2, 3, or 4.
 
 readonly FOAM_MOUNT_POINT="${FOAM_MOUNT_POINT:-"$HOME/OpenFOAM"}"
 readonly FOAM_RELEASE_FILE="${FOAM_RELESE_FILE:-"$HOME/.OpenFOAM/OpenFOAM-release"}"
@@ -39,7 +41,10 @@ main () {
 # Reset environment variables for specified version
 ofxxx () {
 	local release="$1"
-	[ -n "$WM_PROJECT_DIR" ] && . "$WM_PROJECT_DIR/etc/config/unset.sh"
+	[ -n "$WM_PROJECT_DIR" ] && {
+        [ -r "$WM_PROJECT_DIR/etc/config/unset.sh" ] \
+            && . "$WM_PROJECT_DIR/etc/config/unset.sh"
+    }
 	local bashrc="$FOAM_MOUNT_POINT/OpenFOAM-$release/etc/bashrc"
 	if [ -f "$bashrc" ]; then
 		source "$bashrc" WM_NCOMPPROCS="$(sysctl -n hw.ncpu)"
