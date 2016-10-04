@@ -4,7 +4,6 @@
  .../mesh/generation/snappyHexMesh/Make/options     |   1 -
  .../mesh/manipulation/renumberMesh/Allwmake        |  13 +-
  .../mesh/manipulation/renumberMesh/Make/options    |   1 -
- .../dataConversion/foamToEnsight/Make/options      |   1 -
  .../postProcessing/graphics/PV3Readers/Allwmake    |   3 +
  .../postProcessing/graphics/PVReaders/Allwmake     |   7 +-
  bin/foamInstallationTest                           |  21 +++-
@@ -17,7 +16,7 @@
  etc/config.sh/mac/metis                            |  44 +++++++
  etc/config.sh/mac/paraview                         |  16 +++
  etc/config.sh/mac/scotch                           |  47 +++++++
- etc/config.sh/mpi                                  |   8 +-
+ etc/config.sh/mpi                                  |   6 +-
  etc/config.sh/settings                             |  16 ++-
  src/Allwmake                                       |   3 +-
  src/OSspecific/POSIX/POSIX.C                       |  36 ++++++
@@ -63,7 +62,7 @@
  wmake/src/Makefile                                 |   1 +
  wmake/src/wmkdep.l                                 |  14 ++-
  wmake/wmakeLnInclude                               |   7 +-
- 65 files changed, 1537 insertions(+), 93 deletions(-)
+ 64 files changed, 1536 insertions(+), 91 deletions(-)
 
 diff --git a/.gitignore b/.gitignore
 index a897b81..8f59031 100644
@@ -179,16 +178,6 @@ index 49a1c3d..882d1e4 100644
  EXE_INC = \
 -    /* -DFULLDEBUG -g -O0 */ \
      ${COMPILE_FLAGS} \
-     -I$(LIB_SRC)/meshTools/lnInclude \
-     -I$(LIB_SRC)/dynamicMesh/lnInclude \
-diff --git a/applications/utilities/postProcessing/dataConversion/foamToEnsight/Make/options b/applications/utilities/postProcessing/dataConversion/foamToEnsight/Make/options
-index 18bbc7a..0b17fd3 100644
---- a/applications/utilities/postProcessing/dataConversion/foamToEnsight/Make/options
-+++ b/applications/utilities/postProcessing/dataConversion/foamToEnsight/Make/options
-@@ -1,5 +1,4 @@
- EXE_INC = \
--    /* -DFULLDEBUG -g -O0 */ \
-     -I$(LIB_SRC)/finiteVolume/lnInclude \
      -I$(LIB_SRC)/meshTools/lnInclude \
      -I$(LIB_SRC)/dynamicMesh/lnInclude \
 diff --git a/applications/utilities/postProcessing/graphics/PV3Readers/Allwmake b/applications/utilities/postProcessing/graphics/PV3Readers/Allwmake
@@ -322,7 +311,7 @@ index 84b82ec..e965e69 100755
  while [ "$#" -gt 0 ]
  do
 diff --git a/bin/tools/RunFunctions b/bin/tools/RunFunctions
-index 4703fee..15d6ab9 100644
+index ed101f9..769ee94 100644
 --- a/bin/tools/RunFunctions
 +++ b/bin/tools/RunFunctions
 @@ -28,6 +28,18 @@
@@ -380,7 +369,7 @@ index 4703fee..15d6ab9 100644
 -#------------------------------------------------------------------------------
 +# vim: set ft=sh et sw=4 ts=4 sts=4:
 diff --git a/etc/bashrc b/etc/bashrc
-index 700599f..7edd1f9 100644
+index 88fb83e..425052b 100644
 --- a/etc/bashrc
 +++ b/etc/bashrc
 @@ -42,9 +42,20 @@ export WM_PROJECT_VERSION=4.x
@@ -388,7 +377,7 @@ index 700599f..7edd1f9 100644
  # Please set to the appropriate path if the default is not correct.
  #
 -[ $BASH_SOURCE ] && \
--export FOAM_INST_DIR=${BASH_SOURCE%/*/*/*} || \
+-export FOAM_INST_DIR=$(cd ${BASH_SOURCE%/*/*/*} && pwd -P) || \
 -export FOAM_INST_DIR=$HOME/$WM_PROJECT
 +if [ $BASH_SOURCE ]
 +then
@@ -407,7 +396,7 @@ index 700599f..7edd1f9 100644
  # export FOAM_INST_DIR=~$WM_PROJECT
  # export FOAM_INST_DIR=/opt/$WM_PROJECT
  # export FOAM_INST_DIR=/usr/local/$WM_PROJECT
-@@ -115,9 +126,22 @@ foamOldDirs="$WM_PROJECT_DIR $WM_THIRD_PARTY_DIR $HOME/$WM_PROJECT/$USER \
+@@ -116,9 +127,22 @@ foamOldDirs="$WM_PROJECT_DIR $WM_THIRD_PARTY_DIR \
  export WM_PROJECT_INST_DIR=$FOAM_INST_DIR
  export WM_PROJECT_DIR=$WM_PROJECT_INST_DIR/$WM_PROJECT-$WM_PROJECT_VERSION
  
@@ -431,7 +420,7 @@ index 700599f..7edd1f9 100644
  
  # Location of site-specific templates etc
  # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-@@ -137,6 +161,9 @@ export WM_PROJECT_USER_DIR=$HOME/$WM_PROJECT/$USER-$WM_PROJECT_VERSION
+@@ -138,6 +162,9 @@ export WM_PROJECT_USER_DIR=$HOME/$WM_PROJECT/$USER-$WM_PROJECT_VERSION
  # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  . $WM_PROJECT_DIR/etc/config.sh/functions
  
@@ -441,7 +430,7 @@ index 700599f..7edd1f9 100644
  # Add in preset user or site preferences:
  _foamSource `$WM_PROJECT_DIR/bin/foamEtcFile prefs.sh`
  
-@@ -150,17 +177,30 @@ _foamEval $@
+@@ -151,17 +178,30 @@ _foamEval $@
  foamClean=$WM_PROJECT_DIR/bin/foamCleanPath
  
  #- Clean PATH
@@ -478,7 +467,7 @@ index 700599f..7edd1f9 100644
  
  # Source project setup files
  # ~~~~~~~~~~~~~~~~~~~~~~~~~~
-@@ -171,13 +211,24 @@ _foamSource $WM_PROJECT_DIR/etc/config.sh/aliases
+@@ -172,13 +212,24 @@ _foamSource $WM_PROJECT_DIR/etc/config.sh/aliases
  # Source user setup files for optional packages
  # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  _foamSource `$WM_PROJECT_DIR/bin/foamEtcFile config.sh/mpi`
@@ -507,7 +496,7 @@ index 700599f..7edd1f9 100644
  fi
  
  
-@@ -186,13 +237,26 @@ fi
+@@ -187,13 +238,26 @@ fi
  #- Clean PATH
  cleaned=`$foamClean "$PATH"` && PATH="$cleaned"
  
@@ -537,7 +526,7 @@ index 700599f..7edd1f9 100644
  
  #- Clean LD_PRELOAD
  if [ -n "$LD_PRELOAD" ]
-@@ -211,4 +275,6 @@ unset cleaned foamClean foamOldDirs
+@@ -212,4 +276,6 @@ unset cleaned foamClean foamOldDirs
  # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  . $WM_PROJECT_DIR/etc/config.sh/functions
  
@@ -884,17 +873,10 @@ index 0000000..e62931c
 +
 +#------------------------------------------------------------------------------
 diff --git a/etc/config.sh/mpi b/etc/config.sh/mpi
-index 36b651e..6d76c9e 100644
+index 8c679f6..6f4ce02 100644
 --- a/etc/config.sh/mpi
 +++ b/etc/config.sh/mpi
-@@ -37,13 +37,13 @@ SYSTEMOPENMPI)
-     # Use the system installed openmpi, get library directory via mpicc
-     export FOAM_MPI=openmpi-system
- 
--    libDir=`mpicc --showme:link | sed -e 's/.*-L\([^ ]*\).*/\1/'`
-+    libDir=$(mpicc --showme:link | sed -e 's/.*-L\([^ ]*\).*/\1/')
- 
-     # Bit of a hack: strip off 'lib' and hope this is the path to openmpi
+@@ -49,7 +49,7 @@ SYSTEMOPENMPI)
      # include files and libraries.
      export MPI_ARCH_PATH="${libDir%/*}"
  
@@ -903,7 +885,7 @@ index 36b651e..6d76c9e 100644
      unset libDir
      ;;
  
-@@ -60,8 +60,8 @@ OPENMPI)
+@@ -66,8 +66,8 @@ OPENMPI)
      _foamAddPath    $MPI_ARCH_PATH/bin
  
      # 64-bit on OpenSuSE 12.1 uses lib64 others use lib
@@ -1407,7 +1389,7 @@ index 14dbcae..4b60327 100644
          static void* mallocNan(size_t size);
          #endif
 diff --git a/src/OpenFOAM/Make/files b/src/OpenFOAM/Make/files
-index c975296..4ba87b7 100644
+index 3bd8bca..21588ac 100644
 --- a/src/OpenFOAM/Make/files
 +++ b/src/OpenFOAM/Make/files
 @@ -33,6 +33,12 @@ $(ints)/label/label.C
@@ -2149,7 +2131,7 @@ index 0000000..aa62c61
 +
 +// ************************************************************************* //
 diff --git a/src/fvAgglomerationMethods/Allwmake b/src/fvAgglomerationMethods/Allwmake
-index f5cfa2c..10c3cbb 100755
+index cc58b3e..5949a79 100755
 --- a/src/fvAgglomerationMethods/Allwmake
 +++ b/src/fvAgglomerationMethods/Allwmake
 @@ -8,9 +8,14 @@ set -x
