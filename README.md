@@ -3,6 +3,47 @@
 Patches for OpenFOAM compilation on OS X. Detailed installation instructions
 can be found in [wiki](https://github.com/mrklein/openfoam-os-x/wiki).
 
+## Oct. 4, 2016
+
+Updated 4.x patch. Build process was tested on
+
+```
+$ sw_vers 
+ProductName:	Mac OS X
+ProductVersion:	10.12
+BuildVersion:	16A323
+```
+
+with
+
+```
+$ clang --version
+Apple LLVM version 8.0.0 (clang-800.0.38)
+Target: x86_64-apple-darwin16.0.0
+Thread model: posix
+InstalledDir:
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin
+```
+
+and the following third-party packages
+
+```
+$ brew list --versions
+...
+boost 1.61.0_1
+cgal 4.9
+eigen 3.2.9
+gmp 6.1.1
+libmpc 1.0.3
+metis 5.1.0
+mpfr 3.1.5
+open-mpi 2.0.1
+parmetis 4.0.3_4
+parmgridgen 0.0.2
+scotch 6.0.4_4
+...
+```
+
 ## July 30, 2016
 
 Updated 2.4.x (problem with `/usr/include` in -I flags for CGAL) and 4.x
