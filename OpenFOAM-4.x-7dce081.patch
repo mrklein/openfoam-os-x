@@ -45,7 +45,7 @@
  src/parallel/decompose/ptscotchDecomp/Make/options |  10 +-
  src/parallel/decompose/scotchDecomp/Make/options   |   8 +-
  src/renumber/Allwmake                              |  12 +-
- src/renumber/SloanRenumber/Make/options            |  16 ++-
+ src/renumber/SloanRenumber/Make/options            |  15 ++-
  wmake/makefiles/files                              |   5 +-
  wmake/makefiles/general                            |  58 ++++++++-
  wmake/rules/General/CGAL                           |   7 +-
@@ -62,7 +62,7 @@
  wmake/src/Makefile                                 |   1 +
  wmake/src/wmkdep.l                                 |  14 ++-
  wmake/wmakeLnInclude                               |   7 +-
- 64 files changed, 1536 insertions(+), 91 deletions(-)
+ 64 files changed, 1535 insertions(+), 91 deletions(-)
 
 diff --git a/.gitignore b/.gitignore
 index a897b81..8f59031 100644
@@ -2320,10 +2320,10 @@ index a44d239..5fa67c0 100755
  ## Get ZOLTAN_ARCH_PATH
  #if settings=`$WM_PROJECT_DIR/bin/foamEtcFile config.sh/zoltan`
 diff --git a/src/renumber/SloanRenumber/Make/options b/src/renumber/SloanRenumber/Make/options
-index 0bf3c77..81ee45d 100644
+index 0bf3c77..68d85e4 100644
 --- a/src/renumber/SloanRenumber/Make/options
 +++ b/src/renumber/SloanRenumber/Make/options
-@@ -1,12 +1,24 @@
+@@ -1,12 +1,23 @@
  EXE_INC = \
 -    /* -DFULLDEBUG -g -O0 */ \
      -I$(BOOST_ARCH_PATH)/include \
@@ -2349,7 +2349,6 @@ index 0bf3c77..81ee45d 100644
 +else
 +LIB_LIBS += -lboost_system
 +endif
-+
 diff --git a/wmake/makefiles/files b/wmake/makefiles/files
 index c17179e..bb0e3d4 100644
 --- a/wmake/makefiles/files
