@@ -16,7 +16,7 @@
  etc/config.sh/mac/metis                            |  44 +++++++
  etc/config.sh/mac/paraview                         |  16 +++
  etc/config.sh/mac/scotch                           |  47 +++++++
- etc/config.sh/mpi                                  |   8 +-
+ etc/config.sh/mpi                                  |   6 +-
  etc/config.sh/settings                             |  16 ++-
  src/Allwmake                                       |   3 +-
  src/OSspecific/POSIX/POSIX.C                       |  36 ++++++
@@ -43,7 +43,7 @@
  src/parallel/decompose/metisDecomp/Make/options    |   1 -
  src/parallel/decompose/metisDecomp/metisDecomp.C   |   6 +-
  src/parallel/decompose/ptscotchDecomp/Make/options |  10 +-
- src/parallel/decompose/scotchDecomp/Make/options   |   8 +-
+ src/parallel/decompose/scotchDecomp/Make/options   |   9 +-
  src/renumber/SloanRenumber/Make/options            |  14 ++-
  wmake/makefiles/files                              |   5 +-
  wmake/makefiles/general                            |  58 ++++++++-
@@ -60,7 +60,7 @@
  wmake/src/Makefile                                 |   1 +
  wmake/src/wmkdep.l                                 |  14 ++-
  wmake/wmakeLnInclude                               |   7 +-
- 62 files changed, 1523 insertions(+), 83 deletions(-)
+ 62 files changed, 1521 insertions(+), 84 deletions(-)
 
 diff --git a/.gitignore b/.gitignore
 index a897b81..8f59031 100644
@@ -174,7 +174,7 @@ index 49a1c3d..882d1e4 100644
      -I$(LIB_SRC)/meshTools/lnInclude \
      -I$(LIB_SRC)/dynamicMesh/lnInclude \
 diff --git a/applications/utilities/postProcessing/graphics/PV3Readers/Allwmake b/applications/utilities/postProcessing/graphics/PV3Readers/Allwmake
-index 60fdc49..29a0af9 100755
+index 13c63f7..3136702 100755
 --- a/applications/utilities/postProcessing/graphics/PV3Readers/Allwmake
 +++ b/applications/utilities/postProcessing/graphics/PV3Readers/Allwmake
 @@ -5,6 +5,9 @@ cd ${0%/*} || exit 1    # Run from this directory
@@ -188,10 +188,10 @@ index 60fdc49..29a0af9 100755
  3*)
      if [ -d "$ParaView_DIR" -a -r "$ParaView_DIR" ]
 diff --git a/applications/utilities/postProcessing/graphics/PVReaders/Allwmake b/applications/utilities/postProcessing/graphics/PVReaders/Allwmake
-index 85bd204..7996d77 100755
+index 3be5a4e..e38d9dd 100755
 --- a/applications/utilities/postProcessing/graphics/PVReaders/Allwmake
 +++ b/applications/utilities/postProcessing/graphics/PVReaders/Allwmake
-@@ -25,7 +25,12 @@ case "$ParaView_VERSION" in
+@@ -26,7 +26,12 @@ case "$ParaView_VERSION" in
      fi
      ;;
  *)
@@ -362,7 +362,7 @@ index ed101f9..769ee94 100644
 -#------------------------------------------------------------------------------
 +# vim: set ft=sh et sw=4 ts=4 sts=4:
 diff --git a/etc/bashrc b/etc/bashrc
-index 4df0d6c..385732b 100644
+index 44ee7b8..30ef043 100644
 --- a/etc/bashrc
 +++ b/etc/bashrc
 @@ -42,9 +42,20 @@ export WM_PROJECT_VERSION=dev
@@ -370,7 +370,7 @@ index 4df0d6c..385732b 100644
  # Please set to the appropriate path if the default is not correct.
  #
 -[ $BASH_SOURCE ] && \
--export FOAM_INST_DIR=${BASH_SOURCE%/*/*/*} || \
+-export FOAM_INST_DIR=$(cd ${BASH_SOURCE%/*/*/*} && pwd -P) || \
 -export FOAM_INST_DIR=$HOME/$WM_PROJECT
 +if [ $BASH_SOURCE ]
 +then
@@ -389,7 +389,7 @@ index 4df0d6c..385732b 100644
  # export FOAM_INST_DIR=~$WM_PROJECT
  # export FOAM_INST_DIR=/opt/$WM_PROJECT
  # export FOAM_INST_DIR=/usr/local/$WM_PROJECT
-@@ -112,9 +123,22 @@ foamOldDirs="$WM_PROJECT_DIR $WM_THIRD_PARTY_DIR $HOME/$WM_PROJECT/$USER \
+@@ -113,9 +124,22 @@ foamOldDirs="$WM_PROJECT_DIR $WM_THIRD_PARTY_DIR \
  export WM_PROJECT_INST_DIR=$FOAM_INST_DIR
  export WM_PROJECT_DIR=$WM_PROJECT_INST_DIR/$WM_PROJECT-$WM_PROJECT_VERSION
  
@@ -413,7 +413,7 @@ index 4df0d6c..385732b 100644
  
  # Location of site-specific templates etc
  # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-@@ -134,6 +158,9 @@ export WM_PROJECT_USER_DIR=$HOME/$WM_PROJECT/$USER-$WM_PROJECT_VERSION
+@@ -135,6 +159,9 @@ export WM_PROJECT_USER_DIR=$HOME/$WM_PROJECT/$USER-$WM_PROJECT_VERSION
  # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  . $WM_PROJECT_DIR/etc/config.sh/functions
  
@@ -423,7 +423,7 @@ index 4df0d6c..385732b 100644
  # Add in preset user or site preferences:
  _foamSource `$WM_PROJECT_DIR/bin/foamEtcFile prefs.sh`
  
-@@ -147,17 +174,30 @@ _foamEval $@
+@@ -148,17 +175,30 @@ _foamEval $@
  foamClean=$WM_PROJECT_DIR/bin/foamCleanPath
  
  #- Clean PATH
@@ -460,7 +460,7 @@ index 4df0d6c..385732b 100644
  
  # Source project setup files
  # ~~~~~~~~~~~~~~~~~~~~~~~~~~
-@@ -168,13 +208,24 @@ _foamSource $WM_PROJECT_DIR/etc/config.sh/aliases
+@@ -169,13 +209,24 @@ _foamSource $WM_PROJECT_DIR/etc/config.sh/aliases
  # Source user setup files for optional packages
  # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  _foamSource `$WM_PROJECT_DIR/bin/foamEtcFile config.sh/mpi`
@@ -489,7 +489,7 @@ index 4df0d6c..385732b 100644
  fi
  
  
-@@ -183,13 +234,26 @@ fi
+@@ -184,13 +235,26 @@ fi
  #- Clean PATH
  cleaned=`$foamClean "$PATH"` && PATH="$cleaned"
  
@@ -519,7 +519,7 @@ index 4df0d6c..385732b 100644
  
  #- Clean LD_PRELOAD
  if [ -n "$LD_PRELOAD" ]
-@@ -208,4 +272,6 @@ unset cleaned foamClean foamOldDirs
+@@ -209,4 +273,6 @@ unset cleaned foamClean foamOldDirs
  # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  . $WM_PROJECT_DIR/etc/config.sh/functions
  
@@ -866,17 +866,10 @@ index 0000000..e62931c
 +
 +#------------------------------------------------------------------------------
 diff --git a/etc/config.sh/mpi b/etc/config.sh/mpi
-index 36b651e..6d76c9e 100644
+index 8c679f6..6f4ce02 100644
 --- a/etc/config.sh/mpi
 +++ b/etc/config.sh/mpi
-@@ -37,13 +37,13 @@ SYSTEMOPENMPI)
-     # Use the system installed openmpi, get library directory via mpicc
-     export FOAM_MPI=openmpi-system
- 
--    libDir=`mpicc --showme:link | sed -e 's/.*-L\([^ ]*\).*/\1/'`
-+    libDir=$(mpicc --showme:link | sed -e 's/.*-L\([^ ]*\).*/\1/')
- 
-     # Bit of a hack: strip off 'lib' and hope this is the path to openmpi
+@@ -49,7 +49,7 @@ SYSTEMOPENMPI)
      # include files and libraries.
      export MPI_ARCH_PATH="${libDir%/*}"
  
@@ -885,7 +878,7 @@ index 36b651e..6d76c9e 100644
      unset libDir
      ;;
  
-@@ -60,8 +60,8 @@ OPENMPI)
+@@ -66,8 +66,8 @@ OPENMPI)
      _foamAddPath    $MPI_ARCH_PATH/bin
  
      # 64-bit on OpenSuSE 12.1 uses lib64 others use lib
@@ -897,10 +890,10 @@ index 36b651e..6d76c9e 100644
      _foamAddMan     $MPI_ARCH_PATH/share/man
      ;;
 diff --git a/etc/config.sh/settings b/etc/config.sh/settings
-index 438a325..760e990 100644
+index 64d675d..75e6a73 100644
 --- a/etc/config.sh/settings
 +++ b/etc/config.sh/settings
-@@ -121,6 +121,13 @@ SunOS)
+@@ -127,6 +127,13 @@ SunOS)
      export WM_LDFLAGS='-mabi=64 -G0'
      ;;
  
@@ -914,7 +907,7 @@ index 438a325..760e990 100644
  *)    # An unsupported operating system
      /bin/cat <<USAGE 1>&2
  
-@@ -193,7 +200,12 @@ unset siteDir
+@@ -199,7 +206,12 @@ unset siteDir
  
  _foamAddPath $FOAM_USER_APPBIN:$FOAM_SITE_APPBIN:$FOAM_APPBIN
  # Make sure to pick up dummy versions of external libraries last
@@ -928,7 +921,7 @@ index 438a325..760e990 100644
  
  # Compiler settings
  # ~~~~~~~~~~~~~~~~~
-@@ -286,4 +298,6 @@ system)
+@@ -292,4 +304,6 @@ system)
      ;;
  esac
  
@@ -1382,7 +1375,7 @@ index 14dbcae..4b60327 100644
          static void* mallocNan(size_t size);
          #endif
 diff --git a/src/OpenFOAM/Make/files b/src/OpenFOAM/Make/files
-index e530cb2..4faf389 100644
+index bcd7542..7292795 100644
 --- a/src/OpenFOAM/Make/files
 +++ b/src/OpenFOAM/Make/files
 @@ -33,6 +33,12 @@ $(ints)/label/label.C
@@ -2246,44 +2239,50 @@ index 3ede45d..50b3a39 100644
      // Cell weights (so on the vertices of the dual)
      List<label> cellWeights;
 diff --git a/src/parallel/decompose/ptscotchDecomp/Make/options b/src/parallel/decompose/ptscotchDecomp/Make/options
-index 25ca6e9..2cace47 100644
+index cb407ec..92c6881 100644
 --- a/src/parallel/decompose/ptscotchDecomp/Make/options
 +++ b/src/parallel/decompose/ptscotchDecomp/Make/options
-@@ -3,10 +3,12 @@ sinclude $(RULES)/mplib$(WM_MPLIB)
+@@ -3,15 +3,15 @@ sinclude $(RULES)/mplib$(WM_MPLIB)
  
  EXE_INC = \
      $(PFLAGS) $(PINC) \
--    -I$(SCOTCH_ROOT)/include \
 -    -I$(SCOTCH_ARCH_PATH)/include/$(FOAM_MPI) \
--    -I/usr/include/scotch \
-+    -I$(SCOTCH_ARCH_PATH)/include \
-     -I../decompositionMethods/lnInclude
- 
- LIB_LIBS = \
--    -L$(SCOTCH_ROOT)/lib -L$(FOAM_EXT_LIBBIN)/$(FOAM_MPI) -lptscotch -lptscotcherrexit -lscotch ${LINK_FLAGS} -lrt
-+    -L$(SCOTCH_ARCH_PATH)/lib -lptscotch -lptscotcherrexit -lscotch
-+
-+ifneq ($(shell uname -s),Darwin)
-+LIB_LIBS += -lrt
-+endif
-diff --git a/src/parallel/decompose/scotchDecomp/Make/options b/src/parallel/decompose/scotchDecomp/Make/options
-index 3bb11fb..23701f5 100644
---- a/src/parallel/decompose/scotchDecomp/Make/options
-+++ b/src/parallel/decompose/scotchDecomp/Make/options
-@@ -7,10 +7,12 @@ sinclude $(RULES)/mplib$(WM_MPLIB)
- 
- EXE_INC = \
-     $(PFLAGS) $(PINC) \
--    -I$(SCOTCH_ROOT)/include \
      -I$(SCOTCH_ARCH_PATH)/include \
 -    -I/usr/include/scotch \
      -I../decompositionMethods/lnInclude
  
  LIB_LIBS = \
--    -L$(SCOTCH_ROOT)/lib -L$(FOAM_EXT_LIBBIN) -lscotch -lscotcherrexit -lrt
-+    -L$(SCOTCH_ARCH_PATH)/lib -lscotch -lscotcherrexit
+     -L$(SCOTCH_ARCH_PATH)/lib \
+-    -L$(FOAM_EXT_LIBBIN)/$(FOAM_MPI) \
+     -lptscotch \
+     -lptscotcherrexit \
+-    -lscotch \
+-    -lrt
++    -lscotch
 +
-+ifneq ($(shell uname -s),Darwin)
++ifneq ("$(shell uname -s)","Darwin")
++LIB_LIBS += -lrt
++endif
+diff --git a/src/parallel/decompose/scotchDecomp/Make/options b/src/parallel/decompose/scotchDecomp/Make/options
+index d2cc770..4627d49 100644
+--- a/src/parallel/decompose/scotchDecomp/Make/options
++++ b/src/parallel/decompose/scotchDecomp/Make/options
+@@ -8,12 +8,13 @@ sinclude $(RULES)/mplib$(WM_MPLIB)
+ EXE_INC = \
+     $(PFLAGS) $(PINC) \
+     -I$(SCOTCH_ARCH_PATH)/include \
+-    -I/usr/include/scotch \
+     -I../decompositionMethods/lnInclude
+ 
+ LIB_LIBS = \
+     -L$(SCOTCH_ARCH_PATH)/lib \
+-    -L$(FOAM_EXT_LIBBIN) \
+     -lscotch \
+-    -lscotcherrexit \
+-    -lrt
++    -lscotcherrexit
++
++ifneq ("$(shell uname -s)","Darwin")
 +LIB_LIBS += -lrt
 +endif
 diff --git a/src/renumber/SloanRenumber/Make/options b/src/renumber/SloanRenumber/Make/options
@@ -2329,7 +2328,7 @@ index c17179e..bb0e3d4 100644
  $(VARS): $(SFILES)
  
 diff --git a/wmake/makefiles/general b/wmake/makefiles/general
-index b9a4f99..6a32b74 100644
+index b7f4935..18be4a4 100644
 --- a/wmake/makefiles/general
 +++ b/wmake/makefiles/general
 @@ -80,7 +80,11 @@ LIB_LIBS        =
