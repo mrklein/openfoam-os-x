@@ -50,8 +50,15 @@
  wmake/makefiles/files                              |   5 +-
  wmake/makefiles/general                            |  58 ++++++++-
  wmake/rules/General/CGAL                           |   7 +-
+ wmake/rules/General/bison                          |   8 ++
+ wmake/rules/General/btyacc                         |   6 +
+ wmake/rules/General/btyacc++                       |   6 +
+ wmake/rules/General/byacc                          |   6 +
+ wmake/rules/General/flex                           |   5 +
+ wmake/rules/General/flex++                         |   5 +
+ wmake/rules/General/moc                            |   5 +
  wmake/rules/General/transform                      |  10 ++
- wmake/rules/darwin64Clang/c                        |  17 +++
+ wmake/rules/darwin64Clang/c                        |  21 ++++
  wmake/rules/darwin64Clang/c++                      |  33 +++++
  wmake/rules/darwin64Clang/c++Debug                 |   2 +
  wmake/rules/darwin64Clang/c++Opt                   |   3 +
@@ -60,10 +67,10 @@
  wmake/rules/darwin64Clang/cOpt                     |   2 +
  wmake/rules/darwin64Clang/cProf                    |   2 +
  wmake/rules/darwin64Clang/general                  |  10 ++
- wmake/src/Makefile                                 |   1 +
+ wmake/src/Makefile                                 |  13 ++
  wmake/src/wmkdep.l                                 |  14 ++-
  wmake/wmakeLnInclude                               |   7 +-
- 65 files changed, 1547 insertions(+), 102 deletions(-)
+ 72 files changed, 1604 insertions(+), 102 deletions(-)
 
 diff --git a/.gitignore b/.gitignore
 index a897b81..8f59031 100644
@@ -2392,7 +2399,7 @@ index c17179e..bb0e3d4 100644
  $(VARS): $(SFILES)
  
 diff --git a/wmake/makefiles/general b/wmake/makefiles/general
-index b9a4f99..6a32b74 100644
+index b9a4f99..611f7e5 100644
 --- a/wmake/makefiles/general
 +++ b/wmake/makefiles/general
 @@ -80,7 +80,11 @@ LIB_LIBS        =
@@ -2412,7 +2419,7 @@ index b9a4f99..6a32b74 100644
  $(EXE): $(OBJECTS)
  	@$(WM_SCRIPTS)/makeTargetDir $(EXE)
 +ifdef WM_SILENT_RULES
-+	@echo "  [LD] $(notdir $(EXE))"
++	@echo "    LD $(notdir $(EXE))"
 +	@$(LINKEXE) $(OBJECTS) -L$(LIB_PLATFORMS) \
 +		$(EXE_LIBS) $(PROJECT_LIBS) $(SYS_LIBS) \
 +		$(LINK_LIBS) $(GLIBS) -o $(EXE)
@@ -2424,7 +2431,7 @@ index b9a4f99..6a32b74 100644
  
  exe:    $(SEXE)
 +ifdef WM_SILENT_RULES
-+	@echo "-> $(notdir SEXE)"
++	@echo "->> $(notdir SEXE)"
 +else
  	@echo \'$(SEXE)\' is up to date.
 +endif
@@ -2432,7 +2439,7 @@ index b9a4f99..6a32b74 100644
  $(SEXE):$(OBJECTS)
  	@$(WM_SCRIPTS)/makeTargetDir $(SEXE)
 +ifdef WM_SILENT_RULES
-+	@echo "  [LD] $(notdir $(EXE))"
++	@echo "    LD $(notdir $(EXE))"
 +	@$(LINKEXE) $(OBJECTS) $(EXE_LIBS) \
 +		$(SYS_LIBS) $(LINK_LIBS) $(GLIBS) -o $(SEXE)
 +else
@@ -2448,7 +2455,7 @@ index b9a4f99..6a32b74 100644
  
  libso:  $(LIB).$(SO)
 +ifdef WM_SILENT_RULES
-+	@echo "-> $(notdir $(LIB)).$(SO)"
++	@echo "->> $(notdir $(LIB)).$(SO)"
 +else
  	@echo \'$(LIB).$(SO)\' is up to date.
 +endif
@@ -2456,7 +2463,7 @@ index b9a4f99..6a32b74 100644
  $(LIB).$(SO): $(OBJECTS)
  	@$(WM_SCRIPTS)/makeTargetDir $(LIB)
 +ifdef WM_SILENT_RULES
-+	@echo "  [LD] $(notdir $(LIB)).$(SO)"
++	@echo "    LD $(notdir $(LIB)).$(SO)"
 +	@$(LINKLIBSO) $(OBJECTS) -L$(LIB_PLATFORMS) \
 +		$(LIB_LIBS) $(GLIB_LIBS) -o $(LIB).$(SO)
 +else
@@ -2467,7 +2474,7 @@ index b9a4f99..6a32b74 100644
  
  lib:    $(LIB).a
 +ifdef WM_SILENT_RULES
-+	@echo "-> $(notdir $(LIB)).a"
++	@echo "->> $(notdir $(LIB)).a"
 +else
  	@echo \'$(LIB).a\' is up to date.
 +endif
@@ -2476,13 +2483,13 @@ index b9a4f99..6a32b74 100644
  	@$(WM_SCRIPTS)/makeTargetDir $(LIB)
  	@rm -f $(LIB).a
 +ifdef WM_SILENT_RULES
-+	@echo "  [AR] $(LIB)"
++	@echo "    AR $(LIB)"
 +	@$(AR) $(ARFLAGS) $(notdir $(LIB)).a $(OBJECTS)
 +else
  	$(AR) $(ARFLAGS) $(LIB).a $(OBJECTS)
 +endif
 +ifdef WM_SILENT_RULES
-+	@echo "  [RANLIB] $(notdir $(LIB))"
++	@echo "RANLIB $(notdir $(LIB))"
 +	@$(RANLIB) $(LIB).a
 +else
  	$(RANLIB) $(LIB).a
@@ -2490,7 +2497,7 @@ index b9a4f99..6a32b74 100644
  
  libo:   $(LIB).o
 +ifdef WM_SILENT_RULES
-+	@echo "-> $(notdir $(LIB)).o"
++	@echo "->> $(notdir $(LIB)).o"
 +else
  	@echo \'$(LIB).o\' is up to date.
 +endif
@@ -2499,7 +2506,7 @@ index b9a4f99..6a32b74 100644
  	@$(WM_SCRIPTS)/makeTargetDir $(LIB)
  	@rm -f $(LIB).o
 +ifdef WM_SILENT_RULES
-+	@echo "  [LD] $(notdir $(LIB)).o"
++	@echo "    LD $(notdir $(LIB)).o"
 +	@$(LD) -r -o $(LIB).o $(OBJECTS)
 +else
  	$(LD) -r -o $(LIB).o $(OBJECTS)
@@ -2527,8 +2534,112 @@ index 8097684..354e719 100644
      -L$(BOOST_ARCH_PATH)/lib \
      -L$(CGAL_ARCH_PATH)/lib \
      -lCGAL \
+diff --git a/wmake/rules/General/bison b/wmake/rules/General/bison
+index b741436..3e0f30e 100644
+--- a/wmake/rules/General/bison
++++ b/wmake/rules/General/bison
+@@ -1,7 +1,15 @@
+ SUFFIXES += .y .Y
+ 
++ifneq ("$(WM_SILENT_RULES)","")
++ytoo = @echo "    yy $<"; bison -v -d -y $< ; mv y.tab.c $(@D)/$(<F).c ; \
++	mv y.tab.h $(@D)/$(<F).h ; $(cc) $(cFLAGS) -c  $(@D)/$(<F).c -o $@
++
++Ytoo = @echo "    YY $<"; @bison -v -d -y $< ; mv y.tab.c $(@D)/$(<F).C ; \
++	mv y.tab.h $(@D)/$(<F).H ; $(CC) $(c++FLAGS) -c  $(@D)/$(<F).C -o $@
++else
+ ytoo = bison -v -d -y $< ; mv y.tab.c $(@D)/$(<F).c ; mv y.tab.h $(@D)/$(<F).h ; \
+      $(cc) $(cFLAGS) -c  $(@D)/$(<F).c -o $@
+ 
+ Ytoo = bison -v -d -y $< ; mv y.tab.c $(@D)/$(<F).C ; mv y.tab.h $(@D)/$(<F).H ; \
+      $(CC) $(c++FLAGS) -c  $(@D)/$(<F).C -o $@
++endif
+diff --git a/wmake/rules/General/btyacc b/wmake/rules/General/btyacc
+index 44a58c3..0ac84a2 100644
+--- a/wmake/rules/General/btyacc
++++ b/wmake/rules/General/btyacc
+@@ -1,4 +1,10 @@
+ SUFFIXES += .y
+ 
++ifneq ("$(WM_SILENT_RULES)","")
++ytoo = @echo "    yy $<"; btyacc -v -d $(SKELETON) $< ; \
++    mv y_tab.c $(@D)/$(<F).C ; mv y_tab.h $(@D)/$(<F).H ; \
++    $(CC) $(c++FLAGS) -c $(@D)/$(<F).C -o $@
++else
+ ytoo = btyacc -v -d $(SKELETON) $< ; mv y_tab.c $(@D)/$(<F).C ; mv y_tab.h $(@D)/$(<F).H ; \
+      $(CC) $(c++FLAGS) -c $(@D)/$(<F).C -o $@
++endif
+diff --git a/wmake/rules/General/btyacc++ b/wmake/rules/General/btyacc++
+index 7844558..60b838d 100644
+--- a/wmake/rules/General/btyacc++
++++ b/wmake/rules/General/btyacc++
+@@ -1,4 +1,10 @@
+ SUFFIXES += .Y
+ 
++ifneq ("$(WM_SILENT_RULES)","")
++Ytoo = @echo "    YY $<"; btyacc++ -v -d $(SKELETON) $< ; \
++     mv y_tab.c $(@D)/$(<F).C ; mv y_tab.h $(@D)/$(<F).H ; \
++     $(CC) $(c++FLAGS) -c $(@D)/$(<F).C -o $@
++else
+ Ytoo = btyacc++ -v -d $(SKELETON) $< ; mv y_tab.c $(@D)/$(<F).C ; mv y_tab.h $(@D)/$(<F).H ; \
+      $(CC) $(c++FLAGS) -c $(@D)/$(<F).C -o $@
++endif
+diff --git a/wmake/rules/General/byacc b/wmake/rules/General/byacc
+index 60a9e18..527441d 100644
+--- a/wmake/rules/General/byacc
++++ b/wmake/rules/General/byacc
+@@ -1,4 +1,10 @@
+ SUFFIXES += .y
+ 
++ifneq ("$(WM_SILENT_RULES)","")
++ytoo = @echo "    yy @<"; byacc -v $(YYPREFIX) -d $< ; \
++     mv y.tab.c $(@D)/$(<F).C ; mv y.tab.h $(@D)/$(<F).H ; \
++     $(CC) $(c++FLAGS) -c $(@D)/$(<F).C -o $@
++else
+ ytoo = byacc -v $(YYPREFIX) -d $< ; mv y.tab.c $(@D)/$(<F).C ; mv y.tab.h $(@D)/$(<F).H ; \
+      $(CC) $(c++FLAGS) -c $(@D)/$(<F).C -o $@
++endif
+diff --git a/wmake/rules/General/flex b/wmake/rules/General/flex
+index 2b65bb2..d65a75b 100644
+--- a/wmake/rules/General/flex
++++ b/wmake/rules/General/flex
+@@ -1,3 +1,8 @@
+ SUFFIXES += .l
+ 
++ifneq ("$(WM_SILENT_RULES)","")
++ltoo = @echo "    ll $@"; flex -o $(@D)/$(<F).c $< ; \
++     $(cc) $(cFLAGS) -c  $(@D)/$(<F).c -o $@
++else
+ ltoo = flex -o $(@D)/$(<F).c $< ; $(cc) $(cFLAGS) -c  $(@D)/$(<F).c -o $@
++endif
+diff --git a/wmake/rules/General/flex++ b/wmake/rules/General/flex++
+index 894181b..8f7eaa1 100644
+--- a/wmake/rules/General/flex++
++++ b/wmake/rules/General/flex++
+@@ -1,3 +1,8 @@
+ SUFFIXES += .L
+ 
++ifneq ("$(WM_SILENT_RULES)","")
++Ltoo = @echo "    LL $<"; flex -+ -o$(@D)/$(<F).C -f $< ; \
++    $(CC) $(c++FLAGS) $(c++LESSWARN) -c $(@D)/$(<F).C -o $@
++else
+ Ltoo = flex -+ -o$(@D)/$(<F).C -f $< ; $(CC) $(c++FLAGS) $(c++LESSWARN) -c $(@D)/$(<F).C -o $@
++endif
+diff --git a/wmake/rules/General/moc b/wmake/rules/General/moc
+index 9374973..21c2bc7 100644
+--- a/wmake/rules/General/moc
++++ b/wmake/rules/General/moc
+@@ -1,3 +1,8 @@
+ SUFFIXES += .qt
+ 
++ifneq ("$(WM_SILENT_RULES)","")
++qttoo = @echo "   MOC $@"; $(QTDIR)/bin/moc -f $< -o $(@D)/$(<F).C ; \
++     $(CC) $(c++FLAGS) -c $(@D)/$(<F).C -o $@
++else
+ qttoo = $(QTDIR)/bin/moc -f $< -o $(@D)/$(<F).C ; $(CC) $(c++FLAGS) -c $(@D)/$(<F).C -o $@
++endif
 diff --git a/wmake/rules/General/transform b/wmake/rules/General/transform
-index bffe605..3551999 100644
+index bffe605..bfb507c 100644
 --- a/wmake/rules/General/transform
 +++ b/wmake/rules/General/transform
 @@ -2,14 +2,24 @@
@@ -2536,7 +2647,7 @@ index bffe605..3551999 100644
  define DEFINE_TRANSFORM
  $(OBJECTS_DIR)/%.o : %$1
 +ifdef WM_SILENT_RULES
-+	@echo "  [CC] $(value <F)"
++	@echo "    CC $(value <F)"
 +	@$$($(subst .,,$(1))too)
 +else
  	$$($(subst .,,$(1))too)
@@ -2558,10 +2669,10 @@ index bffe605..3551999 100644
  #------------------------------------------------------------------------------
 diff --git a/wmake/rules/darwin64Clang/c b/wmake/rules/darwin64Clang/c
 new file mode 100644
-index 0000000..fa35e79
+index 0000000..a595302
 --- /dev/null
 +++ b/wmake/rules/darwin64Clang/c
-@@ -0,0 +1,17 @@
+@@ -0,0 +1,21 @@
 +SUFFIXES += .c
 +
 +cWARN        = -Wall
@@ -2570,7 +2681,11 @@ index 0000000..fa35e79
 +
 +include $(RULES)/c$(WM_COMPILE_OPTION)
 +
-+cFLAGS      = $(GFLAGS) $(cWARN) $(cOPT) $(cDBUG) $(LIB_HEADER_DIRS) -fPIC -isysroot $(OSX_SDK_PATH)
++cFLAGS      = $(GFLAGS) $(cWARN) $(cOPT) $(cDBUG) $(LIB_HEADER_DIRS) -fPIC
++
++ifneq ("$(OSX_SDK_PATH)","")
++cFLAGS += -isysroot $(OSX_SDK_PATH)
++endif
 +
 +ctoo        = $(WM_SCHEDULER) $(cc) $(cFLAGS) -c $< -o $@
 +
@@ -2581,7 +2696,7 @@ index 0000000..fa35e79
 +LINKEXE     = $(cc) -Wl,-execute,-undefined,dynamic_lookup
 diff --git a/wmake/rules/darwin64Clang/c++ b/wmake/rules/darwin64Clang/c++
 new file mode 100644
-index 0000000..bc4fb4e
+index 0000000..0f61422
 --- /dev/null
 +++ b/wmake/rules/darwin64Clang/c++
 @@ -0,0 +1,33 @@
@@ -2604,7 +2719,7 @@ index 0000000..bc4fb4e
 +
 +c++FLAGS    = $(GFLAGS) $(c++WARN) $(c++OPT) $(c++DBUG) $(ptFLAGS) $(LIB_HEADER_DIRS) -fPIC
 +
-+ifneq (,$(OSX_SDK_PATH))
++ifneq ("","$(OSX_SDK_PATH)")
 +c++FLAGS   += -isysroot $(OSX_SDK_PATH)
 +endif
 +
@@ -2684,7 +2799,7 @@ index 0000000..f7377fa
 +include $(RULES)/c
 +include $(RULES)/c++
 diff --git a/wmake/src/Makefile b/wmake/src/Makefile
-index f14baad..f5d81e2 100644
+index f14baad..854538a 100644
 --- a/wmake/src/Makefile
 +++ b/wmake/src/Makefile
 @@ -52,6 +52,7 @@ WM_COMPILE_OPTION = Opt
@@ -2695,8 +2810,34 @@ index f14baad..f5d81e2 100644
  
  #------------------------------------------------------------------------------
  # Targets
+@@ -65,13 +66,25 @@ clean:
+ 
+ $(WMAKE_BIN)/dirToString: dirToString.c
+ 	@mkdir -p $(WMAKE_BIN)
++ifneq ("$(WM_SILENT_RULES)","")
++	@echo "    cc $?"
++	@$(cc) $(cFLAGS) dirToString.c -o $(WMAKE_BIN)/dirToString
++else
+ 	$(cc) $(cFLAGS) dirToString.c -o $(WMAKE_BIN)/dirToString
++endif
+ 
+ 
+ $(WMAKE_BIN)/wmkdep: wmkdep.l
+ 	@mkdir -p $(WMAKE_BIN)
++ifneq ("$(WM_SILENT_RULES)","")
++	@echo "   LEX $?"
++	@flex wmkdep.l
++	@echo "    CC lex.yy.c"
++	@$(cc) $(cFLAGS) lex.yy.c -o $(WMAKE_BIN)/wmkdep
++else
+ 	flex wmkdep.l
+ 	$(cc) $(cFLAGS) lex.yy.c -o $(WMAKE_BIN)/wmkdep
++endif
+ 	@rm -f lex.yy.c 2>/dev/null
+ 
+ 
 diff --git a/wmake/src/wmkdep.l b/wmake/src/wmkdep.l
-index a98a597..d16b2fb 100644
+index a98a597..06a811d 100644
 --- a/wmake/src/wmkdep.l
 +++ b/wmake/src/wmkdep.l
 @@ -47,6 +47,7 @@ Usage
@@ -2729,13 +2870,13 @@ index a98a597..d16b2fb 100644
 +    }
 +    else
 +    {
-+        fprintf(stderr, " [DEP] %s\n", basename(sourceFile));
++        fprintf(stderr, "   DEP %s\n", basename(sourceFile));
 +    }
  
  
      if ((basePos = strrchr(sourceFile, '/')) == NULL)
 diff --git a/wmake/wmakeLnInclude b/wmake/wmakeLnInclude
-index 28f4276..7de858b 100755
+index 28f4276..08648eb 100755
 --- a/wmake/wmakeLnInclude
 +++ b/wmake/wmakeLnInclude
 @@ -143,7 +143,12 @@ cd $incDir || exit 1
@@ -2745,7 +2886,7 @@ index 28f4276..7de858b 100755
 -    echo "$Script: linking include files to $incDir" 1>&2
 +    if [ -n "$WM_SILENT_RULES" ]
 +    then
-+        echo "  [LN] $incDir" 1>&2
++        echo "    LN $incDir" 1>&2
 +    else
 +        echo "$Script: linking include files to $incDir" 1>&2
 +    fi
