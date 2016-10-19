@@ -3,6 +3,10 @@
 Patches for OpenFOAM compilation on OS X. Detailed installation instructions
 can be found in [wiki](https://github.com/mrklein/openfoam-os-x/wiki).
 
+## Oct. 19, 2016
+
+Added patch for version 4.1 (it is almost the same as `4.x-7dce081` patch).
+
 ## Oct. 4, 2016
 
 Updated 4.x patch. Build process was tested on
