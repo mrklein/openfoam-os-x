@@ -25,6 +25,7 @@
  src/OSspecific/POSIX/signals/sigFpe.C              |  90 +++++++++++++-
  src/OSspecific/POSIX/signals/sigFpe.H              |  14 ++-
  src/OpenFOAM/Make/files                            |   6 +
+ src/OpenFOAM/db/IOobject/IOobjectI.H               |   5 +-
  src/OpenFOAM/db/IOstreams/IOstreams.H              |   4 +
  .../db/dynamicLibrary/dynamicCode/dynamicCode.C    |   4 +
  .../db/dynamicLibrary/dynamicCode/dynamicCode.H    |   4 +
@@ -45,11 +46,22 @@
  src/parallel/decompose/ptscotchDecomp/Make/options |  10 +-
  src/parallel/decompose/scotchDecomp/Make/options   |   9 +-
  src/renumber/SloanRenumber/Make/options            |  14 ++-
- wmake/makefiles/files                              |   5 +-
- wmake/makefiles/general                            |  58 ++++++++-
- wmake/rules/General/transform                      |  10 ++
- wmake/rules/darwin64Clang/c                        |  17 +++
- wmake/rules/darwin64Clang/c++                      |  27 ++++
+ wmake/makefiles/apps                               |   2 +-
+ wmake/makefiles/files                              |   7 +-
+ wmake/makefiles/general                            |  60 ++++++++-
+ wmake/rules/General/bison                          |  12 ++
+ wmake/rules/General/btyacc                         |   7 ++
+ wmake/rules/General/btyacc++                       |   7 ++
+ wmake/rules/General/byacc                          |   7 ++
+ wmake/rules/General/flex                           |  13 +-
+ wmake/rules/General/flex++                         |  13 +-
+ wmake/rules/General/general                        |  13 +-
+ wmake/rules/General/moc                            |   5 +
+ wmake/rules/General/standard                       |   2 +-
+ wmake/rules/General/transform                      |  13 +-
+ wmake/rules/General/version                        |   2 +-
+ wmake/rules/darwin64Clang/c                        |  21 ++++
+ wmake/rules/darwin64Clang/c++                      |  31 +++++
  wmake/rules/darwin64Clang/c++Debug                 |   2 +
  wmake/rules/darwin64Clang/c++Opt                   |   3 +
  wmake/rules/darwin64Clang/c++Prof                  |   2 +
@@ -57,10 +69,10 @@
  wmake/rules/darwin64Clang/cOpt                     |   2 +
  wmake/rules/darwin64Clang/cProf                    |   2 +
  wmake/rules/darwin64Clang/general                  |  10 ++
- wmake/src/Makefile                                 |   1 +
- wmake/src/wmkdep.l                                 |  14 ++-
+ wmake/src/Makefile                                 |  17 +++
+ wmake/src/wmkdep.l                                 |  15 ++-
  wmake/wmakeLnInclude                               |   7 +-
- 62 files changed, 1521 insertions(+), 84 deletions(-)
+ 74 files changed, 1628 insertions(+), 97 deletions(-)
 
 diff --git a/.gitignore b/.gitignore
 index a897b81..8f59031 100644
@@ -121,7 +133,7 @@ index 14ba388..c35d896 100755
  set -x
  
 diff --git a/applications/utilities/mesh/generation/snappyHexMesh/Make/options b/applications/utilities/mesh/generation/snappyHexMesh/Make/options
-index c233730..af1af95 100644
+index fb480c5..ce48c51 100644
 --- a/applications/utilities/mesh/generation/snappyHexMesh/Make/options
 +++ b/applications/utilities/mesh/generation/snappyHexMesh/Make/options
 @@ -1,5 +1,4 @@
@@ -1391,6 +1403,25 @@ index bcd7542..7292795 100644
  
  primitives/Scalar/doubleScalar/doubleScalar.C
  primitives/Scalar/floatScalar/floatScalar.C
+diff --git a/src/OpenFOAM/db/IOobject/IOobjectI.H b/src/OpenFOAM/db/IOobject/IOobjectI.H
+index ed83109..a57f4b8 100644
+--- a/src/OpenFOAM/db/IOobject/IOobjectI.H
++++ b/src/OpenFOAM/db/IOobject/IOobjectI.H
+@@ -108,11 +108,12 @@ template<class Stream>
+ inline Stream& Foam::IOobject::writeEndDivider(Stream& os)
+ {
+     os  << "\n\n"
+-        "// *****************************************"
+-        "******************************** //\n";
++        "// ***************** vim: set ft=foam et sw=4 ts=4 sts=4: "
++        "****************** //\n";
+ 
+     return os;
+ }
+ 
+ 
++
+ // ************************************************************************* //
 diff --git a/src/OpenFOAM/db/IOstreams/IOstreams.H b/src/OpenFOAM/db/IOstreams/IOstreams.H
 index 438133d..64b7f9f 100644
 --- a/src/OpenFOAM/db/IOstreams/IOstreams.H
@@ -2310,11 +2341,21 @@ index cf6e548..e3b7eff 100644
 +else
 +LIB_LIBS += -lboost_system
 +endif
+diff --git a/wmake/makefiles/apps b/wmake/makefiles/apps
+index b8abcd2..029a162 100644
+--- a/wmake/makefiles/apps
++++ b/wmake/makefiles/apps
+@@ -39,4 +39,4 @@ $(FOAM_APPS):
+ 	+@wmake -all $(TARGET) $@
+ 
+ 
+-#------------------------------------------------------------------------------
++#----------------------------- vim: set ft=make: ------------------------------
 diff --git a/wmake/makefiles/files b/wmake/makefiles/files
-index c17179e..bb0e3d4 100644
+index c17179e..e918e63 100644
 --- a/wmake/makefiles/files
 +++ b/wmake/makefiles/files
-@@ -67,9 +67,10 @@ $(SFILES): $(MAKE_DIR)/files
+@@ -67,11 +67,12 @@ $(SFILES): $(MAKE_DIR)/files
  	# Add a newline to files to ensure the last line is followed by a newline
  	@echo "" >> $(SFILES)
  	# Remove commented lines, blank lines, and trailing blanks from files
@@ -2327,8 +2368,11 @@ index c17179e..bb0e3d4 100644
  
  $(VARS): $(SFILES)
  
+ 
+-#------------------------------------------------------------------------------
++#----------------------------- vim: set ft=make: ------------------------------
 diff --git a/wmake/makefiles/general b/wmake/makefiles/general
-index b7f4935..18be4a4 100644
+index b7f4935..63e94e2 100644
 --- a/wmake/makefiles/general
 +++ b/wmake/makefiles/general
 @@ -80,7 +80,11 @@ LIB_LIBS        =
@@ -2348,7 +2392,7 @@ index b7f4935..18be4a4 100644
  $(EXE): $(OBJECTS)
  	@$(WM_SCRIPTS)/makeTargetDir $(EXE)
 +ifdef WM_SILENT_RULES
-+	@echo "  [LD] $(notdir $(EXE))"
++	@echo "    LD $(notdir $(EXE))"
 +	@$(LINKEXE) $(OBJECTS) -L$(LIB_PLATFORMS) \
 +		$(EXE_LIBS) $(PROJECT_LIBS) $(SYS_LIBS) \
 +		$(LINK_LIBS) $(GLIBS) -o $(EXE)
@@ -2360,7 +2404,7 @@ index b7f4935..18be4a4 100644
  
  exe:    $(SEXE)
 +ifdef WM_SILENT_RULES
-+	@echo "-> $(notdir SEXE)"
++	@echo "->> $(notdir SEXE)"
 +else
  	@echo \'$(SEXE)\' is up to date.
 +endif
@@ -2368,7 +2412,7 @@ index b7f4935..18be4a4 100644
  $(SEXE):$(OBJECTS)
  	@$(WM_SCRIPTS)/makeTargetDir $(SEXE)
 +ifdef WM_SILENT_RULES
-+	@echo "  [LD] $(notdir $(EXE))"
++	@echo "    LD $(notdir $(EXE))"
 +	@$(LINKEXE) $(OBJECTS) $(EXE_LIBS) \
 +		$(SYS_LIBS) $(LINK_LIBS) $(GLIBS) -o $(SEXE)
 +else
@@ -2384,7 +2428,7 @@ index b7f4935..18be4a4 100644
  
  libso:  $(LIB).$(SO)
 +ifdef WM_SILENT_RULES
-+	@echo "-> $(notdir $(LIB)).$(SO)"
++	@echo "->> $(notdir $(LIB)).$(SO)"
 +else
  	@echo \'$(LIB).$(SO)\' is up to date.
 +endif
@@ -2392,7 +2436,7 @@ index b7f4935..18be4a4 100644
  $(LIB).$(SO): $(OBJECTS)
  	@$(WM_SCRIPTS)/makeTargetDir $(LIB)
 +ifdef WM_SILENT_RULES
-+	@echo "  [LD] $(notdir $(LIB)).$(SO)"
++	@echo "    LD $(notdir $(LIB)).$(SO)"
 +	@$(LINKLIBSO) $(OBJECTS) -L$(LIB_PLATFORMS) \
 +		$(LIB_LIBS) $(GLIB_LIBS) -o $(LIB).$(SO)
 +else
@@ -2403,7 +2447,7 @@ index b7f4935..18be4a4 100644
  
  lib:    $(LIB).a
 +ifdef WM_SILENT_RULES
-+	@echo "-> $(notdir $(LIB)).a"
++	@echo "->> $(notdir $(LIB)).a"
 +else
  	@echo \'$(LIB).a\' is up to date.
 +endif
@@ -2412,13 +2456,13 @@ index b7f4935..18be4a4 100644
  	@$(WM_SCRIPTS)/makeTargetDir $(LIB)
  	@rm -f $(LIB).a
 +ifdef WM_SILENT_RULES
-+	@echo "  [AR] $(LIB)"
++	@echo "    AR $(LIB)"
 +	@$(AR) $(ARFLAGS) $(notdir $(LIB)).a $(OBJECTS)
 +else
  	$(AR) $(ARFLAGS) $(LIB).a $(OBJECTS)
 +endif
 +ifdef WM_SILENT_RULES
-+	@echo "  [RANLIB] $(notdir $(LIB))"
++	@echo "RANLIB $(notdir $(LIB))"
 +	@$(RANLIB) $(LIB).a
 +else
  	$(RANLIB) $(LIB).a
@@ -2426,7 +2470,7 @@ index b7f4935..18be4a4 100644
  
  libo:   $(LIB).o
 +ifdef WM_SILENT_RULES
-+	@echo "-> $(notdir $(LIB)).o"
++	@echo "->> $(notdir $(LIB)).o"
 +else
  	@echo \'$(LIB).o\' is up to date.
 +endif
@@ -2435,7 +2479,7 @@ index b7f4935..18be4a4 100644
  	@$(WM_SCRIPTS)/makeTargetDir $(LIB)
  	@rm -f $(LIB).o
 +ifdef WM_SILENT_RULES
-+	@echo "  [LD] $(notdir $(LIB)).o"
++	@echo "    LD $(notdir $(LIB)).o"
 +	@$(LD) -r -o $(LIB).o $(OBJECTS)
 +else
  	$(LD) -r -o $(LIB).o $(OBJECTS)
@@ -2443,16 +2487,199 @@ index b7f4935..18be4a4 100644
  
  
  #------------------------------------------------------------------------------
+@@ -205,4 +259,4 @@ ifeq ($(findstring lnInclude,$(MAKECMDGOALS))$(findstring updatedep,$(MAKECMDGOA
+ endif
+ 
+ 
+-#------------------------------------------------------------------------------
++#----------------------------- vim: set ft=make: ------------------------------
+diff --git a/wmake/rules/General/bison b/wmake/rules/General/bison
+index 4811b0e..0d94e65 100644
+--- a/wmake/rules/General/bison
++++ b/wmake/rules/General/bison
+@@ -1,5 +1,16 @@
+ SUFFIXES += .y .Y
+ 
++ifneq ("$(WM_SILENT_RULES)","")
++ytoo = @echo "    yy $<"; $(WM_SCHEDULER) bison -v -d -y $< $(AND) \
++    mv y.tab.c $(@D)/$(<F).c $(AND) \
++    mv y.tab.h $(@D)/$(<F).h $(AND) \
++    $(cc) $(cFLAGS) -c  $(@D)/$(<F).c -o $@
++
++Ytoo = @echo "    YY $<"; $(WM_SCHEDULER) bison -v -d -y $< $(AND) \
++    mv y.tab.c $(@D)/$(<F).C $(AND) \
++    mv y.tab.h $(@D)/$(<F).H $(AND) \
++    $(CC) $(c++FLAGS) -c  $(@D)/$(<F).C -o $@
++else
+ ytoo = $(WM_SCHEDULER) bison -v -d -y $< $(AND) \
+     mv y.tab.c $(@D)/$(<F).c $(AND) \
+     mv y.tab.h $(@D)/$(<F).h $(AND) \
+@@ -9,3 +20,4 @@ Ytoo = $(WM_SCHEDULER) bison -v -d -y $< $(AND) \
+     mv y.tab.c $(@D)/$(<F).C $(AND) \
+     mv y.tab.h $(@D)/$(<F).H $(AND) \
+     $(CC) $(c++FLAGS) -c  $(@D)/$(<F).C -o $@
++endif
+diff --git a/wmake/rules/General/btyacc b/wmake/rules/General/btyacc
+index 90124eb..38f5c1b 100644
+--- a/wmake/rules/General/btyacc
++++ b/wmake/rules/General/btyacc
+@@ -1,6 +1,13 @@
+ SUFFIXES += .y
+ 
++ifneq ("$(WM_SILENT_RULES)","")
++ytoo = @echo "    yy $<"; $(WM_SCHEDULER) btyacc -v -d $(SKELETON) $< $(AND) \
++    mv y_tab.c $(@D)/$(<F).C $(AND) \
++    mv y_tab.h $(@D)/$(<F).H $(AND) \
++    $(CC) $(c++FLAGS) -c $(@D)/$(<F).C -o $@
++else
+ ytoo = $(WM_SCHEDULER) btyacc -v -d $(SKELETON) $< $(AND) \
+     mv y_tab.c $(@D)/$(<F).C $(AND) \
+     mv y_tab.h $(@D)/$(<F).H $(AND) \
+     $(CC) $(c++FLAGS) -c $(@D)/$(<F).C -o $@
++endif
+diff --git a/wmake/rules/General/btyacc++ b/wmake/rules/General/btyacc++
+index 2aa66cc..a8f4b4c 100644
+--- a/wmake/rules/General/btyacc++
++++ b/wmake/rules/General/btyacc++
+@@ -1,6 +1,13 @@
+ SUFFIXES += .Y
+ 
++ifneq ("$(WM_SILENT_RULES)","")
++Ytoo = @echo "    YY $<"; $(WM_SCHEDULER) btyacc++ -v -d $(SKELETON) $< $(AND) \
++    mv y_tab.c $(@D)/$(<F).C $(AND) \
++    mv y_tab.h $(@D)/$(<F).H $(AND) \
++    $(CC) $(c++FLAGS) -c $(@D)/$(<F).C -o $@
++else
+ Ytoo = $(WM_SCHEDULER) btyacc++ -v -d $(SKELETON) $< $(AND) \
+     mv y_tab.c $(@D)/$(<F).C $(AND) \
+     mv y_tab.h $(@D)/$(<F).H $(AND) \
+     $(CC) $(c++FLAGS) -c $(@D)/$(<F).C -o $@
++endif
+diff --git a/wmake/rules/General/byacc b/wmake/rules/General/byacc
+index 1777338..f150ecc 100644
+--- a/wmake/rules/General/byacc
++++ b/wmake/rules/General/byacc
+@@ -1,6 +1,13 @@
+ SUFFIXES += .y
+ 
++ifneq ("$(WM_SILENT_RULES)","")
++ytoo = @echo "    yy $<"; $(WM_SCHEDULER) byacc -v $(YYPREFIX) -d $< $(AND) \
++    mv y.tab.c $(@D)/$(<F).C $(AND) \
++    mv y.tab.h $(@D)/$(<F).H $(AND) \
++    $(CC) $(c++FLAGS) -c $(@D)/$(<F).C -o $@
++else
+ ytoo = $(WM_SCHEDULER) byacc -v $(YYPREFIX) -d $< $(AND) \
+     mv y.tab.c $(@D)/$(<F).C $(AND) \
+     mv y.tab.h $(@D)/$(<F).H $(AND) \
+     $(CC) $(c++FLAGS) -c $(@D)/$(<F).C -o $@
++endif
+diff --git a/wmake/rules/General/flex b/wmake/rules/General/flex
+index 3f2fe37..b6e1ed5 100644
+--- a/wmake/rules/General/flex
++++ b/wmake/rules/General/flex
+@@ -1,4 +1,15 @@
+ SUFFIXES += .l
+ 
+-ltoo = $(WM_SCHEDULER) flex -o $(@D)/$(<F).c $< $(AND) \
++FLEX := flex
++
++ifeq ("$(shell uname -s)","Darwin")
++FLEX := xcrun flex
++endif
++
++ifneq ("$(WM_SILENT_RULES)","")
++ltoo = @echo "    ll $<"; $(WM_SCHEDULER) $(FLEX) -o $(@D)/$(<F).c $< $(AND) \
++    $(cc) $(cFLAGS) -c  $(@D)/$(<F).c -o $@
++else
++ltoo = $(WM_SCHEDULER) $(FLEX) -o $(@D)/$(<F).c $< $(AND) \
+     $(cc) $(cFLAGS) -c  $(@D)/$(<F).c -o $@
++endif
+diff --git a/wmake/rules/General/flex++ b/wmake/rules/General/flex++
+index 4a14062..56b0fa0 100644
+--- a/wmake/rules/General/flex++
++++ b/wmake/rules/General/flex++
+@@ -1,4 +1,15 @@
+ SUFFIXES += .L
+ 
+-Ltoo = $(WM_SCHEDULER) flex -+ -o$(@D)/$(<F).C -f $< $(AND) \
++FLEX := flex
++
++ifeq ("$(shell uname -s)","Darwin")
++FLEX := xcrun flex
++endif
++
++ifneq ("$(WM_SILENT_RULES)","")
++Ltoo = @echo "    LL $<"; $(WM_SCHEDULER) $(FLEX) -+ -o$(@D)/$(<F).C -f $< $(AND) \
++    $(CC) $(c++FLAGS) $(c++LESSWARN) -c $(@D)/$(<F).C -o $@
++else
++Ltoo = $(WM_SCHEDULER) $(FLEX) -+ -o$(@D)/$(<F).C -f $< $(AND) \
+     $(CC) $(c++FLAGS) $(c++LESSWARN) -c $(@D)/$(<F).C -o $@
++endif
+diff --git a/wmake/rules/General/general b/wmake/rules/General/general
+index 9d25383..8f3f5a2 100644
+--- a/wmake/rules/General/general
++++ b/wmake/rules/General/general
+@@ -1,10 +1,18 @@
+ #-------------------------------*- makefile -*---------------------------------
+ 
++ifeq ("$(shell uname -s)","Darwin")
++AR         = xcrun ar
++RANLIB     = xcrun ranlib
++CPP        = xcrun cpp
++LD         = xcrun ld
++else
+ AR         = ar
+-ARFLAGS    = cr
+ RANLIB     = ranlib
+ CPP        = cpp
+ LD         = ld
++endif
++
++ARFLAGS    = cr
+ 
+ GFLAGS     = -D$(WM_ARCH) -DWM_ARCH_OPTION=$(WM_ARCH_OPTION) \
+              -DWM_$(WM_PRECISION_OPTION) -DWM_LABEL_SIZE=$(WM_LABEL_SIZE)
+@@ -30,5 +38,4 @@ include $(DEFAULT_RULES)/$(WM_LINK_LANGUAGE)
+ -include $(RULES)/$(WM_LINK_LANGUAGE)
+ include $(GENERAL_RULES)/transform
+ 
+-
+-#------------------------------------------------------------------------------
++#----------------------------- vim: set ft=make: ------------------------------
+diff --git a/wmake/rules/General/moc b/wmake/rules/General/moc
+index 02a0758..b7c9335 100644
+--- a/wmake/rules/General/moc
++++ b/wmake/rules/General/moc
+@@ -1,4 +1,9 @@
+ SUFFIXES += .qt
+ 
++ifneq ("$(WM_SILENT_RULES)","")
++qttoo = @echo "   MOC $<"; $(WM_SCHEDULER) $(QTDIR)/bin/moc -f $< -o $(@D)/$(<F).C $(AND) \
++    $(CC) $(c++FLAGS) -c $(@D)/$(<F).C -o $@
++else
+ qttoo = $(WM_SCHEDULER) $(QTDIR)/bin/moc -f $< -o $(@D)/$(<F).C $(AND) \
+     $(CC) $(c++FLAGS) -c $(@D)/$(<F).C -o $@
++endif
+diff --git a/wmake/rules/General/standard b/wmake/rules/General/standard
+index ccd69ce..20e8d27 100644
+--- a/wmake/rules/General/standard
++++ b/wmake/rules/General/standard
+@@ -11,4 +11,4 @@ include $(GENERAL_RULES)/bison
+ include $(GENERAL_RULES)/moc
+ include $(GENERAL_RULES)/X
+ 
+-#------------------------------------------------------------------------------
++#----------------------------- vim: set ft=make: ------------------------------
 diff --git a/wmake/rules/General/transform b/wmake/rules/General/transform
-index bffe605..3551999 100644
+index 3fa0152..8122e8c 100644
 --- a/wmake/rules/General/transform
 +++ b/wmake/rules/General/transform
-@@ -2,14 +2,24 @@
+@@ -2,15 +2,26 @@
  
  define DEFINE_TRANSFORM
  $(OBJECTS_DIR)/%.o : %$1
-+ifdef WM_SILENT_RULES
-+	@echo "  [CC] $(value <F)"
++ifneq ("$(WM_SILENT_RULES)","")
++	@echo "    CC $(value <F)"
 +	@$$($(subst .,,$(1))too)
 +else
  	$$($(subst .,,$(1))too)
@@ -2463,21 +2690,34 @@ index bffe605..3551999 100644
  
  $(OBJECTS_DIR)/%.dep : %
  	@$(WM_SCRIPTS)/makeTargetDir $@
-+ifdef WM_SILENT_RULES
++ifneq ("$(WM_SILENT_RULES)","")
  	@$(WMAKE_BIN)/wmkdep -I$(*D) $(LIB_HEADER_DIRS) $< | \
- 	    sed 's,$(WM_PROJECT_DIR),$$(WM_PROJECT_DIR),' > $@
+ 		sed -e 's,^$(WM_PROJECT_DIR)/,$$(WM_PROJECT_DIR)/,' \
+ 			-e 's,^$(WM_THIRD_PARTY_DIR)/,$$(WM_THIRD_PARTY_DIR)/,' > $@
 +else
 +	@$(WMAKE_BIN)/wmkdep -v -I$(*D) $(LIB_HEADER_DIRS) $< | \
-+	    sed 's,$(WM_PROJECT_DIR),$$(WM_PROJECT_DIR),' > $@
++		sed -e 's,^$(WM_PROJECT_DIR)/,$$(WM_PROJECT_DIR)/,' \
++			-e 's,^$(WM_THIRD_PARTY_DIR)/,$$(WM_THIRD_PARTY_DIR)/,' > $@
 +endif
  
- #------------------------------------------------------------------------------
+-#------------------------------------------------------------------------------
++#----------------------------- vim: set ft=make: ------------------------------
+diff --git a/wmake/rules/General/version b/wmake/rules/General/version
+index ffd070d..dc1fe0b 100644
+--- a/wmake/rules/General/version
++++ b/wmake/rules/General/version
+@@ -9,4 +9,4 @@ Cvertoo = \
+         $< > $(@D)/$(<F).C; \
+     $(CC) $(c++FLAGS) -c $(@D)/$(<F).C -o $@
+ 
+-#------------------------------------------------------------------------------
++#----------------------------- vim: set ft=make: ------------------------------
 diff --git a/wmake/rules/darwin64Clang/c b/wmake/rules/darwin64Clang/c
 new file mode 100644
-index 0000000..fa35e79
+index 0000000..a595302
 --- /dev/null
 +++ b/wmake/rules/darwin64Clang/c
-@@ -0,0 +1,17 @@
+@@ -0,0 +1,21 @@
 +SUFFIXES += .c
 +
 +cWARN        = -Wall
@@ -2486,7 +2726,11 @@ index 0000000..fa35e79
 +
 +include $(RULES)/c$(WM_COMPILE_OPTION)
 +
-+cFLAGS      = $(GFLAGS) $(cWARN) $(cOPT) $(cDBUG) $(LIB_HEADER_DIRS) -fPIC -isysroot $(OSX_SDK_PATH)
++cFLAGS      = $(GFLAGS) $(cWARN) $(cOPT) $(cDBUG) $(LIB_HEADER_DIRS) -fPIC
++
++ifneq ("$(OSX_SDK_PATH)","")
++cFLAGS += -isysroot $(OSX_SDK_PATH)
++endif
 +
 +ctoo        = $(WM_SCHEDULER) $(cc) $(cFLAGS) -c $< -o $@
 +
@@ -2497,10 +2741,10 @@ index 0000000..fa35e79
 +LINKEXE     = $(cc) -Wl,-execute,-undefined,dynamic_lookup
 diff --git a/wmake/rules/darwin64Clang/c++ b/wmake/rules/darwin64Clang/c++
 new file mode 100644
-index 0000000..e162eb7
+index 0000000..1c47af0
 --- /dev/null
 +++ b/wmake/rules/darwin64Clang/c++
-@@ -0,0 +1,27 @@
+@@ -0,0 +1,31 @@
 +SUFFIXES += .C
 +SUFFIXES += .cxx
 +SUFFIXES += .cc
@@ -2516,7 +2760,11 @@ index 0000000..e162eb7
 +
 +ptFLAGS     = -DNoRepository -ftemplate-depth-100
 +
-+c++FLAGS    = $(GFLAGS) $(c++WARN) $(c++OPT) $(c++DBUG) $(ptFLAGS) $(LIB_HEADER_DIRS) -fPIC -isysroot $(OSX_SDK_PATH)
++c++FLAGS    = $(GFLAGS) $(c++WARN) $(c++OPT) $(c++DBUG) $(ptFLAGS) $(LIB_HEADER_DIRS) -fPIC
++
++ifneq ("$(OSX_SDK_PATH)","")
++c++FLAGS   += -isysroot $(OSX_SDK_PATH)
++endif
 +
 +Ctoo        = $(WM_SCHEDULER) $(CC) $(c++FLAGS) -c $< -o $@
 +cxxtoo      = $(Ctoo)
@@ -2594,7 +2842,7 @@ index 0000000..f7377fa
 +include $(RULES)/c
 +include $(RULES)/c++
 diff --git a/wmake/src/Makefile b/wmake/src/Makefile
-index f14baad..f5d81e2 100644
+index f14baad..73dc0be 100644
 --- a/wmake/src/Makefile
 +++ b/wmake/src/Makefile
 @@ -52,6 +52,7 @@ WM_COMPILE_OPTION = Opt
@@ -2605,19 +2853,50 @@ index f14baad..f5d81e2 100644
  
  #------------------------------------------------------------------------------
  # Targets
+@@ -65,13 +66,29 @@ clean:
+ 
+ $(WMAKE_BIN)/dirToString: dirToString.c
+ 	@mkdir -p $(WMAKE_BIN)
++ifneq ("$(WM_SILENT_RULES)","")
++	@echo "    CC $?"
++	@$(cc) $(cFLAGS) dirToString.c -o $(WMAKE_BIN)/dirToString
++else
+ 	$(cc) $(cFLAGS) dirToString.c -o $(WMAKE_BIN)/dirToString
++endif
+ 
++FLEX := flex
++ifeq ("$(shell uname -s)","Darwin")
++FLEX := xcrun flex
++endif
+ 
+ $(WMAKE_BIN)/wmkdep: wmkdep.l
+ 	@mkdir -p $(WMAKE_BIN)
++ifneq ("$(WM_SILENT_RULES)","")
++	@echo "   LEX $?"
++	@$(FLEX) wmkdep.l
++	@echo "    CC lex.yy.c"
++	@$(cc) $(cFLAGS) lex.yy.c -o $(WMAKE_BIN)/wmkdep
++else
+ 	flex wmkdep.l
+ 	$(cc) $(cFLAGS) lex.yy.c -o $(WMAKE_BIN)/wmkdep
++endif
+ 	@rm -f lex.yy.c 2>/dev/null
+ 
+ 
 diff --git a/wmake/src/wmkdep.l b/wmake/src/wmkdep.l
-index a98a597..d16b2fb 100644
+index a98a597..0310823 100644
 --- a/wmake/src/wmkdep.l
 +++ b/wmake/src/wmkdep.l
-@@ -47,6 +47,7 @@ Usage
+@@ -47,6 +47,8 @@ Usage
  #include <sys/types.h>
  #include <dirent.h>
  #include <errno.h>
 +#include <libgen.h>
++#include <unistd.h>
  
  void nextFile(const char* fileName);
  void importFile(const char* fileName);
-@@ -145,7 +146,7 @@ const char* bufferPaths[FILE_STACK_SIZE];
+@@ -145,7 +147,7 @@ const char* bufferPaths[FILE_STACK_SIZE];
  int main(int argc, char* argv[])
  {
      char *basePos, *dotPos;
@@ -2626,7 +2905,7 @@ index a98a597..d16b2fb 100644
  
      if (argc == 1)
      {
-@@ -154,7 +155,16 @@ int main(int argc, char* argv[])
+@@ -154,7 +156,16 @@ int main(int argc, char* argv[])
      }
  
      sourceFile = strdup(argv[argc-1]);
@@ -2639,13 +2918,13 @@ index a98a597..d16b2fb 100644
 +    }
 +    else
 +    {
-+        fprintf(stderr, " [DEP] %s\n", basename(sourceFile));
++        fprintf(stderr, "   DEP %s\n", basename(sourceFile));
 +    }
  
  
      if ((basePos = strrchr(sourceFile, '/')) == NULL)
 diff --git a/wmake/wmakeLnInclude b/wmake/wmakeLnInclude
-index a9195b9..523db1a 100755
+index a9195b9..0b48b7a 100755
 --- a/wmake/wmakeLnInclude
 +++ b/wmake/wmakeLnInclude
 @@ -139,7 +139,12 @@ fi
@@ -2655,7 +2934,7 @@ index a9195b9..523db1a 100755
 -    echo "$Script: linking include files to $incDir" 1>&2
 +    if [ -n "$WM_SILENT_RULES" ]
 +    then
-+        echo "  [LN] $incDir" 1>&2
++        echo "    LN $incDir" 1>&2
 +    else
 +        echo "$Script: linking include files to $incDir" 1>&2
 +    fi

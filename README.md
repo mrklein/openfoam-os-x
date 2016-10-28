@@ -3,6 +3,31 @@
 Patches for OpenFOAM compilation on OS X. Detailed installation instructions
 can be found in [wiki](https://github.com/mrklein/openfoam-os-x/wiki).
 
+## Oct. 28, 2016
+
+Following recent bug-reports updated `dev` patch (up to commit `37c5d28`).
+Major changes:
+
+- Usage of CLT utilities are forced (using `xcrun`), hope this will resolve
+  problems of third party `cpp`s and `flex`es.
+- Draft of `WM_SILENT_RULES`, so build log files now look like
+
+    ```sh
+    + wmake dummy
+    /Users/alexey/OpenFOAM/OpenFOAM-dev/src/Pstream/dummy
+        LN ./lnInclude
+       DEP UIPread.C
+       DEP UPstream.C
+       DEP UOPwrite.C
+        CC UPstream.C
+        CC UIPread.C
+        CC UOPwrite.C
+        LD libPstream.dylib
+    ->> libPstream.dylib
+    ```
+
+- `IOobject`'s `writeEndDivider` is modified to emit mode line for vim.
+
 ## Oct. 19, 2016
 
 Added patch for version 4.1 (it is almost the same as `4.x-7dce081` patch).
