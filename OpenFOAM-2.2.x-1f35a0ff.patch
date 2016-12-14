@@ -1,24 +1,77 @@
  .gitignore                                         |   1 +
  Allwmake                                           |  27 +-
- applications/Allwmake                              |  12 +-
+ applications/Allwmake                              |  14 +-
+ .../solvers/combustion/reactingFoam/Allwmake       |   2 +-
+ .../solvers/compressible/rhoCentralFoam/Allwclean  |   2 +-
+ .../solvers/compressible/rhoCentralFoam/Allwmake   |   2 +-
+ .../solvers/compressible/rhoPimpleFoam/Allwmake    |   2 +-
+ .../solvers/compressible/rhoSimpleFoam/Allwclean   |   2 +-
+ .../solvers/compressible/rhoSimpleFoam/Allwmake    |   2 +-
+ .../solvers/compressible/sonicFoam/Allwmake        |   2 +-
+ .../heatTransfer/chtMultiRegionFoam/Allwclean      |   2 +-
+ .../heatTransfer/chtMultiRegionFoam/Allwmake       |   2 +-
+ .../solvers/incompressible/pimpleFoam/Allwmake     |   2 +-
+ .../solvers/incompressible/simpleFoam/Allwmake     |   2 +-
+ applications/solvers/lagrangian/DPMFoam/Allwclean  |   2 +-
+ applications/solvers/lagrangian/DPMFoam/Allwmake   |   2 +-
+ .../icoUncoupledKinematicParcelFoam/Allwmake       |   2 +-
+ .../solvers/lagrangian/reactingParcelFoam/Allwmake |   2 +-
+ applications/solvers/lagrangian/sprayFoam/Allwmake |   2 +-
+ .../solvers/multiphase/cavitatingFoam/Allwclean    |   2 +-
+ .../solvers/multiphase/cavitatingFoam/Allwmake     |   2 +-
+ .../multiphase/compressibleInterFoam/Allwclean     |   2 +-
+ .../multiphase/compressibleInterFoam/Allwmake      |   2 +-
+ .../compressibleTwoPhaseEulerFoam/Allwclean        |   2 +-
+ .../compressibleTwoPhaseEulerFoam/Allwmake         |   2 +-
+ .../solvers/multiphase/interFoam/Allwclean         |   2 +-
+ applications/solvers/multiphase/interFoam/Allwmake |   2 +-
+ .../threePhaseMixture.C                            |   2 +-
+ .../threePhaseMixture.H                            |   2 +-
+ .../multiphase/interPhaseChangeFoam/Allwclean      |   2 +-
+ .../multiphase/interPhaseChangeFoam/Allwmake       |   2 +-
+ .../multiphase/multiphaseEulerFoam/Allwclean       |   2 +-
+ .../multiphase/multiphaseEulerFoam/Allwmake        |   2 +-
+ .../multiphase/multiphaseInterFoam/Allwclean       |   2 +-
+ .../multiphase/multiphaseInterFoam/Allwmake        |   2 +-
+ .../solvers/multiphase/twoPhaseEulerFoam/Allwclean |   2 +-
+ .../solvers/multiphase/twoPhaseEulerFoam/Allwmake  |   2 +-
+ .../utilities/mesh/conversion/Optional/Allwmake    |   2 +-
+ .../mesh/conversion/kivaToFoam/readKivaGrid.H      |   2 +-
+ applications/utilities/mesh/generation/Allwmake    |   2 +-
+ .../utilities/mesh/generation/extrude/Allwclean    |   2 +-
+ .../utilities/mesh/generation/extrude/Allwmake     |   2 +-
+ .../mesh/generation/extrude2DMesh/Allwclean        |   2 +-
+ .../mesh/generation/extrude2DMesh/Allwmake         |   2 +-
  .../mesh/generation/snappyHexMesh/Make/options     |   1 -
  .../mesh/manipulation/renumberMesh/Allwmake        |  11 +-
  .../mesh/manipulation/renumberMesh/Make/options    |   1 -
  .../miscellaneous/foamDebugSwitches/Make/options   |   2 -
  .../dataConversion/foamToEnsight/Make/options      |   1 -
- .../surface/surfaceFeatureExtract/Allwmake         |  32 +-
+ .../dataConversion/foamToVTK/surfaceMeshWriter.C   |   1 -
+ .../dataConversion/foamToVTK/surfaceMeshWriter.H   |   2 +-
+ .../postProcessing/graphics/PV3Readers/Allwclean   |   2 +-
+ .../postProcessing/graphics/PV3Readers/Allwmake    |   2 +-
+ .../graphics/PV3Readers/PV3FoamReader/Allwclean    |   2 +-
+ .../graphics/PV3Readers/PV3FoamReader/Allwmake     |   2 +-
+ .../PV3Readers/PV3blockMeshReader/Allwclean        |   2 +-
+ .../PV3Readers/PV3blockMeshReader/Allwmake         |   2 +-
+ .../preProcessing/wallFunctionTable/Allwmake       |   2 +-
+ .../surface/surfaceFeatureExtract/Allwmake         |  41 ++-
  .../surface/surfaceFeatureExtract/Make/options     |   2 +-
- .../surfaceFeatureExtract/surfaceFeatureExtract.C  |   4 +-
+ .../surfaceFeatureExtract/surfaceFeatureExtract.C  |  16 +-
+ bin/foamEtcFile                                    |   3 +
  bin/foamInstallationTest                           |  37 ++-
  bin/foamJob                                        |   8 +
  bin/paraFoam                                       |  10 +-
  bin/tools/RunFunctions                             | 121 ++++++--
  bin/tools/replaceAllShellSun                       |   2 +-
- etc/bashrc                                         | 133 +++++----
+ doc/Allwmake                                       |   2 +-
+ doc/Doxygen/Allwmake                               |   2 +-
+ etc/bashrc                                         | 135 +++++----
  etc/config/paraview-osx.sh                         |  15 +
  etc/config/scotch.sh                               |  14 +-
  etc/config/settings.sh                             |  83 +++++-
- src/Allwmake                                       |  12 +-
+ src/Allwmake                                       |  16 +-
  src/OSspecific/POSIX/POSIX.C                       |  37 +++
  src/OSspecific/POSIX/clockTime/clockTime.H         |   3 +
  src/OSspecific/POSIX/fileStat.C                    |   2 +
@@ -31,6 +84,8 @@
  src/OpenFOAM/containers/Lists/SubList/SubListI.H   |   2 +-
  src/OpenFOAM/containers/Lists/UList/UList.H        |   1 +
  src/OpenFOAM/containers/Lists/UList/UListI.H       |   2 +-
+ src/OpenFOAM/db/IOobject/IOobject.H                |   2 +-
+ src/OpenFOAM/db/IOobject/IOobjectI.H               |  18 +-
  src/OpenFOAM/db/IOstreams/Pstreams/gatherScatter.C |   3 +
  .../functionEntries/codeStream/codeStream.C        |   3 +
  .../db/dynamicLibrary/dynamicCode/dynamicCode.C    |   4 +
@@ -52,8 +107,12 @@
  src/OpenFOAM/primitives/nullObject/nullObject.C    |  34 +++
  src/OpenFOAM/primitives/nullObject/nullObject.H    | 110 +++++++
  src/OpenFOAM/primitives/nullObject/nullObjectI.H   |  65 ++++
+ src/Pstream/Allwmake                               |  12 +-
+ src/Pstream/mpi/Make/options                       |   4 +
+ src/conversion/Allwmake                            |   2 +-
  src/conversion/ensight/part/ensightPartCells.C     |   2 +-
  src/conversion/ensight/part/ensightPartIO.C        |   2 +-
+ src/dummyThirdParty/Allwmake                       |   2 +-
  src/dummyThirdParty/metisDecomp/metis.h            |  18 +-
  src/edgeMesh/edgeMesh.C                            |   4 +-
  .../DarcyForchheimer/DarcyForchheimer.C            |   4 +-
@@ -74,22 +133,33 @@
  .../rotatingWallVelocityFvPatchVectorField.H       |   4 +-
  .../supersonicFreestreamFvPatchVectorField.H       |   2 +-
  .../fvPatchFields/fvPatchField/fvPatchField.C      |   6 +-
- src/fvAgglomerationMethods/Allwmake                |  17 +-
+ src/fvAgglomerationMethods/Allwmake                |  19 +-
  .../MGridGenGamgAgglomeration/Make/options         |  10 +
  src/fvOptions/Make/options                         |   1 -
+ src/lagrangian/Allwmake                            |   2 +-
  .../COxidationHurtMitchell.H                       |   2 +-
  .../distributionModels/uniform/uniform.C           |   3 +-
  .../distributionModels/uniform/uniform.H           |   2 +-
  .../InjectionModel/InjectionModelList.H            |   2 +-
+ src/lagrangian/molecularDynamics/Allwmake          |   2 +-
  .../BreakupModel/PilchErdman/PilchErdman.H         |   2 +-
+ src/mesh/Allwmake                                  |   2 +-
  .../momentOfInertia/volumeIntegration/volInt.c     |  28 +-
- src/parallel/decompose/Allwmake                    |   8 +-
+ src/parallel/Allwmake                              |   2 +-
+ src/parallel/decompose/Allwmake                    |  22 +-
+ src/parallel/decompose/AllwmakeLnInclude           |   2 +-
  src/parallel/decompose/ptscotchDecomp/Make/options |  10 +-
  src/parallel/decompose/scotchDecomp/Make/options   |   8 +-
+ src/parallel/reconstruct/Allwmake                  |   2 +-
+ src/postProcessing/Allwmake                        |   2 +-
+ src/postProcessing/functionObjects/Allwmake        |   2 +-
  .../field/fieldValues/faceSource/faceSource.H      |   4 +-
+ src/regionModels/Allwclean                         |   2 +-
+ src/regionModels/Allwmake                          |   2 +-
  .../pyrolysisModel/pyrolysisModelCollection.C      |   2 +-
  .../pyrolysisModel/pyrolysisModelNew.C             |   2 +-
  .../thermalBaffleModels/noThermo/noThermo.C        |   2 +-
+ src/renumber/Allwmake                              |  26 +-
  src/renumber/SloanRenumber/Make/options            |   9 +-
  src/sampling/cuttingPlane/cuttingPlane.C           |   6 +-
  .../sampledSurface/sampledPatch/sampledPatch.C     |   2 +-
@@ -99,8 +169,14 @@
  .../MeshedSurfaceIOAllocator.C                     |   8 +-
  .../UnsortedMeshedSurface/UnsortedMeshedSurface.C  |   6 +-
  src/surfMesh/surfMesh/surfMesh.C                   |   2 +-
+ src/thermophysicalModels/Allwmake                  |   2 +-
+ src/thermophysicalModels/properties/Allwmake       |   2 +-
  .../chemistryReaders/chemkinReader/chemkinReader.C |   9 +
  .../specie/reaction/Reactions/Reaction/Reaction.C  |   6 +-
+ src/transportModels/Allwmake                       |   2 +-
+ src/turbulenceModels/Allwmake                      |   2 +-
+ src/turbulenceModels/LES/Allwmake                  |   2 +-
+ src/turbulenceModels/compressible/Allwmake         |   2 +-
  .../compressible/LES/DESModel/DESModelDoc.H        |   2 +-
  .../compressible/LES/GenEddyVisc/GenEddyVisc.H     |   2 +-
  .../compressible/LES/GenSGSStress/GenSGSStress.H   |   4 +-
@@ -109,6 +185,7 @@
  ...gLengthDissipationRateInletFvPatchScalarField.H |   2 +-
  ...tMixingLengthFrequencyInletFvPatchScalarField.H |   2 +-
  .../turbulenceModel/turbulenceModelDoc.H           |   2 +-
+ src/turbulenceModels/incompressible/Allwmake       |   2 +-
  .../incompressible/LES/DESModel/DESModelDoc.H      |   2 +-
  .../incompressible/LES/GenEddyVisc/GenEddyVisc.H   |   2 +-
  .../incompressible/LES/GenSGSStress/GenSGSStress.H |   6 +-
@@ -119,21 +196,43 @@
  ...gLengthDissipationRateInletFvPatchScalarField.H |   2 +-
  ...tMixingLengthFrequencyInletFvPatchScalarField.H |   2 +-
  .../turbulenceModel/turbulenceModelDoc.H           |   2 +-
- wmake/Makefile                                     |   4 +
- wmake/rules/darwin64Clang/CGAL                     |  12 +
- wmake/rules/darwin64Clang/c                        |  16 +
- wmake/rules/darwin64Clang/c++                      |  24 ++
+ wmake/Makefile                                     |  97 +++---
+ wmake/rules/General/CGAL                           |  35 ++-
+ wmake/rules/General/X                              |   2 +
+ wmake/rules/General/bison                          |  14 +-
+ wmake/rules/General/btyacc                         |   2 +
+ wmake/rules/General/btyacc++                       |   2 +
+ wmake/rules/General/byacc                          |   4 +-
+ wmake/rules/General/coco-cpp                       |  15 -
+ wmake/rules/General/flex                           |  12 +-
+ wmake/rules/General/flex++                         |  13 +-
+ wmake/rules/General/general                        |   2 +
+ wmake/rules/General/moc                            |   2 +
+ wmake/rules/General/mplib                          |   2 +
+ wmake/rules/General/mplibGAMMA                     |   2 +
+ wmake/rules/General/sourceToDep                    |   9 +-
+ wmake/rules/General/standard                       |  16 +
+ wmake/rules/General/version                        |   8 +
+ wmake/rules/General/yacc                           |  15 +-
+ wmake/rules/darwin64Clang/CGAL                     |   7 +
+ wmake/rules/darwin64Clang/c                        |  20 ++
+ wmake/rules/darwin64Clang/c++                      |  28 ++
  wmake/rules/darwin64Clang/c++Debug                 |   2 +
  wmake/rules/darwin64Clang/c++Opt                   |   3 +
  wmake/rules/darwin64Clang/c++Prof                  |   2 +
  wmake/rules/darwin64Clang/cDebug                   |   2 +
  wmake/rules/darwin64Clang/cOpt                     |   2 +
  wmake/rules/darwin64Clang/cProf                    |   2 +
- wmake/rules/darwin64Clang/general                  |  10 +
- 132 files changed, 1187 insertions(+), 478 deletions(-)
+ wmake/rules/darwin64Clang/general                  |  14 +
+ wmake/scripts/addCompile                           |   9 +-
+ wmake/src/Makefile                                 |  18 +-
+ wmake/src/wmkdep.l                                 |  20 +-
+ wmake/wmake                                        |  37 ++-
+ wmake/wmakeLnInclude                               |  19 +-
+ 231 files changed, 1584 insertions(+), 690 deletions(-)
 
 diff --git a/.gitignore b/.gitignore
-index 7c8bce0..039c370 100644
+index 7c8bce03..039c3703 100644
 --- a/.gitignore
 +++ b/.gitignore
 @@ -42,6 +42,7 @@ linuxming*/
@@ -145,7 +244,7 @@ index 7c8bce0..039c370 100644
  
  # reinstate wmake/rules that might look like build folders
 diff --git a/Allwmake b/Allwmake
-index 16edfd1..0f3e419 100755
+index 16edfd1f..0f3e419d 100755
 --- a/Allwmake
 +++ b/Allwmake
 @@ -2,17 +2,19 @@
@@ -200,10 +299,10 @@ index 16edfd1..0f3e419 100755
  
  # ----------------------------------------------------------------- end-of-file
 diff --git a/applications/Allwmake b/applications/Allwmake
-index 00bc326..6d45c88 100755
+index 00bc3266..112e2a3d 100755
 --- a/applications/Allwmake
 +++ b/applications/Allwmake
-@@ -8,11 +8,13 @@ wmakeCheckPwd "$WM_PROJECT_DIR/applications" || {
+@@ -8,13 +8,15 @@ wmakeCheckPwd "$WM_PROJECT_DIR/applications" || {
      exit 1
  }
  
@@ -220,10 +319,509 @@ index 00bc326..6d45c88 100755
 +	}
 +fi
  
- set -x
+-set -x
++[ -z "$WM_SILENT_RULES" ] && set -x
  
+ wmake all utilities
+ wmake all solvers
+diff --git a/applications/solvers/combustion/reactingFoam/Allwmake b/applications/solvers/combustion/reactingFoam/Allwmake
+index 0512e534..6346914d 100755
+--- a/applications/solvers/combustion/reactingFoam/Allwmake
++++ b/applications/solvers/combustion/reactingFoam/Allwmake
+@@ -1,6 +1,6 @@
+ #!/bin/sh
+ cd ${0%/*} || exit 1    # run from this directory
+-set -x
++[ -z "$WM_SILENT_RULES" ] && set -x
+ 
+ wmake
+ wmake rhoReactingFoam
+diff --git a/applications/solvers/compressible/rhoCentralFoam/Allwclean b/applications/solvers/compressible/rhoCentralFoam/Allwclean
+index cc5398c0..83011c5e 100755
+--- a/applications/solvers/compressible/rhoCentralFoam/Allwclean
++++ b/applications/solvers/compressible/rhoCentralFoam/Allwclean
+@@ -1,6 +1,6 @@
+ #!/bin/sh
+ cd ${0%/*} || exit 1    # run from this directory
+-set -x
++[ -z "$WM_SILENT_RULES" ] && set -x
+ 
+ wclean libso BCs
+ wclean
+diff --git a/applications/solvers/compressible/rhoCentralFoam/Allwmake b/applications/solvers/compressible/rhoCentralFoam/Allwmake
+index 33e08e10..eae5225a 100755
+--- a/applications/solvers/compressible/rhoCentralFoam/Allwmake
++++ b/applications/solvers/compressible/rhoCentralFoam/Allwmake
+@@ -1,6 +1,6 @@
+ #!/bin/sh
+ cd ${0%/*} || exit 1    # run from this directory
+-set -x
++[ -z "$WM_SILENT_RULES" ] && set -x
+ 
+ (wmake libso BCs && wmake && wmake rhoCentralDyMFoam)
+ 
+diff --git a/applications/solvers/compressible/rhoPimpleFoam/Allwmake b/applications/solvers/compressible/rhoPimpleFoam/Allwmake
+index 1b272c17..967f701a 100755
+--- a/applications/solvers/compressible/rhoPimpleFoam/Allwmake
++++ b/applications/solvers/compressible/rhoPimpleFoam/Allwmake
+@@ -1,6 +1,6 @@
+ #!/bin/sh
+ cd ${0%/*} || exit 1    # run from this directory
+-set -x
++[ -z "$WM_SILENT_RULES" ] && set -x
+ 
+ wmake
+ wmake rhoPimplecFoam
+diff --git a/applications/solvers/compressible/rhoSimpleFoam/Allwclean b/applications/solvers/compressible/rhoSimpleFoam/Allwclean
+index a1fd479e..a12d86a2 100755
+--- a/applications/solvers/compressible/rhoSimpleFoam/Allwclean
++++ b/applications/solvers/compressible/rhoSimpleFoam/Allwclean
+@@ -1,6 +1,6 @@
+ #!/bin/sh
+ cd ${0%/*} || exit 1    # run from this directory
+-set -x
++[ -z "$WM_SILENT_RULES" ] && set -x
+ 
+ wclean
+ wclean rhoPorousSimpleFoam
+diff --git a/applications/solvers/compressible/rhoSimpleFoam/Allwmake b/applications/solvers/compressible/rhoSimpleFoam/Allwmake
+index dc0fd648..39a2e0e9 100755
+--- a/applications/solvers/compressible/rhoSimpleFoam/Allwmake
++++ b/applications/solvers/compressible/rhoSimpleFoam/Allwmake
+@@ -1,6 +1,6 @@
+ #!/bin/sh
+ cd ${0%/*} || exit 1    # run from this directory
+-set -x
++[ -z "$WM_SILENT_RULES" ] && set -x
+ 
+ wmake
+ wmake rhoPorousSimpleFoam
+diff --git a/applications/solvers/compressible/sonicFoam/Allwmake b/applications/solvers/compressible/sonicFoam/Allwmake
+index 27c1194e..84ffc478 100755
+--- a/applications/solvers/compressible/sonicFoam/Allwmake
++++ b/applications/solvers/compressible/sonicFoam/Allwmake
+@@ -1,6 +1,6 @@
+ #!/bin/sh
+ cd ${0%/*} || exit 1    # run from this directory
+-set -x
++[ -z "$WM_SILENT_RULES" ] && set -x
+ 
+ wmake
+ wmake sonicDyMFoam
+diff --git a/applications/solvers/heatTransfer/chtMultiRegionFoam/Allwclean b/applications/solvers/heatTransfer/chtMultiRegionFoam/Allwclean
+index c583a8de..411f1c2b 100755
+--- a/applications/solvers/heatTransfer/chtMultiRegionFoam/Allwclean
++++ b/applications/solvers/heatTransfer/chtMultiRegionFoam/Allwclean
+@@ -1,6 +1,6 @@
+ #!/bin/sh
+ cd ${0%/*} || exit 1    # run from this directory
+-set -x
++[ -z "$WM_SILENT_RULES" ] && set -x
+ 
+ wclean
+ wclean chtMultiRegionSimpleFoam
+diff --git a/applications/solvers/heatTransfer/chtMultiRegionFoam/Allwmake b/applications/solvers/heatTransfer/chtMultiRegionFoam/Allwmake
+index f65ba118..e929be82 100755
+--- a/applications/solvers/heatTransfer/chtMultiRegionFoam/Allwmake
++++ b/applications/solvers/heatTransfer/chtMultiRegionFoam/Allwmake
+@@ -1,6 +1,6 @@
+ #!/bin/sh
+ cd ${0%/*} || exit 1    # run from this directory
+-set -x
++[ -z "$WM_SILENT_RULES" ] && set -x
+ 
+ wmake
+ wmake chtMultiRegionSimpleFoam
+diff --git a/applications/solvers/incompressible/pimpleFoam/Allwmake b/applications/solvers/incompressible/pimpleFoam/Allwmake
+index 8727bdb2..15edf19c 100755
+--- a/applications/solvers/incompressible/pimpleFoam/Allwmake
++++ b/applications/solvers/incompressible/pimpleFoam/Allwmake
+@@ -1,6 +1,6 @@
+ #!/bin/sh
+ cd ${0%/*} || exit 1    # run from this directory
+-set -x
++[ -z "$WM_SILENT_RULES" ] && set -x
+ 
+ wmake
+ wmake SRFPimpleFoam
+diff --git a/applications/solvers/incompressible/simpleFoam/Allwmake b/applications/solvers/incompressible/simpleFoam/Allwmake
+index 801fd3b7..6d19cb31 100755
+--- a/applications/solvers/incompressible/simpleFoam/Allwmake
++++ b/applications/solvers/incompressible/simpleFoam/Allwmake
+@@ -1,6 +1,6 @@
+ #!/bin/sh
+ cd ${0%/*} || exit 1    # run from this directory
+-set -x
++[ -z "$WM_SILENT_RULES" ] && set -x
+ 
+ wmake
+ 
+diff --git a/applications/solvers/lagrangian/DPMFoam/Allwclean b/applications/solvers/lagrangian/DPMFoam/Allwclean
+index ed697d99..684c898b 100755
+--- a/applications/solvers/lagrangian/DPMFoam/Allwclean
++++ b/applications/solvers/lagrangian/DPMFoam/Allwclean
+@@ -1,6 +1,6 @@
+ #!/bin/sh
+ cd ${0%/*} || exit 1    # run from this directory
+-set -x
++[ -z "$WM_SILENT_RULES" ] && set -x
+ 
+ wclean dragModels
+ wclean
+diff --git a/applications/solvers/lagrangian/DPMFoam/Allwmake b/applications/solvers/lagrangian/DPMFoam/Allwmake
+index 17722925..55121e54 100755
+--- a/applications/solvers/lagrangian/DPMFoam/Allwmake
++++ b/applications/solvers/lagrangian/DPMFoam/Allwmake
+@@ -1,6 +1,6 @@
+ #!/bin/sh
+ cd ${0%/*} || exit 1    # run from this directory
+-set -x
++[ -z "$WM_SILENT_RULES" ] && set -x
+ 
+ wmake dragModels
+ wmake
+diff --git a/applications/solvers/lagrangian/icoUncoupledKinematicParcelFoam/Allwmake b/applications/solvers/lagrangian/icoUncoupledKinematicParcelFoam/Allwmake
+index 845cebd7..69d13764 100755
+--- a/applications/solvers/lagrangian/icoUncoupledKinematicParcelFoam/Allwmake
++++ b/applications/solvers/lagrangian/icoUncoupledKinematicParcelFoam/Allwmake
+@@ -1,6 +1,6 @@
+ #!/bin/sh
+ cd ${0%/*} || exit 1    # run from this directory
+-set -x
++[ -z "$WM_SILENT_RULES" ] && set -x
+ 
+ wmake
+ wmake icoUncoupledKinematicParcelDyMFoam
+diff --git a/applications/solvers/lagrangian/reactingParcelFoam/Allwmake b/applications/solvers/lagrangian/reactingParcelFoam/Allwmake
+index f615df21..b24f69b7 100755
+--- a/applications/solvers/lagrangian/reactingParcelFoam/Allwmake
++++ b/applications/solvers/lagrangian/reactingParcelFoam/Allwmake
+@@ -1,6 +1,6 @@
+ #!/bin/sh
+ cd ${0%/*} || exit 1    # run from this directory
+-set -x
++[ -z "$WM_SILENT_RULES" ] && set -x
+ 
+ wmake
+ wmake simpleReactingParcelFoam
+diff --git a/applications/solvers/lagrangian/sprayFoam/Allwmake b/applications/solvers/lagrangian/sprayFoam/Allwmake
+index 542509db..b62792e4 100755
+--- a/applications/solvers/lagrangian/sprayFoam/Allwmake
++++ b/applications/solvers/lagrangian/sprayFoam/Allwmake
+@@ -1,6 +1,6 @@
+ #!/bin/sh
+ cd ${0%/*} || exit 1    # run from this directory
+-set -x
++[ -z "$WM_SILENT_RULES" ] && set -x
+ 
+ wmake
+ 
+diff --git a/applications/solvers/multiphase/cavitatingFoam/Allwclean b/applications/solvers/multiphase/cavitatingFoam/Allwclean
+index 62548246..a06cc1f0 100755
+--- a/applications/solvers/multiphase/cavitatingFoam/Allwclean
++++ b/applications/solvers/multiphase/cavitatingFoam/Allwclean
+@@ -1,6 +1,6 @@
+ #!/bin/sh
+ cd ${0%/*} || exit 1    # run from this directory
+-set -x
++[ -z "$WM_SILENT_RULES" ] && set -x
+ 
+ wclean
+ wclean cavitatingDyMFoam
+diff --git a/applications/solvers/multiphase/cavitatingFoam/Allwmake b/applications/solvers/multiphase/cavitatingFoam/Allwmake
+index 211c1978..2d4eaa83 100755
+--- a/applications/solvers/multiphase/cavitatingFoam/Allwmake
++++ b/applications/solvers/multiphase/cavitatingFoam/Allwmake
+@@ -1,6 +1,6 @@
+ #!/bin/sh
+ cd ${0%/*} || exit 1    # run from this directory
+-set -x
++[ -z "$WM_SILENT_RULES" ] && set -x
+ 
+ wmake
+ wmake cavitatingDyMFoam
+diff --git a/applications/solvers/multiphase/compressibleInterFoam/Allwclean b/applications/solvers/multiphase/compressibleInterFoam/Allwclean
+index aa0f3c01..2ce4befb 100755
+--- a/applications/solvers/multiphase/compressibleInterFoam/Allwclean
++++ b/applications/solvers/multiphase/compressibleInterFoam/Allwclean
+@@ -1,6 +1,6 @@
+ #!/bin/sh
+ cd ${0%/*} || exit 1    # run from this directory
+-set -x
++[ -z "$WM_SILENT_RULES" ] && set -x
+ 
+ wclean libso twoPhaseMixtureThermo
+ wclean
+diff --git a/applications/solvers/multiphase/compressibleInterFoam/Allwmake b/applications/solvers/multiphase/compressibleInterFoam/Allwmake
+index a93da26c..7a20e329 100755
+--- a/applications/solvers/multiphase/compressibleInterFoam/Allwmake
++++ b/applications/solvers/multiphase/compressibleInterFoam/Allwmake
+@@ -1,6 +1,6 @@
+ #!/bin/sh
+ cd ${0%/*} || exit 1    # run from this directory
+-set -x
++[ -z "$WM_SILENT_RULES" ] && set -x
+ 
+ wmake libso twoPhaseMixtureThermo
+ wmake
+diff --git a/applications/solvers/multiphase/compressibleTwoPhaseEulerFoam/Allwclean b/applications/solvers/multiphase/compressibleTwoPhaseEulerFoam/Allwclean
+index cc138bc0..42d8d983 100755
+--- a/applications/solvers/multiphase/compressibleTwoPhaseEulerFoam/Allwclean
++++ b/applications/solvers/multiphase/compressibleTwoPhaseEulerFoam/Allwclean
+@@ -1,6 +1,6 @@
+ #!/bin/sh
+ cd ${0%/*} || exit 1    # run from this directory
+-set -x
++[ -z "$WM_SILENT_RULES" ] && set -x
+ 
+ wclean libso phaseModel
+ wclean libso interfacialModels
+diff --git a/applications/solvers/multiphase/compressibleTwoPhaseEulerFoam/Allwmake b/applications/solvers/multiphase/compressibleTwoPhaseEulerFoam/Allwmake
+index 29294d16..aca0b8d7 100755
+--- a/applications/solvers/multiphase/compressibleTwoPhaseEulerFoam/Allwmake
++++ b/applications/solvers/multiphase/compressibleTwoPhaseEulerFoam/Allwmake
+@@ -1,6 +1,6 @@
+ #!/bin/sh
+ cd ${0%/*} || exit 1    # run from this directory
+-set -x
++[ -z "$WM_SILENT_RULES" ] && set -x
+ 
+ wmake libso phaseModel
+ wmake libso interfacialModels
+diff --git a/applications/solvers/multiphase/interFoam/Allwclean b/applications/solvers/multiphase/interFoam/Allwclean
+index 8b080006..39e9c740 100755
+--- a/applications/solvers/multiphase/interFoam/Allwclean
++++ b/applications/solvers/multiphase/interFoam/Allwclean
+@@ -1,6 +1,6 @@
+ #!/bin/sh
+ cd ${0%/*} || exit 1    # run from this directory
+-set -x
++[ -z "$WM_SILENT_RULES" ] && set -x
+ 
+ wclean
+ wclean interDyMFoam
+diff --git a/applications/solvers/multiphase/interFoam/Allwmake b/applications/solvers/multiphase/interFoam/Allwmake
+index cc883614..a0b8cea1 100755
+--- a/applications/solvers/multiphase/interFoam/Allwmake
++++ b/applications/solvers/multiphase/interFoam/Allwmake
+@@ -1,6 +1,6 @@
+ #!/bin/sh
+ cd ${0%/*} || exit 1    # run from this directory
+-set -x
++[ -z "$WM_SILENT_RULES" ] && set -x
+ 
+ wmake
+ wmake interDyMFoam
+diff --git a/applications/solvers/multiphase/interFoam/interMixingFoam/incompressibleThreePhaseMixture/threePhaseMixture.C b/applications/solvers/multiphase/interFoam/interMixingFoam/incompressibleThreePhaseMixture/threePhaseMixture.C
+index 4d8ead85..6c7cd896 100644
+--- a/applications/solvers/multiphase/interFoam/interMixingFoam/incompressibleThreePhaseMixture/threePhaseMixture.C
++++ b/applications/solvers/multiphase/interFoam/interMixingFoam/incompressibleThreePhaseMixture/threePhaseMixture.C
+@@ -92,7 +92,7 @@ Foam::threePhaseMixture::threePhaseMixture
+     rho3_(nuModel3_->viscosityProperties().lookup("rho")),
+ 
+     U_(U),
+-    phi_(phi),
++    // phi_(phi),
+ 
+     alpha1_(U_.db().lookupObject<const volScalarField> ("alpha1")),
+     alpha2_(U_.db().lookupObject<const volScalarField> ("alpha2")),
+diff --git a/applications/solvers/multiphase/interFoam/interMixingFoam/incompressibleThreePhaseMixture/threePhaseMixture.H b/applications/solvers/multiphase/interFoam/interMixingFoam/incompressibleThreePhaseMixture/threePhaseMixture.H
+index 67743ad2..e72c0e17 100644
+--- a/applications/solvers/multiphase/interFoam/interMixingFoam/incompressibleThreePhaseMixture/threePhaseMixture.H
++++ b/applications/solvers/multiphase/interFoam/interMixingFoam/incompressibleThreePhaseMixture/threePhaseMixture.H
+@@ -67,7 +67,7 @@ class threePhaseMixture
+         dimensionedScalar rho3_;
+ 
+         const volVectorField& U_;
+-        const surfaceScalarField& phi_;
++        // const surfaceScalarField& phi_;
+ 
+         const volScalarField& alpha1_;
+         const volScalarField& alpha2_;
+diff --git a/applications/solvers/multiphase/interPhaseChangeFoam/Allwclean b/applications/solvers/multiphase/interPhaseChangeFoam/Allwclean
+index 99c52e59..e17cd5aa 100755
+--- a/applications/solvers/multiphase/interPhaseChangeFoam/Allwclean
++++ b/applications/solvers/multiphase/interPhaseChangeFoam/Allwclean
+@@ -1,6 +1,6 @@
+ #!/bin/sh
+ cd ${0%/*} || exit 1    # run from this directory
+-set -x
++[ -z "$WM_SILENT_RULES" ] && set -x
+ 
+ wclean libso phaseChangeTwoPhaseMixtures
+ wclean
+diff --git a/applications/solvers/multiphase/interPhaseChangeFoam/Allwmake b/applications/solvers/multiphase/interPhaseChangeFoam/Allwmake
+index 414ed904..6c35a136 100755
+--- a/applications/solvers/multiphase/interPhaseChangeFoam/Allwmake
++++ b/applications/solvers/multiphase/interPhaseChangeFoam/Allwmake
+@@ -1,6 +1,6 @@
+ #!/bin/sh
+ cd ${0%/*} || exit 1    # run from this directory
+-set -x
++[ -z "$WM_SILENT_RULES" ] && set -x
+ 
+ wmake libso phaseChangeTwoPhaseMixtures
+ wmake
+diff --git a/applications/solvers/multiphase/multiphaseEulerFoam/Allwclean b/applications/solvers/multiphase/multiphaseEulerFoam/Allwclean
+index a1a5b83b..79f4af9e 100755
+--- a/applications/solvers/multiphase/multiphaseEulerFoam/Allwclean
++++ b/applications/solvers/multiphase/multiphaseEulerFoam/Allwclean
+@@ -1,6 +1,6 @@
+ #!/bin/sh
+ cd ${0%/*} || exit 1    # run from this directory
+-set -x
++[ -z "$WM_SILENT_RULES" ] && set -x
+ 
+ wclean libso phaseModel
+ wclean libso multiphaseSystem
+diff --git a/applications/solvers/multiphase/multiphaseEulerFoam/Allwmake b/applications/solvers/multiphase/multiphaseEulerFoam/Allwmake
+index 4ab7ebbf..12d6884a 100755
+--- a/applications/solvers/multiphase/multiphaseEulerFoam/Allwmake
++++ b/applications/solvers/multiphase/multiphaseEulerFoam/Allwmake
+@@ -1,6 +1,6 @@
+ #!/bin/sh
+ cd ${0%/*} || exit 1    # run from this directory
+-set -x
++[ -z "$WM_SILENT_RULES" ] && set -x
+ 
+ wmake libso phaseModel
+ wmake libso interfacialModels
+diff --git a/applications/solvers/multiphase/multiphaseInterFoam/Allwclean b/applications/solvers/multiphase/multiphaseInterFoam/Allwclean
+index 6f55580c..2b7313d3 100755
+--- a/applications/solvers/multiphase/multiphaseInterFoam/Allwclean
++++ b/applications/solvers/multiphase/multiphaseInterFoam/Allwclean
+@@ -1,6 +1,6 @@
+ #!/bin/sh
+ cd ${0%/*} || exit 1    # run from this directory
+-set -x
++[ -z "$WM_SILENT_RULES" ] && set -x
+ 
+ wclean
+ wclean MRFMultiphaseInterFoam
+diff --git a/applications/solvers/multiphase/multiphaseInterFoam/Allwmake b/applications/solvers/multiphase/multiphaseInterFoam/Allwmake
+index 6e47f91d..9b0ba460 100755
+--- a/applications/solvers/multiphase/multiphaseInterFoam/Allwmake
++++ b/applications/solvers/multiphase/multiphaseInterFoam/Allwmake
+@@ -1,6 +1,6 @@
+ #!/bin/sh
+ cd ${0%/*} || exit 1    # run from this directory
+-set -x
++[ -z "$WM_SILENT_RULES" ] && set -x
+ 
+ wmake libso multiphaseMixture
+ wmake
+diff --git a/applications/solvers/multiphase/twoPhaseEulerFoam/Allwclean b/applications/solvers/multiphase/twoPhaseEulerFoam/Allwclean
+index cc138bc0..42d8d983 100755
+--- a/applications/solvers/multiphase/twoPhaseEulerFoam/Allwclean
++++ b/applications/solvers/multiphase/twoPhaseEulerFoam/Allwclean
+@@ -1,6 +1,6 @@
+ #!/bin/sh
+ cd ${0%/*} || exit 1    # run from this directory
+-set -x
++[ -z "$WM_SILENT_RULES" ] && set -x
+ 
+ wclean libso phaseModel
+ wclean libso interfacialModels
+diff --git a/applications/solvers/multiphase/twoPhaseEulerFoam/Allwmake b/applications/solvers/multiphase/twoPhaseEulerFoam/Allwmake
+index 29294d16..aca0b8d7 100755
+--- a/applications/solvers/multiphase/twoPhaseEulerFoam/Allwmake
++++ b/applications/solvers/multiphase/twoPhaseEulerFoam/Allwmake
+@@ -1,6 +1,6 @@
+ #!/bin/sh
+ cd ${0%/*} || exit 1    # run from this directory
+-set -x
++[ -z "$WM_SILENT_RULES" ] && set -x
+ 
+ wmake libso phaseModel
+ wmake libso interfacialModels
+diff --git a/applications/utilities/mesh/conversion/Optional/Allwmake b/applications/utilities/mesh/conversion/Optional/Allwmake
+index 25800377..1afa0291 100755
+--- a/applications/utilities/mesh/conversion/Optional/Allwmake
++++ b/applications/utilities/mesh/conversion/Optional/Allwmake
+@@ -3,7 +3,7 @@
+ # Build optional components (eg, may depend on third-party libraries)
+ # -----------------------------------------------------------------------------
+ cd ${0%/*} || exit 1    # run from this directory
+-set -x
++[ -z "$WM_SILENT_RULES" ] && set -x
+ 
+ # build libccmio and create lnInclude directory
+ $WM_THIRD_PARTY_DIR/AllwmakeLibccmio
+diff --git a/applications/utilities/mesh/conversion/kivaToFoam/readKivaGrid.H b/applications/utilities/mesh/conversion/kivaToFoam/readKivaGrid.H
+index 1a559559..075f2135 100644
+--- a/applications/utilities/mesh/conversion/kivaToFoam/readKivaGrid.H
++++ b/applications/utilities/mesh/conversion/kivaToFoam/readKivaGrid.H
+@@ -426,7 +426,7 @@ if (pFaces[WEDGE].size() && pFaces[WEDGE][0].size())
+         for
+         (
+             ;
+-            iterf != pFaces[WEDGE][0].end(), iterb != pFaces[WEDGE][1].end();
++            iterb != pFaces[WEDGE][1].end();
+             ++iterf, ++iterb
+         )
+         {
+diff --git a/applications/utilities/mesh/generation/Allwmake b/applications/utilities/mesh/generation/Allwmake
+index d557fa34..fabc2db9 100755
+--- a/applications/utilities/mesh/generation/Allwmake
++++ b/applications/utilities/mesh/generation/Allwmake
+@@ -1,6 +1,6 @@
+ #!/bin/sh
+ cd ${0%/*} || exit 1    # run from this directory
+-set -x
++[ -z "$WM_SILENT_RULES" ] && set -x
+ 
+ wmake blockMesh
+ wmake all extrude
+diff --git a/applications/utilities/mesh/generation/extrude/Allwclean b/applications/utilities/mesh/generation/extrude/Allwclean
+index 253b4b4d..b4ece2d7 100755
+--- a/applications/utilities/mesh/generation/extrude/Allwclean
++++ b/applications/utilities/mesh/generation/extrude/Allwclean
+@@ -1,6 +1,6 @@
+ #!/bin/sh
+ cd ${0%/*} || exit 1    # run from this directory
+-set -x
++[ -z "$WM_SILENT_RULES" ] && set -x
+ 
+ wclean extrudeMesh
+ wclean extrudeToRegionMesh
+diff --git a/applications/utilities/mesh/generation/extrude/Allwmake b/applications/utilities/mesh/generation/extrude/Allwmake
+index 3fd3d231..1b22d901 100755
+--- a/applications/utilities/mesh/generation/extrude/Allwmake
++++ b/applications/utilities/mesh/generation/extrude/Allwmake
+@@ -1,6 +1,6 @@
+ #!/bin/sh
+ cd ${0%/*} || exit 1    # run from this directory
+-set -x
++[ -z "$WM_SILENT_RULES" ] && set -x
+ 
+ wmake extrudeMesh
+ wmake extrudeToRegionMesh
+diff --git a/applications/utilities/mesh/generation/extrude2DMesh/Allwclean b/applications/utilities/mesh/generation/extrude2DMesh/Allwclean
+index 44537ed6..75594be1 100755
+--- a/applications/utilities/mesh/generation/extrude2DMesh/Allwclean
++++ b/applications/utilities/mesh/generation/extrude2DMesh/Allwclean
+@@ -1,6 +1,6 @@
+ #!/bin/sh
+ cd ${0%/*} || exit 1    # run from this directory
+-set -x
++[ -z "$WM_SILENT_RULES" ] && set -x
+ 
+ wclean libso extrude2DMesh
+ wclean
+diff --git a/applications/utilities/mesh/generation/extrude2DMesh/Allwmake b/applications/utilities/mesh/generation/extrude2DMesh/Allwmake
+index 6f54612f..d731c1e2 100755
+--- a/applications/utilities/mesh/generation/extrude2DMesh/Allwmake
++++ b/applications/utilities/mesh/generation/extrude2DMesh/Allwmake
+@@ -1,6 +1,6 @@
+ #!/bin/sh
+ cd ${0%/*} || exit 1    # run from this directory
+-set -x
++[ -z "$WM_SILENT_RULES" ] && set -x
+ 
+ wmake libso extrude2DMesh
+ wmake
 diff --git a/applications/utilities/mesh/generation/snappyHexMesh/Make/options b/applications/utilities/mesh/generation/snappyHexMesh/Make/options
-index af056ec..77451ed 100644
+index af056ec7..77451ed0 100644
 --- a/applications/utilities/mesh/generation/snappyHexMesh/Make/options
 +++ b/applications/utilities/mesh/generation/snappyHexMesh/Make/options
 @@ -1,5 +1,4 @@
@@ -233,7 +831,7 @@ index af056ec..77451ed 100644
      -I$(LIB_SRC)/mesh/autoMesh/lnInclude \
      -I$(LIB_SRC)/meshTools/lnInclude \
 diff --git a/applications/utilities/mesh/manipulation/renumberMesh/Allwmake b/applications/utilities/mesh/manipulation/renumberMesh/Allwmake
-index 2509145..7af6387 100755
+index 25091457..7af63875 100755
 --- a/applications/utilities/mesh/manipulation/renumberMesh/Allwmake
 +++ b/applications/utilities/mesh/manipulation/renumberMesh/Allwmake
 @@ -4,15 +4,18 @@ cd ${0%/*} || exit 1    # run from this directory
@@ -260,7 +858,7 @@ index 2509145..7af6387 100755
      export LINK_FLAGS="${LINK_FLAGS} -lzoltanRenumber -L${ZOLTAN_ARCH_PATH}/lib -lzoltan"
  fi
 diff --git a/applications/utilities/mesh/manipulation/renumberMesh/Make/options b/applications/utilities/mesh/manipulation/renumberMesh/Make/options
-index 49a1c3d..882d1e4 100644
+index 49a1c3d2..882d1e43 100644
 --- a/applications/utilities/mesh/manipulation/renumberMesh/Make/options
 +++ b/applications/utilities/mesh/manipulation/renumberMesh/Make/options
 @@ -1,5 +1,4 @@
@@ -270,7 +868,7 @@ index 49a1c3d..882d1e4 100644
      -I$(LIB_SRC)/meshTools/lnInclude \
      -I$(LIB_SRC)/dynamicMesh/lnInclude \
 diff --git a/applications/utilities/miscellaneous/foamDebugSwitches/Make/options b/applications/utilities/miscellaneous/foamDebugSwitches/Make/options
-index 43f0c24..262b4c3 100644
+index 43f0c24c..262b4c35 100644
 --- a/applications/utilities/miscellaneous/foamDebugSwitches/Make/options
 +++ b/applications/utilities/miscellaneous/foamDebugSwitches/Make/options
 @@ -42,10 +42,8 @@ EXE_LIBS = \
@@ -285,7 +883,7 @@ index 43f0c24..262b4c3 100644
      -lradiationModels \
      -lrandomProcesses \
 diff --git a/applications/utilities/postProcessing/dataConversion/foamToEnsight/Make/options b/applications/utilities/postProcessing/dataConversion/foamToEnsight/Make/options
-index 7799242..b4382c4 100644
+index 77992428..b4382c4d 100644
 --- a/applications/utilities/postProcessing/dataConversion/foamToEnsight/Make/options
 +++ b/applications/utilities/postProcessing/dataConversion/foamToEnsight/Make/options
 @@ -1,5 +1,4 @@
@@ -294,13 +892,133 @@ index 7799242..b4382c4 100644
      -I$(LIB_SRC)/finiteVolume/lnInclude \
      -I$(LIB_SRC)/meshTools/lnInclude \
      -I$(LIB_SRC)/sampling/lnInclude \
+diff --git a/applications/utilities/postProcessing/dataConversion/foamToVTK/surfaceMeshWriter.C b/applications/utilities/postProcessing/dataConversion/foamToVTK/surfaceMeshWriter.C
+index dc37b02d..cffc6cc4 100644
+--- a/applications/utilities/postProcessing/dataConversion/foamToVTK/surfaceMeshWriter.C
++++ b/applications/utilities/postProcessing/dataConversion/foamToVTK/surfaceMeshWriter.C
+@@ -37,7 +37,6 @@ Foam::surfaceMeshWriter::surfaceMeshWriter
+     const fileName& fName
+ )
+ :
+-    vMesh_(vMesh),
+     binary_(binary),
+     pp_(pp),
+     fName_(fName),
+diff --git a/applications/utilities/postProcessing/dataConversion/foamToVTK/surfaceMeshWriter.H b/applications/utilities/postProcessing/dataConversion/foamToVTK/surfaceMeshWriter.H
+index 66bfbdb9..651c5280 100644
+--- a/applications/utilities/postProcessing/dataConversion/foamToVTK/surfaceMeshWriter.H
++++ b/applications/utilities/postProcessing/dataConversion/foamToVTK/surfaceMeshWriter.H
+@@ -58,7 +58,7 @@ class volPointInterpolation;
+ 
+ class surfaceMeshWriter
+ {
+-    const vtkMesh& vMesh_;
++    // const vtkMesh& vMesh_;
+ 
+     const bool binary_;
+ 
+diff --git a/applications/utilities/postProcessing/graphics/PV3Readers/Allwclean b/applications/utilities/postProcessing/graphics/PV3Readers/Allwclean
+index b867e563..d1668b19 100755
+--- a/applications/utilities/postProcessing/graphics/PV3Readers/Allwclean
++++ b/applications/utilities/postProcessing/graphics/PV3Readers/Allwclean
+@@ -1,6 +1,6 @@
+ #!/bin/sh
+ cd ${0%/*} || exit 1    # run from this directory
+-set -x
++[ -z "$WM_SILENT_RULES" ] && set -x
+ 
+ wclean libso vtkPV3Readers
+ PV3blockMeshReader/Allwclean
+diff --git a/applications/utilities/postProcessing/graphics/PV3Readers/Allwmake b/applications/utilities/postProcessing/graphics/PV3Readers/Allwmake
+index 1568f8af..1d3df641 100755
+--- a/applications/utilities/postProcessing/graphics/PV3Readers/Allwmake
++++ b/applications/utilities/postProcessing/graphics/PV3Readers/Allwmake
+@@ -1,6 +1,6 @@
+ #!/bin/sh
+ cd ${0%/*} || exit 1    # run from this directory
+-#set -x
++[ -z "$WM_SILENT_RULES" ] && set -x
+ 
+ if [ -d "$ParaView_DIR" -a -r "$ParaView_DIR" ]
+ then
+diff --git a/applications/utilities/postProcessing/graphics/PV3Readers/PV3FoamReader/Allwclean b/applications/utilities/postProcessing/graphics/PV3Readers/PV3FoamReader/Allwclean
+index c5f41ab9..c6f5b870 100755
+--- a/applications/utilities/postProcessing/graphics/PV3Readers/PV3FoamReader/Allwclean
++++ b/applications/utilities/postProcessing/graphics/PV3Readers/PV3FoamReader/Allwclean
+@@ -1,6 +1,6 @@
+ #!/bin/sh
+ cd ${0%/*} || exit 1    # run from this directory
+-set -x
++[ -z "$WM_SILENT_RULES" ] && set -x
+ 
+ # deal with client/server vs combined plugins
+ rm -f $FOAM_LIBBIN/libPV3FoamReader* 2>/dev/null
+diff --git a/applications/utilities/postProcessing/graphics/PV3Readers/PV3FoamReader/Allwmake b/applications/utilities/postProcessing/graphics/PV3Readers/PV3FoamReader/Allwmake
+index c99e05fd..6b8e6ede 100755
+--- a/applications/utilities/postProcessing/graphics/PV3Readers/PV3FoamReader/Allwmake
++++ b/applications/utilities/postProcessing/graphics/PV3Readers/PV3FoamReader/Allwmake
+@@ -1,6 +1,6 @@
+ #!/bin/sh
+ cd ${0%/*} || exit 1    # run from this directory
+-set -x
++[ -z "$WM_SILENT_RULES" ] && set -x
+ 
+ if [ -d "$ParaView_DIR" -a -r "$ParaView_DIR" ]
+ then
+diff --git a/applications/utilities/postProcessing/graphics/PV3Readers/PV3blockMeshReader/Allwclean b/applications/utilities/postProcessing/graphics/PV3Readers/PV3blockMeshReader/Allwclean
+index d2c85df0..eaf225ca 100755
+--- a/applications/utilities/postProcessing/graphics/PV3Readers/PV3blockMeshReader/Allwclean
++++ b/applications/utilities/postProcessing/graphics/PV3Readers/PV3blockMeshReader/Allwclean
+@@ -1,6 +1,6 @@
+ #!/bin/sh
+ cd ${0%/*} || exit 1    # run from this directory
+-set -x
++[ -z "$WM_SILENT_RULES" ] && set -x
+ 
+ # deal with client/server vs combined plugins
+ rm -f $FOAM_LIBBIN/libPV3blockMeshReader*  2>/dev/null
+diff --git a/applications/utilities/postProcessing/graphics/PV3Readers/PV3blockMeshReader/Allwmake b/applications/utilities/postProcessing/graphics/PV3Readers/PV3blockMeshReader/Allwmake
+index 4f055b3c..bd68d579 100755
+--- a/applications/utilities/postProcessing/graphics/PV3Readers/PV3blockMeshReader/Allwmake
++++ b/applications/utilities/postProcessing/graphics/PV3Readers/PV3blockMeshReader/Allwmake
+@@ -1,6 +1,6 @@
+ #!/bin/sh
+ cd ${0%/*} || exit 1    # run from this directory
+-set -x
++[ -z "$WM_SILENT_RULES" ] && set -x
+ 
+ if [ -d "$ParaView_DIR" -a -r "$ParaView_DIR" ]
+ then
+diff --git a/applications/utilities/preProcessing/wallFunctionTable/Allwmake b/applications/utilities/preProcessing/wallFunctionTable/Allwmake
+index 55a6cbd3..b37a733b 100755
+--- a/applications/utilities/preProcessing/wallFunctionTable/Allwmake
++++ b/applications/utilities/preProcessing/wallFunctionTable/Allwmake
+@@ -1,6 +1,6 @@
+ #!/bin/sh
+ cd ${0%/*} || exit 1    # run from this directory
+-set -x
++[ -z "$WM_SILENT_RULES" ] && set -x
+ 
+ wmake libso tabulatedWallFunction
+ wmake
 diff --git a/applications/utilities/surface/surfaceFeatureExtract/Allwmake b/applications/utilities/surface/surfaceFeatureExtract/Allwmake
-index 2b9a927..58dd7d6 100755
+index 2b9a927d..f0092c32 100755
 --- a/applications/utilities/surface/surfaceFeatureExtract/Allwmake
 +++ b/applications/utilities/surface/surfaceFeatureExtract/Allwmake
-@@ -9,15 +9,29 @@ then
+@@ -1,27 +1,48 @@
+ #!/bin/sh
+ cd ${0%/*} || exit 1    # run from this directory
+ 
+-set -x
++[ -z "$WM_SILENT_RULES" ] && set -x
+ 
+ if [ -n "$CGAL_ARCH_PATH" ]
+ then
++    [ -z "$WM_SILENT_RULES" ] && {
+     echo
      echo "Compiling surfaceFeatureExtract with CGAL curvature support"
      echo
++    }
  
 -    wmake "ENABLE_CURVATURE=-DENABLE_CURVATURE \
 -           EXE_FROUNDING_MATH=-frounding-math \
@@ -313,16 +1031,19 @@ index 2b9a927..58dd7d6 100755
 -           CGAL_MPFR_LIB=-lmpfr"
 +	if [ "$(uname -s)" = "Darwin" ]
 +    then
-+		wmake "ENABLE_CURVATURE=-DENABLE_CURVATURE \
-+			EXE_FROUNDING_MATH= \
++		WM_FLAGS="ENABLE_CURVATURE=-DENABLE_CURVATURE \
++            EXE_FROUNDING_MATH= \
 +			USE_F2C=-DCGAL_USE_F2C \
 +			CGAL_LIBDIR=-L$CGAL_ARCH_PATH/lib \
-+            EIGEN3_LIBDIR=-L$ENGEN_ARCH_PATH/lib \
++            EIGEN3_LIBDIR=-L$EIGEN_ARCH_PATH/lib \
 +			LAPACK_LIB=-llapack \
 +			BLAS_LIB=-lblas \
 +			CGAL_LIB=-lCGAL \
 +			CGAL_BOOST_LIB=-lboost_thread-mt \
 +			CGAL_MPFR_LIB=-lmpfr"
++        [ -d "$CGAL_ARCH_PATH/include/CGAL/Lapack" ] \
++            && WM_FLAGS="$WM_FLAGS -DCGAL_HAS_LAPACK"
++        wmake "$WM_FLAGS"
 +	else
 +		wmake "ENABLE_CURVATURE=-DENABLE_CURVATURE \
 +			EXE_FROUNDING_MATH=-frounding-math \
@@ -335,10 +1056,16 @@ index 2b9a927..58dd7d6 100755
 +			CGAL_MPFR_LIB=-lmpfr"
 +	fi
  else
++    [ -z "$WM_SILENT_RULES" ] && {
      echo
      echo "Compiling surfaceFeatureExtract without CGAL curvature support"
+     echo
++    }
+ 
+     wmake
+ fi
 diff --git a/applications/utilities/surface/surfaceFeatureExtract/Make/options b/applications/utilities/surface/surfaceFeatureExtract/Make/options
-index 461cec9..8ab9849 100644
+index 461cec9f..8ab9849e 100644
 --- a/applications/utilities/surface/surfaceFeatureExtract/Make/options
 +++ b/applications/utilities/surface/surfaceFeatureExtract/Make/options
 @@ -1,4 +1,4 @@
@@ -348,18 +1075,30 @@ index 461cec9..8ab9849 100644
  EXE_INC = \
      ${ENABLE_CURVATURE}\
 diff --git a/applications/utilities/surface/surfaceFeatureExtract/surfaceFeatureExtract.C b/applications/utilities/surface/surfaceFeatureExtract/surfaceFeatureExtract.C
-index 87350c4..e2176e2 100644
+index 87350c4c..74d0f584 100644
 --- a/applications/utilities/surface/surfaceFeatureExtract/surfaceFeatureExtract.C
 +++ b/applications/utilities/surface/surfaceFeatureExtract/surfaceFeatureExtract.C
-@@ -50,6 +50,7 @@ Description
+@@ -48,11 +48,14 @@ Description
+ #include "plane.H"
+ 
  #ifdef ENABLE_CURVATURE
- #include "buildCGALPolyhedron.H"
- #include "CGALPolyhedronRings.H"
-+#define CGAL_EIGEN3_ENABLED
- #include <CGAL/Monge_via_jet_fitting.h>
- #include <CGAL/Lapack/Linear_algebra_lapack.h>
- #include <CGAL/property_map.h>
-@@ -82,7 +83,8 @@ scalarField calcCurvature(const triSurface& surf)
+-#include "buildCGALPolyhedron.H"
+-#include "CGALPolyhedronRings.H"
+-#include <CGAL/Monge_via_jet_fitting.h>
+-#include <CGAL/Lapack/Linear_algebra_lapack.h>
+-#include <CGAL/property_map.h>
++#   include "buildCGALPolyhedron.H"
++#   include "CGALPolyhedronRings.H"
++#   define CGAL_EIGEN3_ENABLED
++#   include <CGAL/Monge_via_jet_fitting.h>
++#   ifdef CGAL_HAS_LAPACK
++#       include <CGAL/Lapack/Linear_algebra_lapack.h>
++#   endif
++#   include <CGAL/property_map.h>
+ #endif
+ 
+ using namespace Foam;
+@@ -82,7 +85,8 @@ scalarField calcCurvature(const triSurface& surf)
          Vertex_PM_type;
      typedef T_PolyhedralSurf_rings<Polyhedron, Vertex_PM_type > Poly_rings;
  
@@ -369,8 +1108,22 @@ index 87350c4..e2176e2 100644
      typedef Monge_via_jet_fitting::Monge_form           Monge_form;
  
      std::vector<Point_3> in_points;  //container for data points
+diff --git a/bin/foamEtcFile b/bin/foamEtcFile
+index a0816714..daf64671 100755
+--- a/bin/foamEtcFile
++++ b/bin/foamEtcFile
+@@ -120,6 +120,9 @@ openfoam[0-9]*)     # debian naming convention 'openfoam<VERSION>'
+         ;;
+     esac
+     ;;
++[0-9][0-9]* | [0-9][0-9]*.[0-9][0-9]*)  # version naming scheme
++    version="$projectDirName"
++    ;;
+ 
+ *)
+     echo "Error : unknown/unsupported naming convention"
 diff --git a/bin/foamInstallationTest b/bin/foamInstallationTest
-index fe72e8c..9870a35 100755
+index fe72e8ce..9870a35d 100755
 --- a/bin/foamInstallationTest
 +++ b/bin/foamInstallationTest
 @@ -42,8 +42,8 @@ fatalError=0
@@ -468,7 +1221,7 @@ index fe72e8c..9870a35 100755
      reportExecutable tar
  else
 diff --git a/bin/foamJob b/bin/foamJob
-index 20793c3..5a35f18 100755
+index 20793c3d..5a35f186 100755
 --- a/bin/foamJob
 +++ b/bin/foamJob
 @@ -247,6 +247,14 @@ then
@@ -487,7 +1240,7 @@ index 20793c3..5a35f18 100755
      # run (on single processor)
      #
 diff --git a/bin/paraFoam b/bin/paraFoam
-index d288e3f..6e46cdd 100755
+index d288e3fb..6e46cdd1 100755
 --- a/bin/paraFoam
 +++ b/bin/paraFoam
 @@ -68,9 +68,15 @@ unset regionName optTouch
@@ -509,7 +1262,7 @@ index d288e3f..6e46cdd 100755
  # parse options
  while [ "$#" -gt 0 ]
 diff --git a/bin/tools/RunFunctions b/bin/tools/RunFunctions
-index 3632a62..bc33826 100644
+index 3632a62d..bc33826b 100644
 --- a/bin/tools/RunFunctions
 +++ b/bin/tools/RunFunctions
 @@ -28,75 +28,142 @@
@@ -683,7 +1436,7 @@ index 3632a62..bc33826 100644
 +# vim: set ft=sh:
  #------------------------------------------------------------------------------
 diff --git a/bin/tools/replaceAllShellSun b/bin/tools/replaceAllShellSun
-index d5a0d8d..b57271e 100755
+index d5a0d8db..b57271e8 100755
 --- a/bin/tools/replaceAllShellSun
 +++ b/bin/tools/replaceAllShellSun
 @@ -1,6 +1,6 @@
@@ -694,10 +1447,44 @@ index d5a0d8d..b57271e 100755
  if [ $# -ne 1 -o ! -d "$1" ]
  then
      echo "Usage: ${0##*/} <dir>"
+diff --git a/doc/Allwmake b/doc/Allwmake
+index 5d8ed9c5..dff41f26 100755
+--- a/doc/Allwmake
++++ b/doc/Allwmake
+@@ -1,6 +1,6 @@
+ #!/bin/sh
+ cd ${0%/*} || exit 1    # run from this directory
+-set -x
++[ -z "$WM_SILENT_RULES" ] && set -x
+ 
+ # fix permissions (NB: '+X' and not '+x'!)
+ chmod a+rX $WM_PROJECT_DIR $WM_PROJECT_DIR/doc Doxygen
+diff --git a/doc/Doxygen/Allwmake b/doc/Doxygen/Allwmake
+index fbc20d93..fde5e5cc 100755
+--- a/doc/Doxygen/Allwmake
++++ b/doc/Doxygen/Allwmake
+@@ -8,7 +8,7 @@ cd ${0%/*} || exit 1    # run from this directory
+     exit 1
+ }
+ 
+-set -x
++[ -z "$WM_SILENT_RULES" ] && set -x
+ 
+ rm -rf latex man
+ 
 diff --git a/etc/bashrc b/etc/bashrc
-index 0f0ff50..6031298 100644
+index 0f0ff507..d400eb71 100644
 --- a/etc/bashrc
 +++ b/etc/bashrc
+@@ -81,7 +81,7 @@ export WM_COMPILE_OPTION=Opt
+ #- MPI implementation:
+ #    WM_MPLIB = SYSTEMOPENMPI | OPENMPI | MPICH | MPICH-GM | HPMPI
+ #               | GAMMA | MPI | QSMPI | SGIMPI
+-export WM_MPLIB=OPENMPI
++export WM_MPLIB=SYSTEMOPENMPI
+ 
+ #- Operating System:
+ #    WM_OSTYPE = POSIX | ???
 @@ -104,7 +104,7 @@ export FOAM_SIGFPE=
  foamOldDirs="$FOAM_INST_DIR $WM_PROJECT_SITE $HOME/$WM_PROJECT/$USER"
  if [ "$WM_PROJECT_INST_DIR" != "$FOAM_INST_DIR" ]
@@ -900,7 +1687,7 @@ index 0f0ff50..6031298 100644
  
 diff --git a/etc/config/paraview-osx.sh b/etc/config/paraview-osx.sh
 new file mode 100644
-index 0000000..8a45da2
+index 00000000..8a45da2a
 --- /dev/null
 +++ b/etc/config/paraview-osx.sh
 @@ -0,0 +1,15 @@
@@ -920,7 +1707,7 @@ index 0000000..8a45da2
 +	echo
 +fi
 diff --git a/etc/config/scotch.sh b/etc/config/scotch.sh
-index 1ee06e8..d1aed11 100644
+index 1ee06e80..d1aed11f 100644
 --- a/etc/config/scotch.sh
 +++ b/etc/config/scotch.sh
 @@ -33,7 +33,17 @@
@@ -944,7 +1731,7 @@ index 1ee06e8..d1aed11 100644
  
  # -----------------------------------------------------------------------------
 diff --git a/etc/config/settings.sh b/etc/config/settings.sh
-index 5a77479..bc7be6d 100644
+index 5a77479b..bc7be6da 100644
 --- a/etc/config/settings.sh
 +++ b/etc/config/settings.sh
 @@ -45,7 +45,12 @@ _foamAddLib()
@@ -1101,10 +1888,10 @@ index 5a77479..bc7be6d 100644
  
  # ----------------------------------------------------------------- end-of-file
 diff --git a/src/Allwmake b/src/Allwmake
-index 55b8981..8c59a57 100755
+index 55b8981c..a12f14f6 100755
 --- a/src/Allwmake
 +++ b/src/Allwmake
-@@ -9,11 +9,13 @@ wmakeCheckPwd "$WM_PROJECT_DIR/src" || {
+@@ -9,13 +9,15 @@ wmakeCheckPwd "$WM_PROJECT_DIR/src" || {
      exit 1
  }
  
@@ -1113,6 +1900,8 @@ index 55b8981..8c59a57 100755
 -    echo "    Check the OpenFOAM entries in your dot-files and source them."
 -    exit 1
 -}
+-
+-set -x
 +if [ "$(uname -s)" != "Darwin" ]; then
 +	[ -n "$FOAM_EXT_LIBBIN" ] || {
 +		echo "Error: FOAM_EXT_LIBBIN not set"
@@ -1120,11 +1909,13 @@ index 55b8981..8c59a57 100755
 +		exit 1
 +	}
 +fi
++
++[ -z "$WM_SILENT_RULES" ] && set -x
  
- set -x
- 
+ # update OpenFOAM version strings if required
+ wmakePrintBuild -check || /bin/rm -f OpenFOAM/Make/*/global.? 2>/dev/null
 diff --git a/src/OSspecific/POSIX/POSIX.C b/src/OSspecific/POSIX/POSIX.C
-index 9207781..4afd9b1 100644
+index 92077811..4afd9b12 100644
 --- a/src/OSspecific/POSIX/POSIX.C
 +++ b/src/OSspecific/POSIX/POSIX.C
 @@ -53,7 +53,11 @@ Description
@@ -1194,7 +1985,7 @@ index 9207781..4afd9b1 100644
  
  void Foam::osRandomSeed(const label seed)
 diff --git a/src/OSspecific/POSIX/clockTime/clockTime.H b/src/OSspecific/POSIX/clockTime/clockTime.H
-index 8708ba9..65f046c 100644
+index 8708ba94..65f046c1 100644
 --- a/src/OSspecific/POSIX/clockTime/clockTime.H
 +++ b/src/OSspecific/POSIX/clockTime/clockTime.H
 @@ -37,6 +37,9 @@ SourceFiles
@@ -1208,7 +1999,7 @@ index 8708ba9..65f046c 100644
  // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
  
 diff --git a/src/OSspecific/POSIX/fileStat.C b/src/OSspecific/POSIX/fileStat.C
-index bf04835..8a3c796 100644
+index bf04835f..8a3c7967 100644
 --- a/src/OSspecific/POSIX/fileStat.C
 +++ b/src/OSspecific/POSIX/fileStat.C
 @@ -29,7 +29,9 @@ License
@@ -1222,7 +2013,7 @@ index bf04835..8a3c796 100644
  // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
  
 diff --git a/src/OSspecific/POSIX/printStack.C b/src/OSspecific/POSIX/printStack.C
-index 4a3859d..506e72c 100644
+index 4a3859dc..506e72cd 100644
 --- a/src/OSspecific/POSIX/printStack.C
 +++ b/src/OSspecific/POSIX/printStack.C
 @@ -2,7 +2,7 @@
@@ -1685,7 +2476,7 @@ index 4a3859d..506e72c 100644
 -
  // ************************************************************************* //
 diff --git a/src/OSspecific/POSIX/signals/sigFpe.C b/src/OSspecific/POSIX/signals/sigFpe.C
-index 501ff95..8f503d6 100644
+index 501ff95c..8f503d60 100644
 --- a/src/OSspecific/POSIX/signals/sigFpe.C
 +++ b/src/OSspecific/POSIX/signals/sigFpe.C
 @@ -44,12 +44,43 @@ License
@@ -1841,7 +2632,7 @@ index 501ff95..8f503d6 100644
          if (verbose)
          {
 diff --git a/src/OSspecific/POSIX/signals/sigFpe.H b/src/OSspecific/POSIX/signals/sigFpe.H
-index b7fdec8..c36885b 100644
+index b7fdec8d..c36885b6 100644
 --- a/src/OSspecific/POSIX/signals/sigFpe.H
 +++ b/src/OSspecific/POSIX/signals/sigFpe.H
 @@ -53,6 +53,10 @@ SourceFiles
@@ -1882,7 +2673,7 @@ index b7fdec8..c36885b 100644
          //- Handler for caught signals
          static void sigHandler(int);
 diff --git a/src/OpenFOAM/containers/Lists/CompactListList/CompactListListI.H b/src/OpenFOAM/containers/Lists/CompactListList/CompactListListI.H
-index 91987ac..9691c49 100644
+index 91987aca..9691c490 100644
 --- a/src/OpenFOAM/containers/Lists/CompactListList/CompactListListI.H
 +++ b/src/OpenFOAM/containers/Lists/CompactListList/CompactListListI.H
 @@ -79,7 +79,7 @@ template<class T, class Container>
@@ -1895,7 +2686,7 @@ index 91987ac..9691c49 100644
  
  
 diff --git a/src/OpenFOAM/containers/Lists/FixedList/FixedListI.H b/src/OpenFOAM/containers/Lists/FixedList/FixedListI.H
-index 6538319..af877eb 100644
+index 65383193..af877eba 100644
 --- a/src/OpenFOAM/containers/Lists/FixedList/FixedListI.H
 +++ b/src/OpenFOAM/containers/Lists/FixedList/FixedListI.H
 @@ -107,7 +107,7 @@ Foam::FixedList<T, Size>::clone() const
@@ -1908,7 +2699,7 @@ index 6538319..af877eb 100644
  
  
 diff --git a/src/OpenFOAM/containers/Lists/List/ListI.H b/src/OpenFOAM/containers/Lists/List/ListI.H
-index 26c65bd..2c759b4 100644
+index 26c65bd3..2c759b4d 100644
 --- a/src/OpenFOAM/containers/Lists/List/ListI.H
 +++ b/src/OpenFOAM/containers/Lists/List/ListI.H
 @@ -42,7 +42,7 @@ inline Foam::autoPtr<Foam::List<T> > Foam::List<T>::clone() const
@@ -1921,7 +2712,7 @@ index 26c65bd..2c759b4 100644
  
  
 diff --git a/src/OpenFOAM/containers/Lists/SubList/SubListI.H b/src/OpenFOAM/containers/Lists/SubList/SubListI.H
-index 36fc5a4..09b40d8 100644
+index 36fc5a4a..09b40d86 100644
 --- a/src/OpenFOAM/containers/Lists/SubList/SubListI.H
 +++ b/src/OpenFOAM/containers/Lists/SubList/SubListI.H
 @@ -74,7 +74,7 @@ inline Foam::SubList<T>::SubList
@@ -1934,7 +2725,7 @@ index 36fc5a4..09b40d8 100644
  
  
 diff --git a/src/OpenFOAM/containers/Lists/UList/UList.H b/src/OpenFOAM/containers/Lists/UList/UList.H
-index 06ef4cb..1e782e0 100644
+index 06ef4cbb..1e782e01 100644
 --- a/src/OpenFOAM/containers/Lists/UList/UList.H
 +++ b/src/OpenFOAM/containers/Lists/UList/UList.H
 @@ -42,6 +42,7 @@ SourceFiles
@@ -1946,7 +2737,7 @@ index 06ef4cb..1e782e0 100644
  #include "label.H"
  #include "uLabel.H"
 diff --git a/src/OpenFOAM/containers/Lists/UList/UListI.H b/src/OpenFOAM/containers/Lists/UList/UListI.H
-index 3994b3d..a1c92bc 100644
+index 3994b3de..a1c92bcd 100644
 --- a/src/OpenFOAM/containers/Lists/UList/UListI.H
 +++ b/src/OpenFOAM/containers/Lists/UList/UListI.H
 @@ -50,7 +50,7 @@ inline Foam::UList<T>::UList(T* __restrict__ v, label size)
@@ -1958,8 +2749,53 @@ index 3994b3d..a1c92bc 100644
  }
  
  
+diff --git a/src/OpenFOAM/db/IOobject/IOobject.H b/src/OpenFOAM/db/IOobject/IOobject.H
+index 7b9d73ee..4a13ed9f 100644
+--- a/src/OpenFOAM/db/IOobject/IOobject.H
++++ b/src/OpenFOAM/db/IOobject/IOobject.H
+@@ -375,7 +375,7 @@ public:
+ 
+             //- Write the standard end file divider
+             template<class Stream>
+-            static inline Stream& writeEndDivider(Stream& os);
++            static inline Stream& writeEndDivider(Stream& os, bool noHint=false);
+ 
+             //- Write header
+             bool writeHeader(Ostream&) const;
+diff --git a/src/OpenFOAM/db/IOobject/IOobjectI.H b/src/OpenFOAM/db/IOobject/IOobjectI.H
+index ea0d6550..bfe402fe 100644
+--- a/src/OpenFOAM/db/IOobject/IOobjectI.H
++++ b/src/OpenFOAM/db/IOobject/IOobjectI.H
+@@ -91,14 +91,22 @@ inline Stream& Foam::IOobject::writeDivider(Stream& os)
+ }
+ 
+ template<class Stream>
+-inline Stream& Foam::IOobject::writeEndDivider(Stream& os)
++inline Stream& Foam::IOobject::writeEndDivider(Stream& os, bool noHint)
+ {
+-    os  << "\n\n"
+-        "// *****************************************"
+-        "******************************** //\n";
++    if (noHint)
++    {
++        os  << "\n\n"
++            "// *****************************************"
++            "******************************** //\n";
++    }
++    else
++    {
++        os  << "\n\n"
++            "// **************************** vi: set ft=foam: "
++            "*************************** //\n";
++    }
+ 
+     return os;
+ }
+ 
+-
+ // ************************************************************************* //
 diff --git a/src/OpenFOAM/db/IOstreams/Pstreams/gatherScatter.C b/src/OpenFOAM/db/IOstreams/Pstreams/gatherScatter.C
-index 33c7581..5fd597e 100644
+index 33c7581f..5fd597ef 100644
 --- a/src/OpenFOAM/db/IOstreams/Pstreams/gatherScatter.C
 +++ b/src/OpenFOAM/db/IOstreams/Pstreams/gatherScatter.C
 @@ -29,6 +29,9 @@ Description
@@ -1973,7 +2809,7 @@ index 33c7581..5fd597e 100644
  #include "OPstream.H"
  #include "UIPstream.H"
 diff --git a/src/OpenFOAM/db/dictionary/functionEntries/codeStream/codeStream.C b/src/OpenFOAM/db/dictionary/functionEntries/codeStream/codeStream.C
-index 1c774c3..bdc7b8b 100644
+index 1c774c35..bdc7b8b9 100644
 --- a/src/OpenFOAM/db/dictionary/functionEntries/codeStream/codeStream.C
 +++ b/src/OpenFOAM/db/dictionary/functionEntries/codeStream/codeStream.C
 @@ -24,6 +24,9 @@ License
@@ -1987,7 +2823,7 @@ index 1c774c3..bdc7b8b 100644
  #include "IStringStream.H"
  #include "OStringStream.H"
 diff --git a/src/OpenFOAM/db/dynamicLibrary/dynamicCode/dynamicCode.C b/src/OpenFOAM/db/dynamicLibrary/dynamicCode/dynamicCode.C
-index 2f97577..026519c 100644
+index 2f975771..026519c2 100644
 --- a/src/OpenFOAM/db/dynamicLibrary/dynamicCode/dynamicCode.C
 +++ b/src/OpenFOAM/db/dynamicLibrary/dynamicCode/dynamicCode.C
 @@ -334,7 +334,11 @@ Foam::fileName Foam::dynamicCode::codeRelPath() const
@@ -2003,7 +2839,7 @@ index 2f97577..026519c 100644
  
  
 diff --git a/src/OpenFOAM/db/dynamicLibrary/dynamicCode/dynamicCode.H b/src/OpenFOAM/db/dynamicLibrary/dynamicCode/dynamicCode.H
-index 852ba6d..cecf678 100644
+index 852ba6d9..cecf678c 100644
 --- a/src/OpenFOAM/db/dynamicLibrary/dynamicCode/dynamicCode.H
 +++ b/src/OpenFOAM/db/dynamicLibrary/dynamicCode/dynamicCode.H
 @@ -221,7 +221,11 @@ public:
@@ -2019,7 +2855,7 @@ index 852ba6d..cecf678 100644
  
          //- Path for specified code name relative to \$FOAM_CASE
 diff --git a/src/OpenFOAM/db/objectRegistry/objectRegistryTemplates.C b/src/OpenFOAM/db/objectRegistry/objectRegistryTemplates.C
-index 483e1c2..3d495af 100644
+index 483e1c24..3d495af6 100644
 --- a/src/OpenFOAM/db/objectRegistry/objectRegistryTemplates.C
 +++ b/src/OpenFOAM/db/objectRegistry/objectRegistryTemplates.C
 @@ -170,7 +170,7 @@ const Type& Foam::objectRegistry::lookupObject(const word& name) const
@@ -2032,7 +2868,7 @@ index 483e1c2..3d495af 100644
  
  
 diff --git a/src/OpenFOAM/fields/DimensionedFields/DimensionedField/DimensionedFieldI.H b/src/OpenFOAM/fields/DimensionedFields/DimensionedField/DimensionedFieldI.H
-index 05a8a31..6d3c9a1 100644
+index 05a8a311..6d3c9a1c 100644
 --- a/src/OpenFOAM/fields/DimensionedFields/DimensionedField/DimensionedFieldI.H
 +++ b/src/OpenFOAM/fields/DimensionedFields/DimensionedField/DimensionedFieldI.H
 @@ -34,7 +34,7 @@ template<class Type, class GeoMesh>
@@ -2045,7 +2881,7 @@ index 05a8a31..6d3c9a1 100644
  
  
 diff --git a/src/OpenFOAM/fields/DimensionedFields/DimensionedField/SubDimensionedFieldI.H b/src/OpenFOAM/fields/DimensionedFields/DimensionedField/SubDimensionedFieldI.H
-index 7cfdc97..9f75b5f 100644
+index 7cfdc972..9f75b5fb 100644
 --- a/src/OpenFOAM/fields/DimensionedFields/DimensionedField/SubDimensionedFieldI.H
 +++ b/src/OpenFOAM/fields/DimensionedFields/DimensionedField/SubDimensionedFieldI.H
 @@ -80,7 +80,7 @@ template<class Type, class GeoMesh>
@@ -2058,7 +2894,7 @@ index 7cfdc97..9f75b5f 100644
  
  
 diff --git a/src/OpenFOAM/fields/Fields/Field/Field.C b/src/OpenFOAM/fields/Fields/Field/Field.C
-index 334eba8..3e7d1dd 100644
+index 334eba8e..3e7d1dd6 100644
 --- a/src/OpenFOAM/fields/Fields/Field/Field.C
 +++ b/src/OpenFOAM/fields/Fields/Field/Field.C
 @@ -402,7 +402,7 @@ void Foam::Field<Type>::map
@@ -2080,7 +2916,7 @@ index 334eba8..3e7d1dd 100644
          )
       || (!mapper.direct() && mapper.addressing().size())
 diff --git a/src/OpenFOAM/fields/Fields/Field/Field.H b/src/OpenFOAM/fields/Fields/Field/Field.H
-index 9b4088a..f56170e 100644
+index 9b4088a4..f56170ea 100644
 --- a/src/OpenFOAM/fields/Fields/Field/Field.H
 +++ b/src/OpenFOAM/fields/Fields/Field/Field.H
 @@ -100,7 +100,7 @@ public:
@@ -2093,7 +2929,7 @@ index 9b4088a..f56170e 100644
  
  
 diff --git a/src/OpenFOAM/fields/Fields/Field/SubFieldI.H b/src/OpenFOAM/fields/Fields/Field/SubFieldI.H
-index d6c28d0..e2326cc 100644
+index d6c28d07..e2326cc2 100644
 --- a/src/OpenFOAM/fields/Fields/Field/SubFieldI.H
 +++ b/src/OpenFOAM/fields/Fields/Field/SubFieldI.H
 @@ -84,7 +84,7 @@ inline Foam::SubField<Type>::SubField
@@ -2106,7 +2942,7 @@ index d6c28d0..e2326cc 100644
  
  
 diff --git a/src/OpenFOAM/fields/GeometricFields/GeometricField/GeometricFieldI.H b/src/OpenFOAM/fields/GeometricFields/GeometricField/GeometricFieldI.H
-index 49fd3c8..12ce96a 100644
+index 49fd3c85..12ce96ab 100644
 --- a/src/OpenFOAM/fields/GeometricFields/GeometricField/GeometricFieldI.H
 +++ b/src/OpenFOAM/fields/GeometricFields/GeometricField/GeometricFieldI.H
 @@ -29,7 +29,7 @@ template<class Type, template<class> class PatchField, class GeoMesh>
@@ -2119,7 +2955,7 @@ index 49fd3c8..12ce96a 100644
  
  
 diff --git a/src/OpenFOAM/global/foamDoc.H b/src/OpenFOAM/global/foamDoc.H
-index 1dbd19f..f3b4b28 100644
+index 1dbd19ff..f3b4b280 100644
 --- a/src/OpenFOAM/global/foamDoc.H
 +++ b/src/OpenFOAM/global/foamDoc.H
 @@ -46,7 +46,7 @@ License
@@ -2132,7 +2968,7 @@ index 1dbd19f..f3b4b28 100644
          a suite of test cases that highlight a broad cross-section of
          OpenFOAM's capabilities
 diff --git a/src/OpenFOAM/global/global.Cver b/src/OpenFOAM/global/global.Cver
-index ea711ef..b898715 100644
+index ea711ef8..b898715f 100644
 --- a/src/OpenFOAM/global/global.Cver
 +++ b/src/OpenFOAM/global/global.Cver
 @@ -42,6 +42,8 @@ const char* const Foam::FOAMbuild = "BUILD_STRING";
@@ -2145,7 +2981,7 @@ index ea711ef..b898715 100644
  // Global IO streams
  
 diff --git a/src/OpenFOAM/matrices/Matrix/MatrixI.H b/src/OpenFOAM/matrices/Matrix/MatrixI.H
-index a3604b2..49aa369 100644
+index a3604b27..49aa369f 100644
 --- a/src/OpenFOAM/matrices/Matrix/MatrixI.H
 +++ b/src/OpenFOAM/matrices/Matrix/MatrixI.H
 @@ -47,7 +47,7 @@ clone() const
@@ -2158,7 +2994,7 @@ index a3604b2..49aa369 100644
  
  
 diff --git a/src/OpenFOAM/memory/Xfer/XferI.H b/src/OpenFOAM/memory/Xfer/XferI.H
-index 3cb5077..490ee69 100644
+index 3cb50772..490ee69f 100644
 --- a/src/OpenFOAM/memory/Xfer/XferI.H
 +++ b/src/OpenFOAM/memory/Xfer/XferI.H
 @@ -23,12 +23,14 @@ License
@@ -2178,7 +3014,7 @@ index 3cb5077..490ee69 100644
  
  
 diff --git a/src/OpenFOAM/meshes/meshShapes/cellShape/cellShapeIO.C b/src/OpenFOAM/meshes/meshShapes/cellShape/cellShapeIO.C
-index 2733291..25528fc 100644
+index 27332911..25528fcf 100644
 --- a/src/OpenFOAM/meshes/meshShapes/cellShape/cellShapeIO.C
 +++ b/src/OpenFOAM/meshes/meshShapes/cellShape/cellShapeIO.C
 @@ -128,7 +128,7 @@ Ostream& operator<<(Ostream& os, const InfoProxy<cellShape>& ip)
@@ -2191,7 +3027,7 @@ index 2733291..25528fc 100644
          os  << "    cellShape has no model!\n";
      }
 diff --git a/src/OpenFOAM/meshes/polyMesh/polyMesh.C b/src/OpenFOAM/meshes/polyMesh/polyMesh.C
-index 9b0d11a..aad7729 100644
+index 9b0d11ac..aad77293 100644
 --- a/src/OpenFOAM/meshes/polyMesh/polyMesh.C
 +++ b/src/OpenFOAM/meshes/polyMesh/polyMesh.C
 @@ -675,23 +675,23 @@ void Foam::polyMesh::resetPrimitives
@@ -2223,7 +3059,7 @@ index 9b0d11a..aad7729 100644
          neighbour_.transfer(neighbour());
      }
 diff --git a/src/OpenFOAM/primitives/Scalar/doubleFloat.H b/src/OpenFOAM/primitives/Scalar/doubleFloat.H
-index 57373e0..69ce1a5 100644
+index 57373e0b..69ce1a5f 100644
 --- a/src/OpenFOAM/primitives/Scalar/doubleFloat.H
 +++ b/src/OpenFOAM/primitives/Scalar/doubleFloat.H
 @@ -31,6 +31,15 @@ License
@@ -2244,7 +3080,7 @@ index 57373e0..69ce1a5 100644
  namespace Foam
 diff --git a/src/OpenFOAM/primitives/nullObject/nullObject.C b/src/OpenFOAM/primitives/nullObject/nullObject.C
 new file mode 100644
-index 0000000..cfcbfdf
+index 00000000..cfcbfdf1
 --- /dev/null
 +++ b/src/OpenFOAM/primitives/nullObject/nullObject.C
 @@ -0,0 +1,34 @@
@@ -2284,7 +3120,7 @@ index 0000000..cfcbfdf
 +// ************************************************************************* //
 diff --git a/src/OpenFOAM/primitives/nullObject/nullObject.H b/src/OpenFOAM/primitives/nullObject/nullObject.H
 new file mode 100644
-index 0000000..d324a92
+index 00000000..d324a925
 --- /dev/null
 +++ b/src/OpenFOAM/primitives/nullObject/nullObject.H
 @@ -0,0 +1,110 @@
@@ -2400,7 +3236,7 @@ index 0000000..d324a92
 +// ************************************************************************* //
 diff --git a/src/OpenFOAM/primitives/nullObject/nullObjectI.H b/src/OpenFOAM/primitives/nullObject/nullObjectI.H
 new file mode 100644
-index 0000000..4f8fbc1
+index 00000000..4f8fbc1f
 --- /dev/null
 +++ b/src/OpenFOAM/primitives/nullObject/nullObjectI.H
 @@ -0,0 +1,65 @@
@@ -2469,8 +3305,77 @@ index 0000000..4f8fbc1
 +
 +
 +// ************************************************************************* //
+diff --git a/src/Pstream/Allwmake b/src/Pstream/Allwmake
+index 50ccb5fe..e2fdfc26 100755
+--- a/src/Pstream/Allwmake
++++ b/src/Pstream/Allwmake
+@@ -10,30 +10,32 @@ makeType=${1:-libso}
+ #
+ wmakeMpiLib()
+ {
+-    set +x
++    [ -z "$WM_SILENT_RULES" ] && set +x
+     for libName
+     do
+     (
+         WM_OPTIONS="$WM_OPTIONS$WM_MPLIB"
+         whichmpi="$libName/Make/$WM_OPTIONS/using:$FOAM_MPI"
+         [ -e "$whichmpi" ] || wclean $libName
+-        echo "wmake $makeType $libName"
++        [ -z "$WM_SILENT_RULES" ] && echo "wmake $makeType $libName"
+         wmake $makeType $libName
+         touch "$whichmpi"
+     )
+     done
+-    set -x
++    [ -z "$WM_SILENT_RULES" ] && set -x
+ }
+ 
+-set -x
++[ -z "$WM_SILENT_RULES" ] && set -x
+ wmake $makeType dummy
+ 
+ case "$WM_MPLIB" in
+ *MPI*)
+-    set +x
++    [ -z "$WM_SILENT_RULES" ] && set +x
++    [ -z "$WM_SILENT_RULES" ] && {
+     echo
+     echo "Note: ignore spurious warnings about missing mpicxx.h headers"
+     echo
++    }
+     wmakeMpiLib mpi
+     ;;
+ 
+diff --git a/src/Pstream/mpi/Make/options b/src/Pstream/mpi/Make/options
+index 74b66596..60bb85af 100644
+--- a/src/Pstream/mpi/Make/options
++++ b/src/Pstream/mpi/Make/options
+@@ -1,5 +1,9 @@
+ sinclude $(GENERAL_RULES)/mplib$(WM_MPLIB)
+ sinclude $(RULES)/mplib$(WM_MPLIB)
+ 
++ifneq ($(WM_SILENT_RULES),)
++c++FLAGS += -w
++endif
++
+ EXE_INC  = $(PFLAGS) $(PINC)
+ LIB_LIBS = $(PLIBS)
+diff --git a/src/conversion/Allwmake b/src/conversion/Allwmake
+index 014885de..0137b992 100755
+--- a/src/conversion/Allwmake
++++ b/src/conversion/Allwmake
+@@ -1,7 +1,7 @@
+ #!/bin/sh
+ cd ${0%/*} || exit 1    # run from this directory
+ makeType=${1:-libso}
+-set -x
++[ -z "$WM_SILENT_RULES" ] && set -x
+ 
+ wmake $makeType
+ 
 diff --git a/src/conversion/ensight/part/ensightPartCells.C b/src/conversion/ensight/part/ensightPartCells.C
-index 80f0cdc..beb2d54 100644
+index 80f0cdc4..beb2d546 100644
 --- a/src/conversion/ensight/part/ensightPartCells.C
 +++ b/src/conversion/ensight/part/ensightPartCells.C
 @@ -67,7 +67,7 @@ void Foam::ensightPartCells::classify
@@ -2483,7 +3388,7 @@ index 80f0cdc..beb2d54 100644
          limited = true;
          size_ = idList.size();
 diff --git a/src/conversion/ensight/part/ensightPartIO.C b/src/conversion/ensight/part/ensightPartIO.C
-index 7fe2e6e..6d827d7 100644
+index 7fe2e6ea..6d827d7e 100644
 --- a/src/conversion/ensight/part/ensightPartIO.C
 +++ b/src/conversion/ensight/part/ensightPartIO.C
 @@ -59,7 +59,7 @@ void Foam::ensightPart::writeFieldList
@@ -2495,8 +3400,21 @@ index 7fe2e6e..6d827d7 100644
      {
          forAll(idList, i)
          {
+diff --git a/src/dummyThirdParty/Allwmake b/src/dummyThirdParty/Allwmake
+index d747a472..938d1691 100755
+--- a/src/dummyThirdParty/Allwmake
++++ b/src/dummyThirdParty/Allwmake
+@@ -1,7 +1,7 @@
+ #!/bin/sh
+ cd ${0%/*} || exit 1    # run from this directory
+ makeType=${1:-libso}
+-set -x
++[ -z "$WM_SILENT_RULES" ] && set -x
+ 
+ wmake $makeType scotchDecomp
+ wmake $makeType ptscotchDecomp
 diff --git a/src/dummyThirdParty/metisDecomp/metis.h b/src/dummyThirdParty/metisDecomp/metis.h
-index 7b6ca31..c5adaad 100644
+index 7b6ca31f..c5adaad0 100644
 --- a/src/dummyThirdParty/metisDecomp/metis.h
 +++ b/src/dummyThirdParty/metisDecomp/metis.h
 @@ -11,7 +11,7 @@
@@ -2535,7 +3453,7 @@ index 7b6ca31..c5adaad 100644
  
  
 diff --git a/src/edgeMesh/edgeMesh.C b/src/edgeMesh/edgeMesh.C
-index 7e2a397..fa00fe7 100644
+index 7e2a3972..fa00fe7a 100644
 --- a/src/edgeMesh/edgeMesh.C
 +++ b/src/edgeMesh/edgeMesh.C
 @@ -182,12 +182,12 @@ void Foam::edgeMesh::reset
@@ -2554,7 +3472,7 @@ index 7e2a397..fa00fe7 100644
          edges_.transfer(edgeLst());
  
 diff --git a/src/finiteVolume/cfdTools/general/porosityModel/DarcyForchheimer/DarcyForchheimer.C b/src/finiteVolume/cfdTools/general/porosityModel/DarcyForchheimer/DarcyForchheimer.C
-index d70c040..0374f95 100644
+index d70c040c..0374f953 100644
 --- a/src/finiteVolume/cfdTools/general/porosityModel/DarcyForchheimer/DarcyForchheimer.C
 +++ b/src/finiteVolume/cfdTools/general/porosityModel/DarcyForchheimer/DarcyForchheimer.C
 @@ -150,7 +150,7 @@ void Foam::porosityModels::DarcyForchheimer::correct
@@ -2576,7 +3494,7 @@ index d70c040..0374f95 100644
  }
  
 diff --git a/src/finiteVolume/cfdTools/general/porosityModel/DarcyForchheimer/DarcyForchheimer.H b/src/finiteVolume/cfdTools/general/porosityModel/DarcyForchheimer/DarcyForchheimer.H
-index 5110792..2f6f00b 100644
+index 51107928..2f6f00b2 100644
 --- a/src/finiteVolume/cfdTools/general/porosityModel/DarcyForchheimer/DarcyForchheimer.H
 +++ b/src/finiteVolume/cfdTools/general/porosityModel/DarcyForchheimer/DarcyForchheimer.H
 @@ -170,7 +170,7 @@ public:
@@ -2589,7 +3507,7 @@ index 5110792..2f6f00b 100644
  
  
 diff --git a/src/finiteVolume/cfdTools/general/porosityModel/fixedCoeff/fixedCoeff.C b/src/finiteVolume/cfdTools/general/porosityModel/fixedCoeff/fixedCoeff.C
-index bcc8554..e63b203 100644
+index bcc8554d..e63b2031 100644
 --- a/src/finiteVolume/cfdTools/general/porosityModel/fixedCoeff/fixedCoeff.C
 +++ b/src/finiteVolume/cfdTools/general/porosityModel/fixedCoeff/fixedCoeff.C
 @@ -202,7 +202,7 @@ void Foam::porosityModels::fixedCoeff::correct
@@ -2611,7 +3529,7 @@ index bcc8554..e63b203 100644
  }
  
 diff --git a/src/finiteVolume/cfdTools/general/porosityModel/fixedCoeff/fixedCoeff.H b/src/finiteVolume/cfdTools/general/porosityModel/fixedCoeff/fixedCoeff.H
-index 1581318..345f0b6 100644
+index 15813183..345f0b6c 100644
 --- a/src/finiteVolume/cfdTools/general/porosityModel/fixedCoeff/fixedCoeff.H
 +++ b/src/finiteVolume/cfdTools/general/porosityModel/fixedCoeff/fixedCoeff.H
 @@ -147,7 +147,7 @@ public:
@@ -2624,7 +3542,7 @@ index 1581318..345f0b6 100644
  
  
 diff --git a/src/finiteVolume/cfdTools/general/porosityModel/porosityModel/porosityModel.C b/src/finiteVolume/cfdTools/general/porosityModel/porosityModel/porosityModel.C
-index f940ff2..5aacf6f 100644
+index f940ff2c..5aacf6fc 100644
 --- a/src/finiteVolume/cfdTools/general/porosityModel/porosityModel/porosityModel.C
 +++ b/src/finiteVolume/cfdTools/general/porosityModel/porosityModel/porosityModel.C
 @@ -187,7 +187,7 @@ void Foam::porosityModel::addResistance
@@ -2637,7 +3555,7 @@ index f940ff2..5aacf6f 100644
  {
      if (cellZoneIds_.empty())
 diff --git a/src/finiteVolume/cfdTools/general/porosityModel/porosityModel/porosityModelList.C b/src/finiteVolume/cfdTools/general/porosityModel/porosityModel/porosityModelList.C
-index df30285..ca38255 100644
+index df302854..ca382557 100644
 --- a/src/finiteVolume/cfdTools/general/porosityModel/porosityModel/porosityModelList.C
 +++ b/src/finiteVolume/cfdTools/general/porosityModel/porosityModel/porosityModelList.C
 @@ -153,7 +153,7 @@ void Foam::porosityModelList::addResistance
@@ -2650,7 +3568,7 @@ index df30285..ca38255 100644
  {
      forAll(*this, i)
 diff --git a/src/finiteVolume/cfdTools/general/porosityModel/powerLaw/powerLaw.C b/src/finiteVolume/cfdTools/general/porosityModel/powerLaw/powerLaw.C
-index 485f0be..b3134ec 100644
+index 485f0beb..b3134ecd 100644
 --- a/src/finiteVolume/cfdTools/general/porosityModel/powerLaw/powerLaw.C
 +++ b/src/finiteVolume/cfdTools/general/porosityModel/powerLaw/powerLaw.C
 @@ -91,7 +91,7 @@ void Foam::porosityModels::powerLaw::correct
@@ -2672,7 +3590,7 @@ index 485f0be..b3134ec 100644
  }
  
 diff --git a/src/finiteVolume/cfdTools/general/porosityModel/powerLaw/powerLaw.H b/src/finiteVolume/cfdTools/general/porosityModel/powerLaw/powerLaw.H
-index 299335b..64fe5ff 100644
+index 299335b7..64fe5ff2 100644
 --- a/src/finiteVolume/cfdTools/general/porosityModel/powerLaw/powerLaw.H
 +++ b/src/finiteVolume/cfdTools/general/porosityModel/powerLaw/powerLaw.H
 @@ -151,7 +151,7 @@ public:
@@ -2685,7 +3603,7 @@ index 299335b..64fe5ff 100644
  
  
 diff --git a/src/finiteVolume/fields/fvPatchFields/basic/fixedGradient/fixedGradientFvPatchField.H b/src/finiteVolume/fields/fvPatchFields/basic/fixedGradient/fixedGradientFvPatchField.H
-index 3d00735..6b9d2a5 100644
+index 3d007354..6b9d2a5d 100644
 --- a/src/finiteVolume/fields/fvPatchFields/basic/fixedGradient/fixedGradientFvPatchField.H
 +++ b/src/finiteVolume/fields/fvPatchFields/basic/fixedGradient/fixedGradientFvPatchField.H
 @@ -47,7 +47,7 @@ Description
@@ -2698,7 +3616,7 @@ index 3d00735..6b9d2a5 100644
  
      Example of the boundary condition specification:
 diff --git a/src/finiteVolume/fields/fvPatchFields/derived/flowRateInletVelocity/flowRateInletVelocityFvPatchVectorField.H b/src/finiteVolume/fields/fvPatchFields/derived/flowRateInletVelocity/flowRateInletVelocityFvPatchVectorField.H
-index 8051261..de5e29d 100644
+index 80512611..de5e29dd 100644
 --- a/src/finiteVolume/fields/fvPatchFields/derived/flowRateInletVelocity/flowRateInletVelocityFvPatchVectorField.H
 +++ b/src/finiteVolume/fields/fvPatchFields/derived/flowRateInletVelocity/flowRateInletVelocityFvPatchVectorField.H
 @@ -71,7 +71,7 @@ Description
@@ -2711,7 +3629,7 @@ index 8051261..de5e29d 100644
      specified as constant, a polynomial fuction of time, and ...
  
 diff --git a/src/finiteVolume/fields/fvPatchFields/derived/inletOutletTotalTemperature/inletOutletTotalTemperatureFvPatchScalarField.H b/src/finiteVolume/fields/fvPatchFields/derived/inletOutletTotalTemperature/inletOutletTotalTemperatureFvPatchScalarField.H
-index 430ee1e..a0923e0 100644
+index 430ee1e5..a0923e05 100644
 --- a/src/finiteVolume/fields/fvPatchFields/derived/inletOutletTotalTemperature/inletOutletTotalTemperatureFvPatchScalarField.H
 +++ b/src/finiteVolume/fields/fvPatchFields/derived/inletOutletTotalTemperature/inletOutletTotalTemperatureFvPatchScalarField.H
 @@ -58,7 +58,7 @@ Description
@@ -2724,7 +3642,7 @@ index 430ee1e..a0923e0 100644
      Foam::inletOutletFvPatchField
  
 diff --git a/src/finiteVolume/fields/fvPatchFields/derived/mappedFixedValue/mappedFixedValueFvPatchField.H b/src/finiteVolume/fields/fvPatchFields/derived/mappedFixedValue/mappedFixedValueFvPatchField.H
-index 011ec5b..fdf1caa 100644
+index 011ec5b2..fdf1caa2 100644
 --- a/src/finiteVolume/fields/fvPatchFields/derived/mappedFixedValue/mappedFixedValueFvPatchField.H
 +++ b/src/finiteVolume/fields/fvPatchFields/derived/mappedFixedValue/mappedFixedValueFvPatchField.H
 @@ -29,11 +29,11 @@ Group
@@ -2742,7 +3660,7 @@ index 011ec5b..fdf1caa 100644
  
      \table
 diff --git a/src/finiteVolume/fields/fvPatchFields/derived/pressureDirectedInletVelocity/pressureDirectedInletVelocityFvPatchVectorField.H b/src/finiteVolume/fields/fvPatchFields/derived/pressureDirectedInletVelocity/pressureDirectedInletVelocityFvPatchVectorField.H
-index c98ad30..de65249 100644
+index c98ad304..de652495 100644
 --- a/src/finiteVolume/fields/fvPatchFields/derived/pressureDirectedInletVelocity/pressureDirectedInletVelocityFvPatchVectorField.H
 +++ b/src/finiteVolume/fields/fvPatchFields/derived/pressureDirectedInletVelocity/pressureDirectedInletVelocityFvPatchVectorField.H
 @@ -54,7 +54,7 @@ Description
@@ -2755,7 +3673,7 @@ index c98ad30..de65249 100644
  
  
 diff --git a/src/finiteVolume/fields/fvPatchFields/derived/rotatingPressureInletOutletVelocity/rotatingPressureInletOutletVelocityFvPatchVectorField.H b/src/finiteVolume/fields/fvPatchFields/derived/rotatingPressureInletOutletVelocity/rotatingPressureInletOutletVelocityFvPatchVectorField.H
-index cc114d7..5bb4074 100644
+index cc114d7c..5bb40741 100644
 --- a/src/finiteVolume/fields/fvPatchFields/derived/rotatingPressureInletOutletVelocity/rotatingPressureInletOutletVelocityFvPatchVectorField.H
 +++ b/src/finiteVolume/fields/fvPatchFields/derived/rotatingPressureInletOutletVelocity/rotatingPressureInletOutletVelocityFvPatchVectorField.H
 @@ -39,7 +39,7 @@ Description
@@ -2777,7 +3695,7 @@ index cc114d7..5bb4074 100644
      \endverbatim
  
 diff --git a/src/finiteVolume/fields/fvPatchFields/derived/rotatingTotalPressure/rotatingTotalPressureFvPatchScalarField.H b/src/finiteVolume/fields/fvPatchFields/derived/rotatingTotalPressure/rotatingTotalPressureFvPatchScalarField.H
-index 22d806c..53f16ff 100644
+index 22d806c3..53f16ffe 100644
 --- a/src/finiteVolume/fields/fvPatchFields/derived/rotatingTotalPressure/rotatingTotalPressureFvPatchScalarField.H
 +++ b/src/finiteVolume/fields/fvPatchFields/derived/rotatingTotalPressure/rotatingTotalPressureFvPatchScalarField.H
 @@ -41,7 +41,7 @@ Description
@@ -2799,7 +3717,7 @@ index 22d806c..53f16ff 100644
      \endverbatim
  
 diff --git a/src/finiteVolume/fields/fvPatchFields/derived/rotatingWallVelocity/rotatingWallVelocityFvPatchVectorField.H b/src/finiteVolume/fields/fvPatchFields/derived/rotatingWallVelocity/rotatingWallVelocityFvPatchVectorField.H
-index a3d5d56..cba0050 100644
+index a3d5d568..cba0050c 100644
 --- a/src/finiteVolume/fields/fvPatchFields/derived/rotatingWallVelocity/rotatingWallVelocityFvPatchVectorField.H
 +++ b/src/finiteVolume/fields/fvPatchFields/derived/rotatingWallVelocity/rotatingWallVelocityFvPatchVectorField.H
 @@ -36,7 +36,7 @@ Description
@@ -2821,7 +3739,7 @@ index a3d5d56..cba0050 100644
      Foam::DataEntry
      Foam::fixedValueFvPatchField
 diff --git a/src/finiteVolume/fields/fvPatchFields/derived/supersonicFreestream/supersonicFreestreamFvPatchVectorField.H b/src/finiteVolume/fields/fvPatchFields/derived/supersonicFreestream/supersonicFreestreamFvPatchVectorField.H
-index 6f6ea27..a00814c 100644
+index 6f6ea27b..a00814c9 100644
 --- a/src/finiteVolume/fields/fvPatchFields/derived/supersonicFreestream/supersonicFreestreamFvPatchVectorField.H
 +++ b/src/finiteVolume/fields/fvPatchFields/derived/supersonicFreestream/supersonicFreestreamFvPatchVectorField.H
 @@ -46,7 +46,7 @@ Description
@@ -2834,7 +3752,7 @@ index 6f6ea27..a00814c 100644
  
      Example of the boundary condition specification:
 diff --git a/src/finiteVolume/fields/fvPatchFields/fvPatchField/fvPatchField.C b/src/finiteVolume/fields/fvPatchFields/fvPatchField/fvPatchField.C
-index e9c5790..1784439 100644
+index e9c57903..17844397 100644
 --- a/src/finiteVolume/fields/fvPatchFields/fvPatchField/fvPatchField.C
 +++ b/src/finiteVolume/fields/fvPatchFields/fvPatchField/fvPatchField.C
 @@ -78,14 +78,14 @@ Foam::fvPatchField<Type>::fvPatchField
@@ -2864,12 +3782,15 @@ index e9c5790..1784439 100644
          )
          {
 diff --git a/src/fvAgglomerationMethods/Allwmake b/src/fvAgglomerationMethods/Allwmake
-index abbcf46..2a07b74 100755
+index abbcf466..de88ae3e 100755
 --- a/src/fvAgglomerationMethods/Allwmake
 +++ b/src/fvAgglomerationMethods/Allwmake
-@@ -3,11 +3,20 @@ cd ${0%/*} || exit 1    # run from this directory
+@@ -1,13 +1,22 @@
+ #!/bin/sh
+ cd ${0%/*} || exit 1    # run from this directory
  makeType=${1:-libso}
- set -x
+-set -x
++[ -z "$WM_SILENT_RULES" ] && set -x
  
 -export ParMGridGen=$WM_THIRD_PARTY_DIR/ParMGridGen-1.0
 +if [ "$(uname -s)" != "Darwin" ]; then
@@ -2893,7 +3814,7 @@ index abbcf46..2a07b74 100755
  
  wmake $makeType pairPatchAgglomeration
 diff --git a/src/fvAgglomerationMethods/MGridGenGamgAgglomeration/Make/options b/src/fvAgglomerationMethods/MGridGenGamgAgglomeration/Make/options
-index a58b65f..44bbdcb 100644
+index a58b65fb..44bbdcb6 100644
 --- a/src/fvAgglomerationMethods/MGridGenGamgAgglomeration/Make/options
 +++ b/src/fvAgglomerationMethods/MGridGenGamgAgglomeration/Make/options
 @@ -5,6 +5,15 @@ TYPE_REAL=
@@ -2918,7 +3839,7 @@ index a58b65f..44bbdcb 100644
      -L$(FOAM_EXT_LIBBIN) -lMGridGen
 +#endif
 diff --git a/src/fvOptions/Make/options b/src/fvOptions/Make/options
-index a98e673..e8de5c7 100644
+index a98e673d..e8de5c7a 100644
 --- a/src/fvOptions/Make/options
 +++ b/src/fvOptions/Make/options
 @@ -13,5 +13,4 @@ LIB_LIBS = \
@@ -2927,8 +3848,21 @@ index a98e673..e8de5c7 100644
      -lmeshTools \
 -    /*-lsolidThermo*/ \
      -lcompressibleTurbulenceModel
+diff --git a/src/lagrangian/Allwmake b/src/lagrangian/Allwmake
+index a4be0856..ad73243a 100755
+--- a/src/lagrangian/Allwmake
++++ b/src/lagrangian/Allwmake
+@@ -1,7 +1,7 @@
+ #!/bin/sh
+ cd ${0%/*} || exit 1    # run from this directory
+ makeType=${1:-libso}
+-set -x
++[ -z "$WM_SILENT_RULES" ] && set -x
+ 
+ wmake $makeType distributionModels
+ wmake $makeType basic
 diff --git a/src/lagrangian/coalCombustion/submodels/surfaceReactionModel/COxidationHurtMitchell/COxidationHurtMitchell.H b/src/lagrangian/coalCombustion/submodels/surfaceReactionModel/COxidationHurtMitchell/COxidationHurtMitchell.H
-index cd78003..dcf71cc 100644
+index cd780032..dcf71cc2 100644
 --- a/src/lagrangian/coalCombustion/submodels/surfaceReactionModel/COxidationHurtMitchell/COxidationHurtMitchell.H
 +++ b/src/lagrangian/coalCombustion/submodels/surfaceReactionModel/COxidationHurtMitchell/COxidationHurtMitchell.H
 @@ -41,7 +41,7 @@ Description
@@ -2941,7 +3875,7 @@ index cd78003..dcf71cc 100644
  \*---------------------------------------------------------------------------*/
  
 diff --git a/src/lagrangian/distributionModels/uniform/uniform.C b/src/lagrangian/distributionModels/uniform/uniform.C
-index 4d1504b..c268166 100644
+index 4d1504b6..c2681665 100644
 --- a/src/lagrangian/distributionModels/uniform/uniform.C
 +++ b/src/lagrangian/distributionModels/uniform/uniform.C
 @@ -47,8 +47,7 @@ Foam::distributionModels::uniform::uniform
@@ -2955,7 +3889,7 @@ index 4d1504b..c268166 100644
      check();
  }
 diff --git a/src/lagrangian/distributionModels/uniform/uniform.H b/src/lagrangian/distributionModels/uniform/uniform.H
-index 5a8f665..524a86f 100644
+index 5a8f6650..524a86fc 100644
 --- a/src/lagrangian/distributionModels/uniform/uniform.H
 +++ b/src/lagrangian/distributionModels/uniform/uniform.H
 @@ -61,7 +61,7 @@ class uniform
@@ -2968,7 +3902,7 @@ index 5a8f665..524a86f 100644
  
  public:
 diff --git a/src/lagrangian/intermediate/submodels/Kinematic/InjectionModel/InjectionModel/InjectionModelList.H b/src/lagrangian/intermediate/submodels/Kinematic/InjectionModel/InjectionModel/InjectionModelList.H
-index 22213e2..6875779 100644
+index 22213e20..68757790 100644
 --- a/src/lagrangian/intermediate/submodels/Kinematic/InjectionModel/InjectionModel/InjectionModelList.H
 +++ b/src/lagrangian/intermediate/submodels/Kinematic/InjectionModel/InjectionModel/InjectionModelList.H
 @@ -89,7 +89,7 @@ public:
@@ -2980,8 +3914,21 @@ index 22213e2..6875779 100644
              //- Volume of parcels to introduce relative to SOI
              scalar volumeToInject(const scalar time0, const scalar time1);
  
+diff --git a/src/lagrangian/molecularDynamics/Allwmake b/src/lagrangian/molecularDynamics/Allwmake
+index 7c17819a..0dbfb47a 100755
+--- a/src/lagrangian/molecularDynamics/Allwmake
++++ b/src/lagrangian/molecularDynamics/Allwmake
+@@ -1,7 +1,7 @@
+ #!/bin/sh
+ cd ${0%/*} || exit 1    # run from this directory
+ makeType=${1:-libso}
+-set -x
++[ -z "$WM_SILENT_RULES" ] && set -x
+ 
+ wmake $makeType potential
+ wmake $makeType molecularMeasurements
 diff --git a/src/lagrangian/spray/submodels/BreakupModel/PilchErdman/PilchErdman.H b/src/lagrangian/spray/submodels/BreakupModel/PilchErdman/PilchErdman.H
-index 69190de..09d1f3f 100644
+index 69190de1..09d1f3fe 100644
 --- a/src/lagrangian/spray/submodels/BreakupModel/PilchErdman/PilchErdman.H
 +++ b/src/lagrangian/spray/submodels/BreakupModel/PilchErdman/PilchErdman.H
 @@ -51,7 +51,7 @@ Description
@@ -2993,8 +3940,21 @@ index 69190de..09d1f3f 100644
  
  \*---------------------------------------------------------------------------*/
  
+diff --git a/src/mesh/Allwmake b/src/mesh/Allwmake
+index 4653b1d3..abb01b19 100755
+--- a/src/mesh/Allwmake
++++ b/src/mesh/Allwmake
+@@ -1,7 +1,7 @@
+ #!/bin/sh
+ cd ${0%/*} || exit 1    # run from this directory
+ makeType=${1:-libso}
+-set -x
++[ -z "$WM_SILENT_RULES" ] && set -x
+ 
+ wmake $makeType autoMesh
+ wmake $makeType blockMesh
 diff --git a/src/meshTools/momentOfInertia/volumeIntegration/volInt.c b/src/meshTools/momentOfInertia/volumeIntegration/volInt.c
-index 7601655..9e8db56 100644
+index 76016554..9e8db568 100644
 --- a/src/meshTools/momentOfInertia/volumeIntegration/volInt.c
 +++ b/src/meshTools/momentOfInertia/volumeIntegration/volInt.c
 @@ -34,8 +34,8 @@
@@ -3086,11 +4046,68 @@ index 7601655..9e8db56 100644
 -  
 +
  }
+diff --git a/src/parallel/Allwmake b/src/parallel/Allwmake
+index ab84e5b7..2b8df74b 100755
+--- a/src/parallel/Allwmake
++++ b/src/parallel/Allwmake
+@@ -1,7 +1,7 @@
+ #!/bin/sh
+ cd ${0%/*} || exit 1    # run from this directory
+ makeType=${1:-libso}
+-set -x
++[ -z "$WM_SILENT_RULES" ] && set -x
+ 
+ decompose/Allwmake $*
+ reconstruct/Allwmake $*
 diff --git a/src/parallel/decompose/Allwmake b/src/parallel/decompose/Allwmake
-index 5cea1fb..2d37549 100755
+index 5cea1fbd..fda7c620 100755
 --- a/src/parallel/decompose/Allwmake
 +++ b/src/parallel/decompose/Allwmake
-@@ -47,13 +47,7 @@ then
+@@ -6,11 +6,15 @@ makeType=${1:-libso}
+ if settings=`$WM_PROJECT_DIR/bin/foamEtcFile config/scotch.sh`
+ then
+     . $settings
++    [ -z "$WM_SILENT_RULES" ] && {
+     echo "using SCOTCH_ARCH_PATH=$SCOTCH_ARCH_PATH"
++    }
+ else
++    [ -z "$WM_SILENT_RULES" ] && {
+     echo
+     echo "Error: no config/scotch.sh settings"
+     echo
++    }
+ fi
+ 
+ 
+@@ -21,7 +25,7 @@ fi
+ #
+ wmakeMpiLib()
+ {
+-    set +x
++    [ -z "$WM_SILENT_RULES" ] && set +x
+     for libName
+     do
+     (
+@@ -29,15 +33,15 @@ wmakeMpiLib()
+         whichmpi="$libName/Make/$WM_OPTIONS/using:$FOAM_MPI"
+         whichscotch="$libName/Make/$WM_OPTIONS/using:$SCOTCH_VERSION"
+         [ -e "$whichmpi" -a -e "$whichscotch" ] || wclean $libName
+-        echo "wmake $makeType $libName"
++        [ -z "$WM_SILENT_RULES" ] && echo "wmake $makeType $libName"
+         wmake $makeType $libName
+         touch "$whichmpi" "$whichscotch"
+     )
+     done
+-    set -x
++    [ -z "$WM_SILENT_RULES" ] && set -x
+ }
+ 
+-set -x
++[ -z "$WM_SILENT_RULES" ] && set -x
+ 
+ wmakeLnInclude decompositionMethods
+ 
+@@ -47,19 +51,15 @@ then
  
      if [ -d "$FOAM_LIBBIN/$FOAM_MPI" ]
      then
@@ -3105,8 +4122,28 @@ index 5cea1fb..2d37549 100755
          wmakeMpiLib ptscotchDecomp
      fi
  else
++    [ -z "$WM_SILENT_RULES" ] && {
+     echo
+     echo "Skipping scotchDecomp (ptscotchDecomp)"
+     echo
++    }
+ fi
+ 
+ wmake $makeType decompositionMethods
+diff --git a/src/parallel/decompose/AllwmakeLnInclude b/src/parallel/decompose/AllwmakeLnInclude
+index c6a537aa..9dbb195f 100755
+--- a/src/parallel/decompose/AllwmakeLnInclude
++++ b/src/parallel/decompose/AllwmakeLnInclude
+@@ -1,6 +1,6 @@
+ #!/bin/sh
+ cd ${0%/*} || exit 1    # run from this directory
+-set -x
++[ -z "$WM_SILENT_RULES" ] && set -x
+ 
+ wmakeLnInclude decompositionMethods
+ wmakeLnInclude metisDecomp
 diff --git a/src/parallel/decompose/ptscotchDecomp/Make/options b/src/parallel/decompose/ptscotchDecomp/Make/options
-index acdebd8..b40b720 100644
+index acdebd89..b40b7201 100644
 --- a/src/parallel/decompose/ptscotchDecomp/Make/options
 +++ b/src/parallel/decompose/ptscotchDecomp/Make/options
 @@ -3,10 +3,12 @@ sinclude $(RULES)/mplib$(WM_MPLIB)
@@ -3127,7 +4164,7 @@ index acdebd8..b40b720 100644
 +LIB_LIBS += -lrt
 +endif
 diff --git a/src/parallel/decompose/scotchDecomp/Make/options b/src/parallel/decompose/scotchDecomp/Make/options
-index 3bb11fb..23701f5 100644
+index 3bb11fba..23701f5d 100644
 --- a/src/parallel/decompose/scotchDecomp/Make/options
 +++ b/src/parallel/decompose/scotchDecomp/Make/options
 @@ -7,10 +7,12 @@ sinclude $(RULES)/mplib$(WM_MPLIB)
@@ -3146,8 +4183,47 @@ index 3bb11fb..23701f5 100644
 +ifneq ($(shell uname -s),Darwin)
 +LIB_LIBS += -lrt
 +endif
+diff --git a/src/parallel/reconstruct/Allwmake b/src/parallel/reconstruct/Allwmake
+index 85e8e972..277117f0 100755
+--- a/src/parallel/reconstruct/Allwmake
++++ b/src/parallel/reconstruct/Allwmake
+@@ -1,7 +1,7 @@
+ #!/bin/sh
+ cd ${0%/*} || exit 1    # run from this directory
+ makeType=${1:-libso}
+-set -x
++[ -z "$WM_SILENT_RULES" ] && set -x
+ 
+ wmake $makeType reconstruct
+ 
+diff --git a/src/postProcessing/Allwmake b/src/postProcessing/Allwmake
+index 24b764c4..a5e7dada 100755
+--- a/src/postProcessing/Allwmake
++++ b/src/postProcessing/Allwmake
+@@ -1,7 +1,7 @@
+ #!/bin/sh
+ cd ${0%/*} || exit 1    # run from this directory
+ makeType=${1:-libso}
+-set -x
++[ -z "$WM_SILENT_RULES" ] && set -x
+ 
+ wmake libo postCalc
+ wmake $makeType foamCalcFunctions
+diff --git a/src/postProcessing/functionObjects/Allwmake b/src/postProcessing/functionObjects/Allwmake
+index 178a1a3c..b8193d41 100755
+--- a/src/postProcessing/functionObjects/Allwmake
++++ b/src/postProcessing/functionObjects/Allwmake
+@@ -1,7 +1,7 @@
+ #!/bin/sh
+ cd ${0%/*} || exit 1    # run from this directory
+ makeType=${1:-libso}
+-set -x
++[ -z "$WM_SILENT_RULES" ] && set -x
+ 
+ wmake $makeType cloud
+ wmake $makeType field
 diff --git a/src/postProcessing/functionObjects/field/fieldValues/faceSource/faceSource.H b/src/postProcessing/functionObjects/field/fieldValues/faceSource/faceSource.H
-index 15efc23..785fcd0 100644
+index 15efc230..785fcd08 100644
 --- a/src/postProcessing/functionObjects/field/fieldValues/faceSource/faceSource.H
 +++ b/src/postProcessing/functionObjects/field/fieldValues/faceSource/faceSource.H
 @@ -211,14 +211,14 @@ private:
@@ -3167,8 +4243,34 @@ index 15efc23..785fcd0 100644
          void combineSurfaceGeometry
          (
              faceList& faces,
+diff --git a/src/regionModels/Allwclean b/src/regionModels/Allwclean
+index f95d816a..a6e0038e 100755
+--- a/src/regionModels/Allwclean
++++ b/src/regionModels/Allwclean
+@@ -1,7 +1,7 @@
+ #!/bin/sh
+ cd ${0%/*} || exit 1    # run from this directory
+ makeType=${1:-libso}
+-set -x
++[ -z "$WM_SILENT_RULES" ] && set -x
+ 
+ wclean $makeType regionModel
+ wclean $makeType pyrolysisModels
+diff --git a/src/regionModels/Allwmake b/src/regionModels/Allwmake
+index 0ca6e633..509ae2e8 100755
+--- a/src/regionModels/Allwmake
++++ b/src/regionModels/Allwmake
+@@ -1,7 +1,7 @@
+ #!/bin/sh
+ cd ${0%/*} || exit 1    # run from this directory
+ makeType=${1:-libso}
+-set -x
++[ -z "$WM_SILENT_RULES" ] && set -x
+ 
+ wmake $makeType regionModel
+ wmake $makeType pyrolysisModels
 diff --git a/src/regionModels/pyrolysisModels/pyrolysisModel/pyrolysisModelCollection.C b/src/regionModels/pyrolysisModels/pyrolysisModel/pyrolysisModelCollection.C
-index d11f2d1..6d0a148 100644
+index d11f2d1a..6d0a1487 100644
 --- a/src/regionModels/pyrolysisModels/pyrolysisModel/pyrolysisModelCollection.C
 +++ b/src/regionModels/pyrolysisModels/pyrolysisModel/pyrolysisModelCollection.C
 @@ -53,7 +53,7 @@ namespace pyrolysisModels
@@ -3181,7 +4283,7 @@ index d11f2d1..6d0a148 100644
      IOdictionary pyrolysisZonesDict
      (
 diff --git a/src/regionModels/pyrolysisModels/pyrolysisModel/pyrolysisModelNew.C b/src/regionModels/pyrolysisModels/pyrolysisModel/pyrolysisModelNew.C
-index 0e1a507..223405f 100644
+index 0e1a5076..223405f2 100644
 --- a/src/regionModels/pyrolysisModels/pyrolysisModel/pyrolysisModelNew.C
 +++ b/src/regionModels/pyrolysisModels/pyrolysisModel/pyrolysisModelNew.C
 @@ -115,7 +115,7 @@ autoPtr<pyrolysisModel> pyrolysisModel::New
@@ -3194,7 +4296,7 @@ index 0e1a507..223405f 100644
              dict,
              regionType
 diff --git a/src/regionModels/thermalBaffleModels/noThermo/noThermo.C b/src/regionModels/thermalBaffleModels/noThermo/noThermo.C
-index e5205db..d603203 100644
+index e5205db4..d603203f 100644
 --- a/src/regionModels/thermalBaffleModels/noThermo/noThermo.C
 +++ b/src/regionModels/thermalBaffleModels/noThermo/noThermo.C
 @@ -151,7 +151,7 @@ const solidThermo& noThermo::thermo() const
@@ -3206,8 +4308,55 @@ index e5205db..d603203 100644
  }
  
  
+diff --git a/src/renumber/Allwmake b/src/renumber/Allwmake
+index d7f72d93..b232945e 100755
+--- a/src/renumber/Allwmake
++++ b/src/renumber/Allwmake
+@@ -2,19 +2,7 @@
+ cd ${0%/*} || exit 1    # run from this directory
+ makeType=${1:-libso}
+ 
+-## get ZOLTAN_ARCH_PATH
+-#if settings=`$WM_PROJECT_DIR/bin/foamEtcFile config/zoltan.sh`
+-#then
+-#    . $settings
+-#    echo "using ZOLTAN_ARCH_PATH=$ZOLTAN_ARCH_PATH"
+-#else
+-#    echo
+-#    echo "Error: no config/zoltan.sh settings"
+-#    echo
+-#fi
+-
+-
+-set -x
++[ -z "$WM_SILENT_RULES" ] && set -x
+ 
+ wmake $makeType renumberMethods
+ 
+@@ -22,19 +10,11 @@ if [ -n "$BOOST_ARCH_PATH" ]
+ then
+     wmake $makeType SloanRenumber
+ else
++    [ -z "$WM_SILENT_RULES" ] && {
+     echo
+     echo "Skipping SloanRenumber"
+     echo
+-fi
+-
+-
+-if [ -n "$ZOLTAN_ARCH_PATH" ]
+-then
+-    wmake $makeType zoltanRenumber
+-else
+-    echo
+-    echo "Skipping zoltanRenumber"
+-    echo
++    }
+ fi
+ 
+ # ----------------------------------------------------------------- end-of-file
 diff --git a/src/renumber/SloanRenumber/Make/options b/src/renumber/SloanRenumber/Make/options
-index 492a3ae..f22a1e6 100644
+index 492a3ae1..f22a1e6c 100644
 --- a/src/renumber/SloanRenumber/Make/options
 +++ b/src/renumber/SloanRenumber/Make/options
 @@ -1,12 +1,17 @@
@@ -3231,7 +4380,7 @@ index 492a3ae..f22a1e6 100644
 +LIB_LIBS += -lboost_thread
 +endif
 diff --git a/src/sampling/cuttingPlane/cuttingPlane.C b/src/sampling/cuttingPlane/cuttingPlane.C
-index 87f004a..03f29dd 100644
+index 87f004a0..03f29dd2 100644
 --- a/src/sampling/cuttingPlane/cuttingPlane.C
 +++ b/src/sampling/cuttingPlane/cuttingPlane.C
 @@ -51,7 +51,7 @@ void Foam::cuttingPlane::calcCutCells
@@ -3262,7 +4411,7 @@ index 87f004a..03f29dd 100644
          MeshStorage::remapFaces(faceMap);
  
 diff --git a/src/sampling/sampledSurface/sampledPatch/sampledPatch.C b/src/sampling/sampledSurface/sampledPatch/sampledPatch.C
-index da2d90c..bbf6290 100644
+index da2d90c9..bbf62902 100644
 --- a/src/sampling/sampledSurface/sampledPatch/sampledPatch.C
 +++ b/src/sampling/sampledSurface/sampledPatch/sampledPatch.C
 @@ -203,7 +203,7 @@ bool Foam::sampledPatch::update()
@@ -3275,7 +4424,7 @@ index da2d90c..bbf6290 100644
          MeshStorage::remapFaces(faceMap);
          patchFaceLabels_ = labelList
 diff --git a/src/sampling/sampledSurface/writers/nastran/nastranSurfaceWriter.C b/src/sampling/sampledSurface/writers/nastran/nastranSurfaceWriter.C
-index eaa16fe..f18c8f1 100644
+index eaa16feb..f18c8f12 100644
 --- a/src/sampling/sampledSurface/writers/nastran/nastranSurfaceWriter.C
 +++ b/src/sampling/sampledSurface/writers/nastran/nastranSurfaceWriter.C
 @@ -111,7 +111,7 @@ void Foam::nastranSurfaceWriter::writeCoord
@@ -3288,7 +4437,7 @@ index eaa16fe..f18c8f1 100644
                  << setw(8) << p.y()
                  << setw(8) << p.z()
 diff --git a/src/surfMesh/MeshedSurface/MeshedSurface.C b/src/surfMesh/MeshedSurface/MeshedSurface.C
-index 43719de..c053662 100644
+index 43719de2..c0536623 100644
 --- a/src/surfMesh/MeshedSurface/MeshedSurface.C
 +++ b/src/surfMesh/MeshedSurface/MeshedSurface.C
 @@ -433,7 +433,7 @@ void Foam::MeshedSurface<Face>::remapFaces
@@ -3370,7 +4519,7 @@ index 43719de..c053662 100644
          faceMapOut.transfer(faceMap);
      }
 diff --git a/src/surfMesh/MeshedSurface/MeshedSurface.H b/src/surfMesh/MeshedSurface/MeshedSurface.H
-index 2170781..f52ca82 100644
+index 2170781d..f52ca824 100644
 --- a/src/surfMesh/MeshedSurface/MeshedSurface.H
 +++ b/src/surfMesh/MeshedSurface/MeshedSurface.H
 @@ -469,7 +469,7 @@ inline label MeshedSurface<triFace>::triangulate()
@@ -3383,7 +4532,7 @@ index 2170781..f52ca82 100644
          faceMap.clear();
      }
 diff --git a/src/surfMesh/MeshedSurfaceAllocator/MeshedSurfaceIOAllocator.C b/src/surfMesh/MeshedSurfaceAllocator/MeshedSurfaceIOAllocator.C
-index 1a97d5d..c8ca9b7 100644
+index 1a97d5d3..c8ca9b79 100644
 --- a/src/surfMesh/MeshedSurfaceAllocator/MeshedSurfaceIOAllocator.C
 +++ b/src/surfMesh/MeshedSurfaceAllocator/MeshedSurfaceIOAllocator.C
 @@ -88,12 +88,12 @@ void Foam::MeshedSurfaceIOAllocator::resetFaces
@@ -3420,7 +4569,7 @@ index 1a97d5d..c8ca9b7 100644
          points_.transfer(points());
      }
 diff --git a/src/surfMesh/UnsortedMeshedSurface/UnsortedMeshedSurface.C b/src/surfMesh/UnsortedMeshedSurface/UnsortedMeshedSurface.C
-index 7f6de73..8c562ef 100644
+index 7f6de730..8c562ef5 100644
 --- a/src/surfMesh/UnsortedMeshedSurface/UnsortedMeshedSurface.C
 +++ b/src/surfMesh/UnsortedMeshedSurface/UnsortedMeshedSurface.C
 @@ -401,7 +401,7 @@ void Foam::UnsortedMeshedSurface<Face>::remapFaces
@@ -3451,7 +4600,7 @@ index 7f6de73..8c562ef 100644
          zoneIds_.transfer(zoneIds());
      }
 diff --git a/src/surfMesh/surfMesh/surfMesh.C b/src/surfMesh/surfMesh/surfMesh.C
-index 88a7427..4740948 100644
+index 88a74271..4740948e 100644
 --- a/src/surfMesh/surfMesh/surfMesh.C
 +++ b/src/surfMesh/surfMesh/surfMesh.C
 @@ -209,7 +209,7 @@ Foam::surfMesh::surfMesh
@@ -3463,8 +4612,34 @@ index 88a7427..4740948 100644
      {
          transfer(surf());
      }
+diff --git a/src/thermophysicalModels/Allwmake b/src/thermophysicalModels/Allwmake
+index dbd8310a..7f97ad67 100755
+--- a/src/thermophysicalModels/Allwmake
++++ b/src/thermophysicalModels/Allwmake
+@@ -1,7 +1,7 @@
+ #!/bin/sh
+ cd ${0%/*} || exit 1    # run from this directory
+ makeType=${1:-libso}
+-set -x
++[ -z "$WM_SILENT_RULES" ] && set -x
+ 
+ wmake $makeType specie
+ wmake $makeType solidSpecie
+diff --git a/src/thermophysicalModels/properties/Allwmake b/src/thermophysicalModels/properties/Allwmake
+index f088d140..eaa7559a 100755
+--- a/src/thermophysicalModels/properties/Allwmake
++++ b/src/thermophysicalModels/properties/Allwmake
+@@ -1,7 +1,7 @@
+ #!/bin/sh
+ cd ${0%/*} || exit 1    # run from this directory
+ makeType=${1:-libso}
+-set -x
++[ -z "$WM_SILENT_RULES" ] && set -x
+ 
+ wmake $makeType liquidProperties
+ wmake $makeType liquidMixtureProperties
 diff --git a/src/thermophysicalModels/reactionThermo/chemistryReaders/chemkinReader/chemkinReader.C b/src/thermophysicalModels/reactionThermo/chemistryReaders/chemkinReader/chemkinReader.C
-index 63dd057..f18daf0 100644
+index 63dd057f..f18daf08 100644
 --- a/src/thermophysicalModels/reactionThermo/chemistryReaders/chemkinReader/chemkinReader.C
 +++ b/src/thermophysicalModels/reactionThermo/chemistryReaders/chemkinReader/chemkinReader.C
 @@ -400,6 +400,14 @@ void Foam::chemkinReader::addPressureDependentReaction
@@ -3491,7 +4666,7 @@ index 63dd057..f18daf0 100644
      }
  }
 diff --git a/src/thermophysicalModels/specie/reaction/Reactions/Reaction/Reaction.C b/src/thermophysicalModels/specie/reaction/Reactions/Reaction/Reaction.C
-index 2a8a5ca..16df3ae 100644
+index 2a8a5ca1..16df3ae9 100644
 --- a/src/thermophysicalModels/specie/reaction/Reactions/Reaction/Reaction.C
 +++ b/src/thermophysicalModels/specie/reaction/Reactions/Reaction/Reaction.C
 @@ -503,7 +503,7 @@ const Foam::speciesTable& Foam::Reaction<ReactionThermo>::gasSpecies() const
@@ -3521,8 +4696,60 @@ index 2a8a5ca..16df3ae 100644
  }
  
  // ************************************************************************* //
+diff --git a/src/transportModels/Allwmake b/src/transportModels/Allwmake
+index 120dfae7..c5110bb3 100755
+--- a/src/transportModels/Allwmake
++++ b/src/transportModels/Allwmake
+@@ -1,7 +1,7 @@
+ #!/bin/sh
+ cd ${0%/*} || exit 1    # run from this directory
+ makeType=${1:-libso}
+-set -x
++[ -z "$WM_SILENT_RULES" ] && set -x
+ 
+ wmake $makeType twoPhaseMixture
+ wmake $makeType interfaceProperties
+diff --git a/src/turbulenceModels/Allwmake b/src/turbulenceModels/Allwmake
+index 3cba27ed..ffdcf0a2 100755
+--- a/src/turbulenceModels/Allwmake
++++ b/src/turbulenceModels/Allwmake
+@@ -1,7 +1,7 @@
+ #!/bin/sh
+ cd ${0%/*} || exit 1    # run from this directory
+ makeType=${1:-libso}
+-set -x
++[ -z "$WM_SILENT_RULES" ] && set -x
+ 
+ LES/Allwmake $*
+ incompressible/Allwmake $*
+diff --git a/src/turbulenceModels/LES/Allwmake b/src/turbulenceModels/LES/Allwmake
+index 6ee54e6c..fa0bae8c 100755
+--- a/src/turbulenceModels/LES/Allwmake
++++ b/src/turbulenceModels/LES/Allwmake
+@@ -1,7 +1,7 @@
+ #!/bin/sh
+ cd ${0%/*} || exit 1    # run from this directory
+ makeType=${1:-libso}
+-set -x
++[ -z "$WM_SILENT_RULES" ] && set -x
+ 
+ wmakeLnInclude ../incompressible/LES
+ 
+diff --git a/src/turbulenceModels/compressible/Allwmake b/src/turbulenceModels/compressible/Allwmake
+index 6e230c01..2b61363b 100755
+--- a/src/turbulenceModels/compressible/Allwmake
++++ b/src/turbulenceModels/compressible/Allwmake
+@@ -1,7 +1,7 @@
+ #!/bin/sh
+ cd ${0%/*} || exit 1    # run from this directory
+ makeType=${1:-libso}
+-set -x
++[ -z "$WM_SILENT_RULES" ] && set -x
+ 
+ wmake $makeType turbulenceModel
+ wmake $makeType RAS
 diff --git a/src/turbulenceModels/compressible/LES/DESModel/DESModelDoc.H b/src/turbulenceModels/compressible/LES/DESModel/DESModelDoc.H
-index e9deb32..e7bb541 100644
+index e9deb320..e7bb541a 100644
 --- a/src/turbulenceModels/compressible/LES/DESModel/DESModelDoc.H
 +++ b/src/turbulenceModels/compressible/LES/DESModel/DESModelDoc.H
 @@ -28,5 +28,5 @@ License
@@ -3533,7 +4760,7 @@ index e9deb32..e7bb541 100644
 +
  \*---------------------------------------------------------------------------*/
 diff --git a/src/turbulenceModels/compressible/LES/GenEddyVisc/GenEddyVisc.H b/src/turbulenceModels/compressible/LES/GenEddyVisc/GenEddyVisc.H
-index d4af6e5..68ce924 100644
+index d4af6e5e..68ce924c 100644
 --- a/src/turbulenceModels/compressible/LES/GenEddyVisc/GenEddyVisc.H
 +++ b/src/turbulenceModels/compressible/LES/GenEddyVisc/GenEddyVisc.H
 @@ -116,7 +116,7 @@ public:
@@ -3546,7 +4773,7 @@ index d4af6e5..68ce924 100644
                          runTime_.timeName(),
                          mesh_,
 diff --git a/src/turbulenceModels/compressible/LES/GenSGSStress/GenSGSStress.H b/src/turbulenceModels/compressible/LES/GenSGSStress/GenSGSStress.H
-index 44eef6d..1e84390 100644
+index 44eef6da..1e84390f 100644
 --- a/src/turbulenceModels/compressible/LES/GenSGSStress/GenSGSStress.H
 +++ b/src/turbulenceModels/compressible/LES/GenSGSStress/GenSGSStress.H
 @@ -117,7 +117,7 @@ public:
@@ -3568,7 +4795,7 @@ index 44eef6d..1e84390 100644
                          runTime_.timeName(),
                          mesh_,
 diff --git a/src/turbulenceModels/compressible/LES/LESModel/LESModelDoc.H b/src/turbulenceModels/compressible/LES/LESModel/LESModelDoc.H
-index ac8c52e..3f1d1c1 100644
+index ac8c52e3..3f1d1c10 100644
 --- a/src/turbulenceModels/compressible/LES/LESModel/LESModelDoc.H
 +++ b/src/turbulenceModels/compressible/LES/LESModel/LESModelDoc.H
 @@ -28,5 +28,5 @@ License
@@ -3579,7 +4806,7 @@ index ac8c52e..3f1d1c1 100644
 +
  \*---------------------------------------------------------------------------*/
 diff --git a/src/turbulenceModels/compressible/RAS/RASModel/RASModelDoc.H b/src/turbulenceModels/compressible/RAS/RASModel/RASModelDoc.H
-index 53757f8..300be13 100644
+index 53757f81..300be13d 100644
 --- a/src/turbulenceModels/compressible/RAS/RASModel/RASModelDoc.H
 +++ b/src/turbulenceModels/compressible/RAS/RASModel/RASModelDoc.H
 @@ -28,5 +28,5 @@ License
@@ -3590,7 +4817,7 @@ index 53757f8..300be13 100644
 +
  \*---------------------------------------------------------------------------*/
 diff --git a/src/turbulenceModels/compressible/RAS/derivedFvPatchFields/turbulentMixingLengthDissipationRateInlet/turbulentMixingLengthDissipationRateInletFvPatchScalarField.H b/src/turbulenceModels/compressible/RAS/derivedFvPatchFields/turbulentMixingLengthDissipationRateInlet/turbulentMixingLengthDissipationRateInletFvPatchScalarField.H
-index 63aa24b..4d0d5f3 100644
+index 63aa24b8..4d0d5f32 100644
 --- a/src/turbulenceModels/compressible/RAS/derivedFvPatchFields/turbulentMixingLengthDissipationRateInlet/turbulentMixingLengthDissipationRateInletFvPatchScalarField.H
 +++ b/src/turbulenceModels/compressible/RAS/derivedFvPatchFields/turbulentMixingLengthDissipationRateInlet/turbulentMixingLengthDissipationRateInletFvPatchScalarField.H
 @@ -36,7 +36,7 @@ Description
@@ -3603,7 +4830,7 @@ index 63aa24b..4d0d5f3 100644
  
      \vartable
 diff --git a/src/turbulenceModels/compressible/RAS/derivedFvPatchFields/turbulentMixingLengthFrequencyInlet/turbulentMixingLengthFrequencyInletFvPatchScalarField.H b/src/turbulenceModels/compressible/RAS/derivedFvPatchFields/turbulentMixingLengthFrequencyInlet/turbulentMixingLengthFrequencyInletFvPatchScalarField.H
-index cafd2d9..0f3484c 100644
+index cafd2d9d..0f3484c7 100644
 --- a/src/turbulenceModels/compressible/RAS/derivedFvPatchFields/turbulentMixingLengthFrequencyInlet/turbulentMixingLengthFrequencyInletFvPatchScalarField.H
 +++ b/src/turbulenceModels/compressible/RAS/derivedFvPatchFields/turbulentMixingLengthFrequencyInlet/turbulentMixingLengthFrequencyInletFvPatchScalarField.H
 @@ -35,7 +35,7 @@ Description
@@ -3616,7 +4843,7 @@ index cafd2d9..0f3484c 100644
  
      \vartable
 diff --git a/src/turbulenceModels/compressible/turbulenceModel/turbulenceModelDoc.H b/src/turbulenceModels/compressible/turbulenceModel/turbulenceModelDoc.H
-index 17bc210..b3bd051 100644
+index 17bc2109..b3bd0519 100644
 --- a/src/turbulenceModels/compressible/turbulenceModel/turbulenceModelDoc.H
 +++ b/src/turbulenceModels/compressible/turbulenceModel/turbulenceModelDoc.H
 @@ -27,5 +27,5 @@ License
@@ -3626,8 +4853,21 @@ index 17bc210..b3bd051 100644
 -    
 +
  \*---------------------------------------------------------------------------*/
+diff --git a/src/turbulenceModels/incompressible/Allwmake b/src/turbulenceModels/incompressible/Allwmake
+index 6e230c01..2b61363b 100755
+--- a/src/turbulenceModels/incompressible/Allwmake
++++ b/src/turbulenceModels/incompressible/Allwmake
+@@ -1,7 +1,7 @@
+ #!/bin/sh
+ cd ${0%/*} || exit 1    # run from this directory
+ makeType=${1:-libso}
+-set -x
++[ -z "$WM_SILENT_RULES" ] && set -x
+ 
+ wmake $makeType turbulenceModel
+ wmake $makeType RAS
 diff --git a/src/turbulenceModels/incompressible/LES/DESModel/DESModelDoc.H b/src/turbulenceModels/incompressible/LES/DESModel/DESModelDoc.H
-index 5311d09..d100318 100644
+index 5311d09d..d100318d 100644
 --- a/src/turbulenceModels/incompressible/LES/DESModel/DESModelDoc.H
 +++ b/src/turbulenceModels/incompressible/LES/DESModel/DESModelDoc.H
 @@ -28,5 +28,5 @@ License
@@ -3638,7 +4878,7 @@ index 5311d09..d100318 100644
 +
  \*---------------------------------------------------------------------------*/
 diff --git a/src/turbulenceModels/incompressible/LES/GenEddyVisc/GenEddyVisc.H b/src/turbulenceModels/incompressible/LES/GenEddyVisc/GenEddyVisc.H
-index e1dc9c2..0cd340a 100644
+index e1dc9c2b..0cd340a3 100644
 --- a/src/turbulenceModels/incompressible/LES/GenEddyVisc/GenEddyVisc.H
 +++ b/src/turbulenceModels/incompressible/LES/GenEddyVisc/GenEddyVisc.H
 @@ -112,7 +112,7 @@ public:
@@ -3651,7 +4891,7 @@ index e1dc9c2..0cd340a 100644
                          runTime_.timeName(),
                          mesh_,
 diff --git a/src/turbulenceModels/incompressible/LES/GenSGSStress/GenSGSStress.H b/src/turbulenceModels/incompressible/LES/GenSGSStress/GenSGSStress.H
-index 4f24f79..8d94ed1 100644
+index 4f24f791..8d94ed19 100644
 --- a/src/turbulenceModels/incompressible/LES/GenSGSStress/GenSGSStress.H
 +++ b/src/turbulenceModels/incompressible/LES/GenSGSStress/GenSGSStress.H
 @@ -112,7 +112,7 @@ public:
@@ -3680,7 +4920,7 @@ index 4f24f79..8d94ed1 100644
                          runTime_.timeName(),
                          mesh_,
 diff --git a/src/turbulenceModels/incompressible/LES/LESModel/LESModelDoc.H b/src/turbulenceModels/incompressible/LES/LESModel/LESModelDoc.H
-index 9b400e2..8784545 100644
+index 9b400e23..87845454 100644
 --- a/src/turbulenceModels/incompressible/LES/LESModel/LESModelDoc.H
 +++ b/src/turbulenceModels/incompressible/LES/LESModel/LESModelDoc.H
 @@ -28,5 +28,5 @@ License
@@ -3691,7 +4931,7 @@ index 9b400e2..8784545 100644
 +
  \*---------------------------------------------------------------------------*/
 diff --git a/src/turbulenceModels/incompressible/RAS/RASModel/RASModelDoc.H b/src/turbulenceModels/incompressible/RAS/RASModel/RASModelDoc.H
-index 2161656..f1bd133 100644
+index 21616566..f1bd133d 100644
 --- a/src/turbulenceModels/incompressible/RAS/RASModel/RASModelDoc.H
 +++ b/src/turbulenceModels/incompressible/RAS/RASModel/RASModelDoc.H
 @@ -28,5 +28,5 @@ License
@@ -3702,7 +4942,7 @@ index 2161656..f1bd133 100644
 +
  \*---------------------------------------------------------------------------*/
 diff --git a/src/turbulenceModels/incompressible/RAS/derivedFvPatchFields/atmBoundaryLayerInletEpsilon/atmBoundaryLayerInletEpsilonFvPatchScalarField.H b/src/turbulenceModels/incompressible/RAS/derivedFvPatchFields/atmBoundaryLayerInletEpsilon/atmBoundaryLayerInletEpsilonFvPatchScalarField.H
-index b94500a..b5f7c71 100644
+index b94500ae..b5f7c71a 100644
 --- a/src/turbulenceModels/incompressible/RAS/derivedFvPatchFields/atmBoundaryLayerInletEpsilon/atmBoundaryLayerInletEpsilonFvPatchScalarField.H
 +++ b/src/turbulenceModels/incompressible/RAS/derivedFvPatchFields/atmBoundaryLayerInletEpsilon/atmBoundaryLayerInletEpsilonFvPatchScalarField.H
 @@ -45,7 +45,7 @@ Description
@@ -3715,7 +4955,7 @@ index b94500a..b5f7c71 100644
  
          \f[
 diff --git a/src/turbulenceModels/incompressible/RAS/derivedFvPatchFields/turbulentHeatFluxTemperature/turbulentHeatFluxTemperatureFvPatchScalarField.H b/src/turbulenceModels/incompressible/RAS/derivedFvPatchFields/turbulentHeatFluxTemperature/turbulentHeatFluxTemperatureFvPatchScalarField.H
-index 59b8106..68b6b2c 100644
+index 59b8106d..68b6b2c0 100644
 --- a/src/turbulenceModels/incompressible/RAS/derivedFvPatchFields/turbulentHeatFluxTemperature/turbulentHeatFluxTemperatureFvPatchScalarField.H
 +++ b/src/turbulenceModels/incompressible/RAS/derivedFvPatchFields/turbulentHeatFluxTemperature/turbulentHeatFluxTemperatureFvPatchScalarField.H
 @@ -57,7 +57,7 @@ Note
@@ -3728,7 +4968,7 @@ index 59b8106..68b6b2c 100644
      turbulentHeatFluxTemperatureFvPatchScalarField.C
  
 diff --git a/src/turbulenceModels/incompressible/RAS/derivedFvPatchFields/turbulentMixingLengthDissipationRateInlet/turbulentMixingLengthDissipationRateInletFvPatchScalarField.H b/src/turbulenceModels/incompressible/RAS/derivedFvPatchFields/turbulentMixingLengthDissipationRateInlet/turbulentMixingLengthDissipationRateInletFvPatchScalarField.H
-index 1349631..db0e865 100644
+index 13496315..db0e8655 100644
 --- a/src/turbulenceModels/incompressible/RAS/derivedFvPatchFields/turbulentMixingLengthDissipationRateInlet/turbulentMixingLengthDissipationRateInletFvPatchScalarField.H
 +++ b/src/turbulenceModels/incompressible/RAS/derivedFvPatchFields/turbulentMixingLengthDissipationRateInlet/turbulentMixingLengthDissipationRateInletFvPatchScalarField.H
 @@ -36,7 +36,7 @@ Description
@@ -3741,7 +4981,7 @@ index 1349631..db0e865 100644
  
      \vartable
 diff --git a/src/turbulenceModels/incompressible/RAS/derivedFvPatchFields/turbulentMixingLengthFrequencyInlet/turbulentMixingLengthFrequencyInletFvPatchScalarField.H b/src/turbulenceModels/incompressible/RAS/derivedFvPatchFields/turbulentMixingLengthFrequencyInlet/turbulentMixingLengthFrequencyInletFvPatchScalarField.H
-index 9fdff8d..249e3af 100644
+index 9fdff8d9..249e3afb 100644
 --- a/src/turbulenceModels/incompressible/RAS/derivedFvPatchFields/turbulentMixingLengthFrequencyInlet/turbulentMixingLengthFrequencyInletFvPatchScalarField.H
 +++ b/src/turbulenceModels/incompressible/RAS/derivedFvPatchFields/turbulentMixingLengthFrequencyInlet/turbulentMixingLengthFrequencyInletFvPatchScalarField.H
 @@ -35,7 +35,7 @@ Description
@@ -3754,7 +4994,7 @@ index 9fdff8d..249e3af 100644
  
      \vartable
 diff --git a/src/turbulenceModels/incompressible/turbulenceModel/turbulenceModelDoc.H b/src/turbulenceModels/incompressible/turbulenceModel/turbulenceModelDoc.H
-index f9751dc..739af73 100644
+index f9751dc5..739af738 100644
 --- a/src/turbulenceModels/incompressible/turbulenceModel/turbulenceModelDoc.H
 +++ b/src/turbulenceModels/incompressible/turbulenceModel/turbulenceModelDoc.H
 @@ -27,5 +27,5 @@ License
@@ -3765,45 +5005,502 @@ index f9751dc..739af73 100644
 +
  \*---------------------------------------------------------------------------*/
 diff --git a/wmake/Makefile b/wmake/Makefile
-index 96e1885..7de8c1a 100644
+index 96e18853..ecf86a7a 100644
 --- a/wmake/Makefile
 +++ b/wmake/Makefile
-@@ -91,7 +91,11 @@ EXE_DEP         = $(OBJECTS_DIR)/options
- LIB             = libNULL
+@@ -92,6 +92,9 @@ LIB             = libNULL
  
  # Shared library extension
-+ifeq ($(shell uname -s),Darwin)
-+SO              = dylib
-+else
  SO              = so
++ifeq ("$(shell uname -s)","Darwin")
++SO              = dylib
 +endif
  
  # Project executable
  EXE             = $(WM_PROJECT).out
+@@ -112,7 +115,11 @@ include $(GENERAL_RULES)/general
+ include $(RULES)/general
+ include $(RULES)/$(WM_LINK_LANGUAGE)
+ 
+-MAKE_DEP   = @$(MKDEP) $< | $(WM_SCRIPTS)/addCompile $<
++ifneq ($(WM_SILENT_RULES),)
++MAKE_DEP   = @$(call WM_MESSAGE,DEP,$<); $(MKDEP) $< | $(WM_SCRIPTS)/addCompile $<
++else
++MAKE_DEP   = $(MKDEP) $< | $(WM_SCRIPTS)/addCompile $<
++endif
+ 
+ 
+ #------------------------------------------------------------------------------
+@@ -132,31 +139,40 @@ include $(OBJECTS_DIR)/dependencyFiles
+ # set header file include paths
+ #------------------------------------------------------------------------------
+ 
+-LIB_HEADER_DIRS = \
+-        $(EXE_INC) \
+-        -IlnInclude \
+-        -I. \
+-        $(PROJECT_INC) \
+-        $(GINC) \
+-        $(SYS_INC)
++LIB_HEADER_DIRS = $(EXE_INC) \
++		  -IlnInclude \
++		  -I. \
++		  $(PROJECT_INC) \
++		  $(GINC) \
++		  $(SYS_INC)
+ 
+ 
+ #------------------------------------------------------------------------------
+ # define link statements for executables
+ #------------------------------------------------------------------------------
+ 
+-$(EXE):  $(OBJECTS)
+-	     @$(WM_SCRIPTS)/makeTargetDir $(EXE)
+-	     $(LINKEXE) $(OBJECTS) -L$(LIB_PLATFORMS) \
+-	     $(EXE_LIBS) $(PROJECT_LIBS) $(SYS_LIBS) $(LINK_LIBS) $(GLIBS) -o $(EXE)
++ifneq ($(WM_SILENT_RULES),)
++UP_TO_DATE = @echo "$(call WM_BOLDL,"->>")" "$(call WM_BOLDL,$(notdir $1))"
++else
++UP_TO_DATE = @echo \'$1\' is up to date.
++endif
+ 
+-exe:     $(SEXE)
+-	     @echo \'$(SEXE)\' is up to date.
++$(EXE): T$(EXE)
++	$(call UP_TO_DATE,$(EXE))
++
++T$(EXE): $(OBJECTS)
++	@$(WM_SCRIPTS)/makeTargetDir $(EXE)
++	$(AT)$(LINKEXE) $(OBJECTS) -L$(LIB_PLATFORMS) \
++		$(EXE_LIBS) $(PROJECT_LIBS) $(SYS_LIBS) $(LINK_LIBS) $(GLIBS) -o $(EXE)
++
++exe: $(SEXE)
++	$(call UP_TO_DATE,$(SEXE))
+ 
+ $(SEXE): $(OBJECTS)
+-	     @$(WM_SCRIPTS)/makeTargetDir $(SEXE)
+-	     $(LINKEXE) $(OBJECTS) $(EXE_LIBS) \
+-         $(SYS_LIBS) $(LINK_LIBS) $(GLIBS) -o $(SEXE)
++	@$(WM_SCRIPTS)/makeTargetDir $(SEXE)
++	$(call WM_MESSAGE,LD,$(notdir $(SEXE)))
++	$(AT)$(LINKEXE) $(OBJECTS) $(EXE_LIBS) \
++		$(SYS_LIBS) $(LINK_LIBS) $(GLIBS) -o $(SEXE)
+ 
+ 
+ #------------------------------------------------------------------------------
+@@ -165,45 +181,50 @@ $(SEXE): $(OBJECTS)
+ 
+ objects: $(OBJECTS)
+ 
+-libso:   $(LIB).$(SO)
+-	     @echo \'$(LIB).$(SO)\' is up to date.
++libso: $(LIB).$(SO)
++	$(call UP_TO_DATE,$(LIB).$(SO))
+ 
+ $(LIB).$(SO): $(OBJECTS)
+-	     @$(WM_SCRIPTS)/makeTargetDir $(LIB)
+-	     @rm -f so_locations
+-	     @cd $(OBJECTS_DIR) ; \
+-	     $(LINKLIBSO) $(LOCAL_OBJECTS) -L$(LIB_PLATFORMS) $(LIB_LIBS) $(GLIB_LIBS) -o $(LIB).$(SO)
++	@$(WM_SCRIPTS)/makeTargetDir $(LIB)
++	@rm -f so_locations
++	$(call WM_MESSAGE,LD,$(notdir $(LIB).$(SO)))
++	@cd $(OBJECTS_DIR) ; \
++		$(LINKLIBSO) $(LOCAL_OBJECTS) -L$(LIB_PLATFORMS) $(LIB_LIBS) $(GLIB_LIBS) -o $(LIB).$(SO)
+ 
+-lib:     $(LIB).a
+-	     @echo \'$(LIB).a\' is up to date.
++lib: $(LIB).a
++	$(call UP_TO_DATE,$(LIB).a)
+ 
+ $(LIB).a: $(OBJECTS)
+-	     @$(WM_SCRIPTS)/makeTargetDir $(LIB)
+-	     @rm -f $(LIB).a
+-	     $(AR) $(ARFLAGS) $(LIB).a $(OBJECTS)
+-	     $(RANLIB) $(LIB).a
++	@$(WM_SCRIPTS)/makeTargetDir $(LIB)
++	@rm -f $(LIB).a
++	$(call WM_MESSAGE,AR,$(notdir $(LIB)).a)
++	$(AT)$(AR) $(ARFLAGS) $(LIB).a $(OBJECTS)
++	$(call WM_MESSAGE,RANLIB,$(notdir $(LIB)).a)
++	$(AT)$(RANLIB) $(LIB).a
+ 
+ libo:    $(LIB).o
+-	     @echo \'$(LIB).o\' is up to date.
++	$(call UP_TO_DATE,$(LIB).o)
+ 
+ $(LIB).o: $(OBJECTS)
+-	     @$(WM_SCRIPTS)/makeTargetDir $(LIB)
+-	     @rm -f $(LIB).o
+-	     $(LD) -r -o $(LIB).o $(OBJECTS)
++	@$(WM_SCRIPTS)/makeTargetDir $(LIB)
++	@rm -f $(LIB).o
++	$(call WM_MESSAGE,LD,$(notdir $(LIB)).o)
++	$(AT)$(LD) -r -o $(LIB).o $(OBJECTS)
+ 
+-jar:     $(LIB).jar
+-	     @echo \'$(LIB).jar\' is up to date.
++jar: $(LIB).jar
++	$(call UP_TO_DATE,$(LIB).jar)
+ 
+ $(LIB).jar: $(OBJECTS)
+-	     @$(WM_SCRIPTS)/makeTargetDir $(LIB)
+-	     jar cfm $(LIB).jar $(LIB_LIBS) -C $(CLASSES_DIR) .
++	@$(WM_SCRIPTS)/makeTargetDir $(LIB)
++	$(call WM_MESSAGE,JAR,$(notdir $(LIB).jar))
++	$(AT)jar cfm $(LIB).jar $(LIB_LIBS) -C $(CLASSES_DIR) .
+ 
+ #------------------------------------------------------------------------------
+ # Set rule to create the include directory for libraries
+ #------------------------------------------------------------------------------
+ 
+ lnInclude/uptodate: $(MAKE_DIR)/files $(MAKE_DIR)/options
+-	     @rm -rf lnInclude ; wmakeLnInclude . ; touch lnInclude/uptodate
++	@rm -rf lnInclude ; wmakeLnInclude . ; touch lnInclude/uptodate
+ 
+ 
+ #------------------------------------------------------------------------------
+diff --git a/wmake/rules/General/CGAL b/wmake/rules/General/CGAL
+index 167a420a..1b599bc3 100644
+--- a/wmake/rules/General/CGAL
++++ b/wmake/rules/General/CGAL
+@@ -1,11 +1,24 @@
+-CGAL_INC = \
+-    -Wno-old-style-cast \
+-    -I$(CGAL_ARCH_PATH)/include \
+-    -I$(MPFR_ARCH_PATH)/include \
+-    -I$(GMP_ARCH_PATH)/include \
+-    -I$(BOOST_ARCH_PATH)/include
+-
+-CGAL_LIBS = \
+-    -L$(MPFR_ARCH_PATH)/lib \
+-    -L$(GMP_ARCH_PATH)/lib \
+-    -L$(BOOST_ARCH_PATH)/lib
++CGAL_INC = -Wno-old-style-cast
++
++ifneq ($(CGAL_ARCH_PATH),)
++CGAL_INC += -I$(CGAL_ARCH_PATH)/include
++endif
++
++CGAL_LIBS =
++
++ifneq ($(MPFR_ARCH_PATH),)
++CGAL_INC += -I$(MPFR_ARCH_PATH)/include
++CGAL_LIBS += -L$(MPFR_ARCH_PATH)/lib
++endif
++
++ifneq ($(GMP_ARCH_PATH),)
++CGAL_INC += -I$(GMP_ARCH_PATH)/include
++CGAL_LIBS += -L$(GMP_ARCH_PATH)/lib
++endif
++
++ifneq ($(BOOST_ARCH_PATH),)
++CGAL_INC += -I$(BOOST_ARCH_PATH)/include
++CGAL_LIBS += -L$(BOOST_ARCH_PATH)/lib
++endif
++
++# vim: set ft=make:
+diff --git a/wmake/rules/General/X b/wmake/rules/General/X
+index f55fa8b3..1761158f 100644
+--- a/wmake/rules/General/X
++++ b/wmake/rules/General/X
+@@ -3,3 +3,5 @@
+ XFLAGS     =
+ XINC       = $(XFLAGS) -I/usr/include/X11
+ XLIBS      = -lXext -lX11
++
++# vim: set ft=make:
+diff --git a/wmake/rules/General/bison b/wmake/rules/General/bison
+index dd02dbd7..d3447949 100644
+--- a/wmake/rules/General/bison
++++ b/wmake/rules/General/bison
+@@ -1,11 +1,21 @@
+ .SUFFIXES: .y .Y
+ 
+-ytoo = bison -v -d -y $$SOURCE ; mv y.tab.c $*.c ; mv y.tab.h $*.h ; $(cc) $(cFLAGS) -c $*.c -o $@
++ifeq ($(WM_BISON),)
++ifeq ($(shell uname -s),Darwin)
++WM_BISON = xcrun bison
++else
++WM_BISON = bison
++endif
++endif
+ 
+-Ytoo = bison -v -d -y $$SOURCE ; mv y.tab.c $*.C ; mv y.tab.h $*.H ; $(CC) $(c++FLAGS) -c $*.C -o $@
++ytoo = $(WM_BISON) -v -d -y $$SOURCE ; mv y.tab.c $*.c ; mv y.tab.h $*.h ; $(cc) $(cFLAGS) -c $*.c -o $@
++
++Ytoo = $(WM_BISON) -v -d -y $$SOURCE ; mv y.tab.c $*.C ; mv y.tab.h $*.H ; $(CC) $(c++FLAGS) -c $*.C -o $@
+ 
+ .y.dep:
+ 	$(MAKE_DEP)
+ 
+ .Y.dep:
+ 	$(MAKE_DEP)
++
++# vi: ft=make
+diff --git a/wmake/rules/General/btyacc b/wmake/rules/General/btyacc
+index aaec4406..bb3823e3 100644
+--- a/wmake/rules/General/btyacc
++++ b/wmake/rules/General/btyacc
+@@ -4,3 +4,5 @@ ytoo = btyacc -v -d $(SKELETON) $$SOURCE ; mv y_tab.c $*.C ; mv y_tab.h $*.H ; $
+ 
+ .y.dep:
+ 	$(MAKE_DEP)
++
++# vi: ft=make
+diff --git a/wmake/rules/General/btyacc++ b/wmake/rules/General/btyacc++
+index 0d2bd33e..fbb2505c 100644
+--- a/wmake/rules/General/btyacc++
++++ b/wmake/rules/General/btyacc++
+@@ -4,3 +4,5 @@ Ytoo = btyacc++ -v -d $(SKELETON) $$SOURCE ; mv y_tab.c $*.C ; mv y_tab.h $*.H ;
+ 
+ .Y.dep:
+ 	$(MAKE_DEP)
++
++# vi: ft=make
+diff --git a/wmake/rules/General/byacc b/wmake/rules/General/byacc
+index e3393ee7..aa170526 100644
+--- a/wmake/rules/General/byacc
++++ b/wmake/rules/General/byacc
+@@ -1,6 +1,8 @@
+ .SUFFIXES: .y
+ 
+-ytoo = byacc -v $(YYPREFIX) -d $$SOURCE ; mv y.tab.c $*.C ; mv y.tab.h $*.H ; $(CC) $(c++FLAGS) -c $*.C -o $@
++ytoo = $(call WM_MESSAGE,yy,$1); $(AT)byacc -v $(YYPREFIX) -d $$SOURCE ; mv y.tab.c $*.C ; mv y.tab.h $*.H ; $(CC) $(c++FLAGS) -c $*.C -o $@
+ 
+ .y.dep:
+ 	$(MAKE_DEP)
++
++# vi: ft=make
+diff --git a/wmake/rules/General/coco-cpp b/wmake/rules/General/coco-cpp
+deleted file mode 100644
+index 94264971..00000000
+--- a/wmake/rules/General/coco-cpp
++++ /dev/null
+@@ -1,15 +0,0 @@
+-# handle Coco/R attributed grammars written for the C++ version
+-#     http://www.ssw.uni-linz.ac.at/Coco/
+-#     http://github.com/olesenm/coco-cpp/
+-#
+-
+-.SUFFIXES: .atg
+-
+-atgtoo =  \
+-    $(WM_THIRD_PARTY_DIR)/platforms/$(WM_ARCH)$(WM_COMPILER)/coco-cpp/bin/coco-cpp \
+-    -single \
+-    $$SOURCE -o $(OBJECTS_DIR) && \
+-    $(CC) $(c++FLAGS) -c $*.cpp -o $@
+-
+-.atg.dep:
+-	$(MAKE_DEP)
+diff --git a/wmake/rules/General/flex b/wmake/rules/General/flex
+index 853780e1..81cbb3ca 100644
+--- a/wmake/rules/General/flex
++++ b/wmake/rules/General/flex
+@@ -1,6 +1,16 @@
+ .SUFFIXES: .l
+ 
+-ltoo = flex -o$*.c $$SOURCE ; $(cc) $(cFLAGS) -c $*.c -o $@
++ifeq ($(WM_FLEX),)
++ifeq ($(shell uname -s),Darwin)
++WM_FLEX = xcrun flex
++else
++WM_FLEX = flex
++endif
++endif
++
++ltoo = $(WM_FLEX) -o$*.c $$SOURCE ; $(cc) $(cFLAGS) -c $*.c -o $@
+ 
+ .l.dep:
+ 	$(MAKE_DEP)
++
++# vi: ft=make
+diff --git a/wmake/rules/General/flex++ b/wmake/rules/General/flex++
+index cf829e09..6895ea73 100644
+--- a/wmake/rules/General/flex++
++++ b/wmake/rules/General/flex++
+@@ -1,6 +1,17 @@
+ .SUFFIXES: .L
+ 
+-Ltoo = flex -+ -o$*.C -f $$SOURCE ; $(CC) $(c++FLAGS) -c $*.C -o $@
++ifeq ($(WM_FLEX),)
++ifeq ($(shell uname -s),Darwin)
++WM_FLEX = xcrun flex
++else
++WM_FLEX = flex
++endif
++endif
++
++
++Ltoo = $(WM_FLEX) -+ -o$*.C -f $$SOURCE ; $(CC) $(c++FLAGS) -c $*.C -o $@
+ 
+ .L.dep:
+ 	$(MAKE_DEP)
++
++# vi: ft=make
+diff --git a/wmake/rules/General/general b/wmake/rules/General/general
+index d0253e80..1c946fc0 100644
+--- a/wmake/rules/General/general
++++ b/wmake/rules/General/general
+@@ -8,3 +8,5 @@ GFLAGS     = -D$(WM_ARCH) -DWM_$(WM_PRECISION_OPTION)
+ GINC       =
+ GLIBS      = -lm
+ GLIB_LIBS  =
++
++# vi: ft=make
+diff --git a/wmake/rules/General/moc b/wmake/rules/General/moc
+index f47f586a..2e9e89de 100644
+--- a/wmake/rules/General/moc
++++ b/wmake/rules/General/moc
+@@ -4,3 +4,5 @@ qttoo = $(QTDIR)/bin/moc -f $$SOURCE -o $*.C ; $(CC) $(c++FLAGS) -c $*.C -o $@
+ 
+ .qt.dep:
+ 	$(MAKE_DEP)
++
++# vi: ft=make
+diff --git a/wmake/rules/General/mplib b/wmake/rules/General/mplib
+index 294bd861..703a2c3f 100644
+--- a/wmake/rules/General/mplib
++++ b/wmake/rules/General/mplib
+@@ -1,3 +1,5 @@
+ PFLAGS     =
+ PINC       =
+ PLIBS      =
++
++# vi: ft=make
+diff --git a/wmake/rules/General/mplibGAMMA b/wmake/rules/General/mplibGAMMA
+index 11606f29..47d873db 100644
+--- a/wmake/rules/General/mplibGAMMA
++++ b/wmake/rules/General/mplibGAMMA
+@@ -1,3 +1,5 @@
+ PFLAGS     =
+ PINC       = -I$(MPI_ARCH_PATH)/include
+ PLIBS      = -L$(MPI_ARCH_PATH)/lib -lgamma
++
++# vi: ft=make
+diff --git a/wmake/rules/General/sourceToDep b/wmake/rules/General/sourceToDep
+index 329e7f40..532a4e66 100644
+--- a/wmake/rules/General/sourceToDep
++++ b/wmake/rules/General/sourceToDep
+@@ -1,6 +1,11 @@
+ .SUFFIXES: .c .cc .cxx .cpp .C .F .f .dep
+ 
+-MKDEP       = $(WMAKE_BIN)/wmkdep -I$(*D) $(LIB_HEADER_DIRS)
++QUIET =
++ifneq ($WM_SILENT_RULES,)
++QUIET = -q
++endif
++
++MKDEP       = $(WMAKE_BIN)/wmkdep $(QUIET) -I$(*D) $(LIB_HEADER_DIRS)
+ 
+ .c.dep:
+ 	$(MAKE_DEP)
+@@ -22,3 +27,5 @@ MKDEP       = $(WMAKE_BIN)/wmkdep -I$(*D) $(LIB_HEADER_DIRS)
+ 
+ .f.dep:
+ 	$(MAKE_DEP)
++
++# vi: ft=make
+diff --git a/wmake/rules/General/standard b/wmake/rules/General/standard
+index d3e977df..f62ec8a8 100644
+--- a/wmake/rules/General/standard
++++ b/wmake/rules/General/standard
+@@ -1,3 +1,17 @@
++ifneq ($(WM_SILENT_RULES),)
++AT = @
++WM_BOLD_ON = $(shell tput bold)
++WM_BOLD_OFF = $(shell tput sgr0)
++WM_COLUMN_WIDTH = 6
++WM_BOLDR = $(shell printf $(if $(WMAKE_TTY),'$(WM_BOLD_ON)%$(WM_COLUMN_WIDTH)s$(WM_BOLD_OFF)','%$(WM_COLUMN_WIDTH)s') $1)
++WM_BOLDL = $(shell printf $(if $(WMAKE_TTY),'$(WM_BOLD_ON)%s$(WM_BOLD_OFF)','%s') $1)
++WM_MESSAGE = @echo "$(call WM_BOLDR,$1) $(notdir $2)"
++else
++AT =
++WM_MESSAGE =
++WM_BOLD =
++endif
++
+ include $(GENERAL_RULES)/version
+ 
+ include $(GENERAL_RULES)/sourceToDep
+@@ -11,3 +25,5 @@ include $(GENERAL_RULES)/bison
+ include $(GENERAL_RULES)/moc
+ 
+ include $(GENERAL_RULES)/X
++
++# vi: ft=make
+diff --git a/wmake/rules/General/version b/wmake/rules/General/version
+index 19633ffc..5f9d5c2e 100644
+--- a/wmake/rules/General/version
++++ b/wmake/rules/General/version
+@@ -3,11 +3,19 @@
+ #
+ # update version strings in C++ file and in $WM_PROJECT_DIR/.build file
+ #
++ifneq ("$(WM_SILENT_RULES)","")
+ Cvertoo = \
+     sed -e 's!VERSION_STRING!$(shell wmakePrintBuild -major)!' \
+         -e 's!BUILD_STRING!$(shell wmakePrintBuild -update)!' \
+         $$SOURCE > $*.C; \
+     $(CC) $(c++FLAGS) -c $*.C -o $@
++else
++Cvertoo = \
++    sed -e 's!VERSION_STRING!$(shell wmakePrintBuild -major)!' \
++        -e 's!BUILD_STRING!$(shell wmakePrintBuild -update)!' \
++        $$SOURCE > $*.C; \
++    $(CC) $(c++FLAGS) -c $*.C -o $@
++endif
+ 
+ .Cver.dep:
+ 	$(MAKE_DEP)
+diff --git a/wmake/rules/General/yacc b/wmake/rules/General/yacc
+index 959d4297..cec9554a 100644
+--- a/wmake/rules/General/yacc
++++ b/wmake/rules/General/yacc
+@@ -1,11 +1,22 @@
+ .SUFFIXES: .y .Y
+ 
+-ytoo = yacc -v -d $$SOURCE ; mv y.tab.c $*.c ; mv y.tab.h $(@D)/parser.h ; $(CC) $(c++FLAGS) -c $*.c -o $@
++ifeq ($(WM_YACC),)
++ifeq ($(shell uname -s),Darwin)
++WM_FLEX = xcrun yacc
++else
++WM_FLEX = yacc
++endif
++endif
+ 
+-Ytoo = yacc -v -d $$SOURCE ; mv y.tab.c $*.C ; mv y.tab.h $(@D)/parser.H ; $(CC) $(c++FLAGS) -c $*.C -o $@
++
++ytoo = $(WM_YACC) -v -d $$SOURCE ; mv y.tab.c $*.c ; mv y.tab.h $(@D)/parser.h ; $(CC) $(c++FLAGS) -c $*.c -o $@
++
++Ytoo = $(WM_YACC) -v -d $$SOURCE ; mv y.tab.c $*.C ; mv y.tab.h $(@D)/parser.H ; $(CC) $(c++FLAGS) -c $*.C -o $@
+ 
+ .y.dep:
+ 	$(MAKE_DEP)
+ 
+ .Y.dep:
+ 	$(MAKE_DEP)
++
++# vi: ft=make
 diff --git a/wmake/rules/darwin64Clang/CGAL b/wmake/rules/darwin64Clang/CGAL
 new file mode 100644
-index 0000000..ec9d904
+index 00000000..b6df26e2
 --- /dev/null
 +++ b/wmake/rules/darwin64Clang/CGAL
-@@ -0,0 +1,12 @@
+@@ -0,0 +1,7 @@
 +CGAL_INC = \
 +    -Wno-old-style-cast \
-+    -I$(CGAL_ARCH_PATH)/include \
-+    -I$(MPFR_ARCH_PATH)/include \
-+    -I$(GMP_ARCH_PATH)/include \
-+    -I$(BOOST_ARCH_PATH)/include \
-+    -I$(EIGEN_ARCH_PATH)/include/eigen3
++    -I/usr/local/include \
++    -I/usr/local/include/eigen3
 +
 +CGAL_LIBS = \
-+    -L$(MPFR_ARCH_PATH)/lib \
-+    -L$(GMP_ARCH_PATH)/lib \
-+    -L$(BOOST_ARCH_PATH)/lib
++    -L/usr/local/lib
 diff --git a/wmake/rules/darwin64Clang/c b/wmake/rules/darwin64Clang/c
 new file mode 100644
-index 0000000..c6600bf
+index 00000000..fe327efb
 --- /dev/null
 +++ b/wmake/rules/darwin64Clang/c
-@@ -0,0 +1,16 @@
+@@ -0,0 +1,20 @@
 +.SUFFIXES: .c .h
 +
 +cWARN        = -Wall
@@ -3812,9 +5509,13 @@ index 0000000..c6600bf
 +
 +include $(RULES)/c$(WM_COMPILE_OPTION)
 +
-+cFLAGS      = $(GFLAGS) $(cWARN) $(cOPT) $(cDBUG) $(LIB_HEADER_DIRS) -fPIC -isysroot $(OSX_SDK_PATH)
++cFLAGS      = $(GFLAGS) $(cWARN) $(cOPT) $(cDBUG) $(LIB_HEADER_DIRS) -fPIC
 +
-+ctoo        = $(WM_SCHEDULER) $(cc) $(cFLAGS) -c $$SOURCE -o $@
++ifneq ("$(OSX_SDK_PATH)","")
++cFLAGS +=  -isysroot $(OSX_SDK_PATH)
++endif
++
++ctoo        = @$(WM_SCHEDULER) $(cc) $(cFLAGS) -c $$SOURCE -o $@
 +
 +LINK_LIBS   = $(cDBUG)
 +
@@ -3822,23 +5523,27 @@ index 0000000..c6600bf
 +LINKEXE     = $(cc) -Wl,-execute,-undefined,dynamic_lookup
 diff --git a/wmake/rules/darwin64Clang/c++ b/wmake/rules/darwin64Clang/c++
 new file mode 100644
-index 0000000..94f2e75
+index 00000000..b593ddda
 --- /dev/null
 +++ b/wmake/rules/darwin64Clang/c++
-@@ -0,0 +1,24 @@
+@@ -0,0 +1,28 @@
 +.SUFFIXES: .C .cxx .cc .cpp
 +
 +c++WARN     = -Wall -Wextra -Wno-unused-parameter -Wno-overloaded-virtual \
 +              -Wno-c++11-extensions -Wno-unused-variable \
-+	      -Wno-unused-local-typedef
++	      -Wno-unused-local-typedef -Wno-deprecated-register
 +
-+CC          = xcrun c++ -arch x86_64
++CC          = xcrun c++ -arch x86_64 -std=c++14
 +
 +include $(RULES)/c++$(WM_COMPILE_OPTION)
 +
 +ptFLAGS     = -DNoRepository -ftemplate-depth-100
 +
 +c++FLAGS    = $(GFLAGS) $(c++WARN) $(c++OPT) $(c++DBUG) $(ptFLAGS) $(LIB_HEADER_DIRS) -fPIC
++
++ifneq ("$(OSX_SDK_PATH)","")
++cFLAGS +=  -isysroot $(OSX_SDK_PATH)
++endif
 +
 +Ctoo        = $(WM_SCHEDULER) $(CC) $(c++FLAGS) -c $$SOURCE -o $@
 +cxxtoo      = $(Ctoo)
@@ -3852,7 +5557,7 @@ index 0000000..94f2e75
 +LINKEXE     = $(CC) $(c++FLAGS) -Wl,-execute,-undefined,dynamic_lookup
 diff --git a/wmake/rules/darwin64Clang/c++Debug b/wmake/rules/darwin64Clang/c++Debug
 new file mode 100644
-index 0000000..1c63335
+index 00000000..1c63335a
 --- /dev/null
 +++ b/wmake/rules/darwin64Clang/c++Debug
 @@ -0,0 +1,2 @@
@@ -3860,7 +5565,7 @@ index 0000000..1c63335
 +c++OPT      = -O0
 diff --git a/wmake/rules/darwin64Clang/c++Opt b/wmake/rules/darwin64Clang/c++Opt
 new file mode 100644
-index 0000000..3363be8
+index 00000000..3363be80
 --- /dev/null
 +++ b/wmake/rules/darwin64Clang/c++Opt
 @@ -0,0 +1,3 @@
@@ -3869,7 +5574,7 @@ index 0000000..3363be8
 +c++OPT      = -O3
 diff --git a/wmake/rules/darwin64Clang/c++Prof b/wmake/rules/darwin64Clang/c++Prof
 new file mode 100644
-index 0000000..3bda4da
+index 00000000..3bda4dad
 --- /dev/null
 +++ b/wmake/rules/darwin64Clang/c++Prof
 @@ -0,0 +1,2 @@
@@ -3877,7 +5582,7 @@ index 0000000..3bda4da
 +c++OPT     = -O2
 diff --git a/wmake/rules/darwin64Clang/cDebug b/wmake/rules/darwin64Clang/cDebug
 new file mode 100644
-index 0000000..7b7adf1
+index 00000000..7b7adf10
 --- /dev/null
 +++ b/wmake/rules/darwin64Clang/cDebug
 @@ -0,0 +1,2 @@
@@ -3885,7 +5590,7 @@ index 0000000..7b7adf1
 +cOPT        = -O0
 diff --git a/wmake/rules/darwin64Clang/cOpt b/wmake/rules/darwin64Clang/cOpt
 new file mode 100644
-index 0000000..1731870
+index 00000000..17318709
 --- /dev/null
 +++ b/wmake/rules/darwin64Clang/cOpt
 @@ -0,0 +1,2 @@
@@ -3893,7 +5598,7 @@ index 0000000..1731870
 +cOPT        = -O3
 diff --git a/wmake/rules/darwin64Clang/cProf b/wmake/rules/darwin64Clang/cProf
 new file mode 100644
-index 0000000..ca3ac9b
+index 00000000..ca3ac9bf
 --- /dev/null
 +++ b/wmake/rules/darwin64Clang/cProf
 @@ -0,0 +1,2 @@
@@ -3901,11 +5606,15 @@ index 0000000..ca3ac9b
 +cOPT        = -O2
 diff --git a/wmake/rules/darwin64Clang/general b/wmake/rules/darwin64Clang/general
 new file mode 100644
-index 0000000..f7377fa
+index 00000000..a3b2767c
 --- /dev/null
 +++ b/wmake/rules/darwin64Clang/general
-@@ -0,0 +1,10 @@
-+CPP        = cpp -traditional-cpp $(GFLAGS)
+@@ -0,0 +1,14 @@
++AR         = xcrun ar
++ARFLAGS    = cr
++RANLIB     = xcrun ranlib
++CPP        = xcrun cpp -traditional-cpp $(GFLAGS)
++LD         = xcrun ld
 +
 +PROJECT_LIBS = -l$(WM_PROJECT) -ldl
 +
@@ -3915,3 +5624,222 @@ index 0000000..f7377fa
 +
 +include $(RULES)/c
 +include $(RULES)/c++
+diff --git a/wmake/scripts/addCompile b/wmake/scripts/addCompile
+index 63a5b262..068c4841 100755
+--- a/wmake/scripts/addCompile
++++ b/wmake/scripts/addCompile
+@@ -40,6 +40,9 @@ depName=${1%.*}.dep
+ 
+ sourceDir=${1%/*}
+ 
++AT=
++[ -n "$WM_SILENT_RULES" ] && AT=@
++
+ if [ "$sourceDir" = "$sourceName" ]
+ then
+     sourceDir=.
+@@ -59,6 +62,10 @@ sed -e s%".*.o.*:"%'$(OBJECTS_DIR)/'"$objectName\:"%  \
+ echo '$(OBJECTS_DIR)/'$objectName': $(EXE_DEP)' >> $depName
+ echo '$(OBJECTS_DIR)/'$objectName':' >> $depName
+ echo '	@SOURCE_DIR='$sourceDir >> $depName
+-echo '	SOURCE='$1' ; $('$sub'too)' >> $depName
++t=$sub
++[ "$t" = "Cver" ] && t=C
++[ -n "$WM_SILENT_RULES" ] \
++    && echo '\t$(call WM_MESSAGE,'$t$t','$1')' >> $depName
++echo '	'$AT'SOURCE='$1' ; $('$sub'too)' >> $depName
+ 
+ #------------------------------------------------------------------------------
+diff --git a/wmake/src/Makefile b/wmake/src/Makefile
+index 328f3e53..dab998cb 100644
+--- a/wmake/src/Makefile
++++ b/wmake/src/Makefile
+@@ -62,18 +62,21 @@ include $(RULES)/$(WM_LINK_LANGUAGE)
+ all:  $(WMAKE_BIN)/dirToString $(WMAKE_BIN)/wmkdep $(WMAKE_BIN)/wmkdepend
+ 
+ clean:
+-	rm -f $(WMAKE_BIN)/* 2>/dev/null
++	$(AT)rm -f $(WMAKE_BIN)/* 2>/dev/null
+ 
+ 
+ $(WMAKE_BIN)/dirToString: dirToString.c
+ 	@mkdir -p $(WMAKE_BIN)
+-	$(cc) $(cFLAGS) dirToString.c -o $(WMAKE_BIN)/dirToString
++	$(call WM_MESSAGE,cc,dirToString.c)
++	$(AT)$(cc) $(cFLAGS) dirToString.c -o $(WMAKE_BIN)/dirToString
+ 
+ 
+ $(WMAKE_BIN)/wmkdep: wmkdep.l
+ 	@mkdir -p $(WMAKE_BIN)
+-	flex wmkdep.l
+-	$(cc) $(cFLAGS) lex.yy.c -o $(WMAKE_BIN)/wmkdep
++	$(call WM_MESSAGE,ll,$<)
++	$(AT)flex $<
++	$(call WM_MESSAGE,cc,lex.yy.cc)
++	$(AT)$(cc) $(cFLAGS) -Wno-unused-function lex.yy.c -o $(WMAKE_BIN)/wmkdep
+ 	@rm -f lex.yy.c 2>/dev/null
+ 
+ 
+@@ -82,8 +85,9 @@ $(WMAKE_BIN)/wmkdepend: wmkdepend.cpp \
+     wmkdependParser.cpp wmkdependScanner.cpp \
+     wmkdependParser.h   wmkdependScanner.h
+ 	@mkdir -p $(WMAKE_BIN)
+-	$(CC) $(c++FLAGS) \
+-	     wmkdepend.cpp wmkdependParser.cpp wmkdependScanner.cpp \
+-	    -o $(WMAKE_BIN)/wmkdepend
++	$(call WM_MESSAGE,LD,wmkdepend)
++	$(AT)$(CC) $(c++FLAGS) \
++		wmkdepend.cpp wmkdependParser.cpp wmkdependScanner.cpp \
++		-o $(WMAKE_BIN)/wmkdepend
+ 
+ #------------------------------------------------------------------------------
+diff --git a/wmake/src/wmkdep.l b/wmake/src/wmkdep.l
+index 86c6f64e..1928add8 100644
+--- a/wmake/src/wmkdep.l
++++ b/wmake/src/wmkdep.l
+@@ -138,6 +138,7 @@ int nDirectories = 0;
+ char** directories;
+ char* sourceFile = NULL;
+ char* depFile = NULL;
++int quiet;
+ 
+ /* Set of files already visited */
+ struct HashEntry* visitedFiles[HASH_TABLE_SIZE];
+@@ -157,9 +158,9 @@ int main(int argc, char* argv[])
+         exit(1);
+     }
+ 
+-    sourceFile = strdup(argv[argc-1]);
+-    fprintf(stderr, "Making dependency list for source file %s\n", sourceFile);
++    quiet = (strncmp(argv[1], "-q", 2) == 0);
+ 
++    sourceFile = strdup(argv[argc-1]);
+ 
+     if ((basePos = strrchr(sourceFile, '/')) == NULL)
+     {
+@@ -333,12 +334,15 @@ void nextFile(const char* fileName)
+             free(pathName);
+         }
+ 
+-        fprintf
+-        (
+-            stderr,
+-            "could not open file %s for source file %s\n",
+-            fileName, sourceFile
+-        );
++	if (!quiet)
++	{
++            fprintf
++            (
++                stderr,
++                "could not open file %s for source file %s\n",
++                fileName, sourceFile
++            );
++	}
+ 
+         fflush(stdout);
+         fflush(stderr);
+diff --git a/wmake/wmake b/wmake/wmake
+index ebcd38cb..504dd0df 100755
+--- a/wmake/wmake
++++ b/wmake/wmake
+@@ -61,6 +61,35 @@ USAGE
+     exit 1
+ }
+ 
++replace_vars () {
++    [ $# -lt 1 ] && return 1
++    r=$(echo $1 | sed s%$WM_PROJECT_DIR%\$WM_PROJECT_DIR%)
++    r=$(echo $r | sed s%$HOME%\~%)
++    echo $r
++    return 0
++}
++
++repeat_char () {
++    [ $# -lt 1 ] && return 1
++    printf "%*s" $1 | tr " " $2
++}
++
++header () {
++    if [ -n "$2" ]
++    then
++        local ncol="$(tput cols)"
++        local len="${#1}"
++        echo "- $1 $(repeat_char $((ncol - len - 3)) '-')"
++    else
++        echo ':: ' $1
++    fi
++    return 0
++}
++
++# is wmake run on TTY?
++WMAKE_TTY=
++[ -t 1 ] && WMAKE_TTY=Y
++
+ # normally use "make"
+ make="make"
+ 
+@@ -243,13 +272,15 @@ OBJECTS_DIR=$MakeDir/$WM_OPTIONS
+ 
+ touch $OBJECTS_DIR/dontIncludeDeps
+ 
++[ -n "$WM_SILENT_RULES" ] && echo $(header $(replace_vars $(pwd)) $WMAKE_TTY)
++
+ case "$makeType" in
+ lib | libo | libso )
+-    $make -s -f $WM_DIR/Makefile MAKE_DIR=$MakeDir INCLUDE_DEPS=$OBJECTS_DIR/dontIncludeDeps lnInclude/uptodate
++    $make -s -f $WM_DIR/Makefile WMAKE_TTY=$WMAKE_TTY MAKE_DIR=$MakeDir INCLUDE_DEPS=$OBJECTS_DIR/dontIncludeDeps lnInclude/uptodate
+     ;;
+ esac
+ 
+-$make -s -f $WM_DIR/Makefile MAKE_DIR=$MakeDir INCLUDE_DEPS=$OBJECTS_DIR/dontIncludeDeps $OBJECTS_DIR/dependencies
++$make -s -f $WM_DIR/Makefile WMAKE_TTY=$WMAKE_TTY MAKE_DIR=$MakeDir INCLUDE_DEPS=$OBJECTS_DIR/dontIncludeDeps $OBJECTS_DIR/dependencies
+ 
+ rc=$?
+ [ $rc -eq 0 ] || exit $rc
+@@ -258,7 +289,7 @@ rc=$?
+ # make the object files and link
+ #------------------------------------------------------------------------------
+ 
+-cmd="$make -f $WM_DIR/Makefile MAKE_DIR=$MakeDir INCLUDE_DEPS=$OBJECTS_DIR/includeDeps $makeType"
++cmd="$make -f $WM_DIR/Makefile WMAKE_TTY=$WMAKE_TTY MAKE_DIR=$MakeDir INCLUDE_DEPS=$OBJECTS_DIR/includeDeps $makeType"
+ # echo "cmd=$cmd"
+ exec $cmd
+ 
+diff --git a/wmake/wmakeLnInclude b/wmake/wmakeLnInclude
+index fa8dc97f..cab9df83 100755
+--- a/wmake/wmakeLnInclude
++++ b/wmake/wmakeLnInclude
+@@ -63,6 +63,18 @@ USAGE
+ 
+ #------------------------------------------------------------------------------
+ 
++ln_message ()
++{
++    local cols=6
++    local fmt="%${cols}s %s\n"
++    [ -t 1 ] && fmt="$(tput bold)%${cols}s$(tput sgr0) %s\n"
++    local folder=$(pwd)
++    [ $# -ge 1 ] && folder=$1
++    local r=$(echo $(dirname $folder) | sed s%$WM_PROJECT_DIR%\$WM_PROJECT_DIR%)
++    r=$(echo $r | sed s%$HOME%\~%)
++    printf "$fmt" "LN" $r 1>&2
++}
++
+ # default 'find' option
+ unset findOpt
+ 
+@@ -142,7 +154,12 @@ cd $incDir || exit 1
+ 
+ if [ "$silentOpt" != true ]
+ then
+-    echo "$Script: linking include files to $incDir" 1>&2
++    if [ "$WM_SILENT_RULES" = "" ]
++    then
++        echo "$Script: linking include files to $incDir" 1>&2
++    else
++        ln_message $(pwd)
++    fi
+ fi
+ 
+ #
