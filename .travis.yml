@@ -4,10 +4,8 @@ os:
 compiler:
   - clang
 env:
-  - OPENFOAM_TEST_VERSION='2.4.0'
+  - OPENFOAM_TEST_VERSION='2.2.x'
   - OPENFOAM_TEST_VERSION='2.4.x'
-  - OPENFOAM_TEST_VERSION='3.0.1'
-  - OPENFOAM_TEST_VERSION='3.0.x'
 before_install:
   - for f in $(brew list); do brew uninstall --force $f; done
   - brew tap homebrew/science
@@ -56,7 +54,6 @@ install:
   - wmake $makeType ODE
   - wmake $makeType randomProcesses
   - thermophysicalModels/Allwmake $*
-before_script:
   - transportModels/Allwmake $*
   - turbulenceModels/Allwmake $*
   - TurbulenceModels/Allwmake $*
@@ -71,10 +68,6 @@ before_script:
   - wmake $makeType regionCoupled
   - postProcessing/Allwmake $*
   - wmake $makeType sixDoFRigidBodyMotion
-  - cd ..
-  - cd applications
-  - cd utilities && wmake all && cd ..
-  - cd solvers && wmake all && cd ..
 script:
   - ./script/ci/test.sh $OPENFOAM_TEST_VERSION
 
