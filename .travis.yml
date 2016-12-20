@@ -31,43 +31,43 @@ install:
   - wmakeLnInclude -f OSspecific/${WM_OSTYPE:-POSIX}
   - Pstream/Allwmake $*
   - OSspecific/${WM_OSTYPE:-POSIX}/Allwmake $*
-  - wmake libso OpenFOAM
-  - wmake libso fileFormats
-  - wmake libso surfMesh
-  - wmake libso triSurface
-  - wmake libso meshTools
-  - wmake libso edgeMesh
-  - parallel/decompose/AllwmakeLnInclude
-  - dummyThirdParty/Allwmake $*
-  - wmake libso finiteVolume
-  - wmake libso lagrangian/basic
-  - wmake libso lagrangian/distributionModels
-  - wmake libso genericPatchFields
-  - parallel/Allwmake $*
-  - renumber/Allwmake $*
-  - wmake $makeType conversion
-  - wmake $makeType sampling
-  - wmake $makeType mesh/extrudeModel
-  - wmake $makeType dynamicMesh
-  - wmake $makeType dynamicFvMesh
-  - wmake $makeType topoChangerFvMesh
-  - wmake $makeType ODE
-  - wmake $makeType randomProcesses
-  - thermophysicalModels/Allwmake $*
-  - transportModels/Allwmake $*
-  - turbulenceModels/Allwmake $*
-  - TurbulenceModels/Allwmake $*
-  - wmake $makeType combustionModels
-  - regionModels/Allwmake $*
-  - lagrangian/Allwmake $*
-  - mesh/Allwmake $*
-  - fvAgglomerationMethods/Allwmake $*
-  - wmake $makeType fvMotionSolver
-  - wmake $makeType engine
-  - wmake $makeType fvOptions
-  - wmake $makeType regionCoupled
-  - postProcessing/Allwmake $*
-  - wmake $makeType sixDoFRigidBodyMotion
+    #  - wmake libso OpenFOAM
+    #  - wmake libso fileFormats
+    #  - wmake libso surfMesh
+    #  - wmake libso triSurface
+    #  - wmake libso meshTools
+    #  - wmake libso edgeMesh
+    #  - parallel/decompose/AllwmakeLnInclude
+    #  - dummyThirdParty/Allwmake $*
+    #  - wmake libso finiteVolume
+    #  - wmake libso lagrangian/basic
+    #  - wmake libso lagrangian/distributionModels
+    #  - wmake libso genericPatchFields
+    #  - parallel/Allwmake $*
+    #  - renumber/Allwmake $*
+    #  - wmake $makeType conversion
+    #  - wmake $makeType sampling
+    #  - wmake $makeType mesh/extrudeModel
+    #  - wmake $makeType dynamicMesh
+    #  - wmake $makeType dynamicFvMesh
+    #  - wmake $makeType topoChangerFvMesh
+    #  - wmake $makeType ODE
+    #  - wmake $makeType randomProcesses
+    #  - thermophysicalModels/Allwmake $*
+    #  - transportModels/Allwmake $*
+    #  - turbulenceModels/Allwmake $*
+    #  - TurbulenceModels/Allwmake $*
+    #  - wmake $makeType combustionModels
+    #  - regionModels/Allwmake $*
+    #  - lagrangian/Allwmake $*
+    #  - mesh/Allwmake $*
+    #  - fvAgglomerationMethods/Allwmake $*
+    #  - wmake $makeType fvMotionSolver
+    #  - wmake $makeType engine
+    #  - wmake $makeType fvOptions
+    #  - wmake $makeType regionCoupled
+    #  - postProcessing/Allwmake $*
+    #  - wmake $makeType sixDoFRigidBodyMotion
 script:
   - ./script/ci/test.sh $OPENFOAM_TEST_VERSION
 
