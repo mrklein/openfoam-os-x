@@ -69,5 +69,6 @@ install:
     #  - postProcessing/Allwmake $*
     #  - wmake $makeType sixDoFRigidBodyMotion
 script:
+  - cd $TRAVIS_BUILD_DIR
   - ./script/ci/test.sh $OPENFOAM_TEST_VERSION
 
