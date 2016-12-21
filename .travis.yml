@@ -31,20 +31,20 @@ install:
   - wmakeLnInclude -f OSspecific/${WM_OSTYPE:-POSIX}
   - Pstream/Allwmake $*
   - OSspecific/${WM_OSTYPE:-POSIX}/Allwmake $*
-    #  - wmake libso OpenFOAM
-    #  - wmake libso fileFormats
-    #  - wmake libso surfMesh
-    #  - wmake libso triSurface
-    #  - wmake libso meshTools
-    #  - wmake libso edgeMesh
-    #  - parallel/decompose/AllwmakeLnInclude
-    #  - dummyThirdParty/Allwmake $*
-    #  - wmake libso finiteVolume
-    #  - wmake libso lagrangian/basic
-    #  - wmake libso lagrangian/distributionModels
-    #  - wmake libso genericPatchFields
-    #  - parallel/Allwmake $*
-    #  - renumber/Allwmake $*
+  - wmake libso OpenFOAM
+  - wmake libso fileFormats
+  - wmake libso surfMesh
+  - wmake libso triSurface
+  - wmake libso meshTools
+  - wmake libso edgeMesh
+  - parallel/decompose/AllwmakeLnInclude
+  - dummyThirdParty/Allwmake $*
+  - wmake libso finiteVolume
+  - wmake libso lagrangian/basic
+  - wmake libso lagrangian/distributionModels
+  - wmake libso genericPatchFields
+  - parallel/Allwmake $*
+  - renumber/Allwmake $*
     #  - wmake $makeType conversion
     #  - wmake $makeType sampling
     #  - wmake $makeType mesh/extrudeModel
