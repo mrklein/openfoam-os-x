@@ -1,6 +1,6 @@
 # OpenFOAM on OS X
 
-https://travis-ci.org/mrklein/openfoam-os-x.svg?branch=master
+[![Build Status](https://travis-ci.org/mrklein/openfoam-os-x.svg?branch=master)](https://travis-ci.org/mrklein/openfoam-os-x)
 
 Patches for OpenFOAM compilation on OS X. Detailed installation instructions
 can be found in [wiki](https://github.com/mrklein/openfoam-os-x/wiki).
