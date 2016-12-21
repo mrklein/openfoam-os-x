@@ -8,6 +8,7 @@ env:
   - OPENFOAM_TEST_VERSION='2.2.x'
   - OPENFOAM_TEST_VERSION='2.4.x'
 before_install:
+  - for f in $(brew list); do brew uninstall --force --ignore-dependencies $f; done
   - brew tap homebrew/science
   - brew update
   - brew upgrade
