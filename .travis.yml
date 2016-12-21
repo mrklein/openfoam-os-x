@@ -1,6 +1,7 @@
 language: cpp
 os:
   - osx
+osx_image: xcode8.2
 compiler:
   - clang
 env:
@@ -19,7 +20,6 @@ before_install:
   - hdiutil create -size 8g -type SPARSEBUNDLE -fs HFSX -volname OpenFOAM -fsargs -s "$HOME/OpenFOAM.sparsebundle"
   - mkdir -p "$HOME/OpenFOAM"
   - hdiutil attach -mountpoint "$HOME/OpenFOAM" "$HOME/OpenFOAM.sparsebundle"
-install:
   - ./script/ci/prepare.sh $OPENFOAM_TEST_VERSION
   - cd "$HOME/OpenFOAM/OpenFOAM-$OPENFOAM_TEST_VERSION"
   - source etc/bashrc
@@ -40,6 +40,7 @@ install:
   - parallel/decompose/AllwmakeLnInclude
   - dummyThirdParty/Allwmake $*
   - wmake libso finiteVolume
+install:
   - wmake libso lagrangian/basic
   - wmake libso lagrangian/distributionModels
   - wmake libso genericPatchFields
