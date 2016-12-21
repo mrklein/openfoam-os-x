@@ -10,6 +10,7 @@ env:
 before_install:
   - brew tap homebrew/science
   - brew update
+  - brew upgrade
   - brew install openmpi
   - brew install scotch
   - brew install metis
