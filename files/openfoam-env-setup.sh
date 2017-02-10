@@ -10,7 +10,7 @@
 # Currently N could be 2, 3, or 4.
 
 readonly FOAM_MOUNT_POINT="${FOAM_MOUNT_POINT:-"$HOME/OpenFOAM"}"
-readonly FOAM_RELEASE_FILE="${FOAM_RELESE_FILE:-"$HOME/.OpenFOAM/OpenFOAM-release"}"
+readonly FOAM_RELEASE_FILE="${FOAM_RELEASE_FILE:-"$HOME/.OpenFOAM/OpenFOAM-release"}"
 readonly FOAM_DISK_IMAGE="${FOAM_DISK_IMAGE:-"$HOME/OpenFOAM.sparsebundle"}"
 
 mount_disk_image () {
@@ -109,13 +109,20 @@ of30x() {
 export -f of30x
 
 of40() {
-    ofxxx '4.0'
+    ofxxx "4.0"
 }
 
 export -f of40
 
+of41() {
+    ofxxx "4.1"
+}
+
+export -f of41
+
+
 of4x() {
-    ofxxx '4.x'
+    ofxxx "4.x"
 }
 
 export -f of4x
