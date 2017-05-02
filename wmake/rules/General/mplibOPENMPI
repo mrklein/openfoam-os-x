@@ -1,0 +1,4 @@
+PFLAGS     = -DOMPI_SKIP_MPICXX
+PINC       = -isystem $(MPI_ARCH_PATH)/include
+PLIBS      = -L$(MPI_ARCH_PATH)/lib$(WM_COMPILER_LIB_ARCH) -L$(MPI_ARCH_PATH)/lib -lmpi
+#----------------------------- vi: set ft=make: -------------------------------

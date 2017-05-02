@@ -1,0 +1,5 @@
+SUFFIXES += .l
+
+ltoo = $(call WM_MESSAGE,ll,$<); $(AT)flex -o $(@D)/$(<F).c $< ; $(cc) $(cFLAGS) -c  $(@D)/$(<F).c -o $@
+
+#----------------------------- vi: set ft=make: -------------------------------

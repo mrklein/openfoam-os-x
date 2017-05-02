@@ -1,0 +1,113 @@
+#!/bin/sh
+#------------------------------------------------------------------------------
+# =========                 |
+# \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+#  \\    /   O peration     |
+#   \\  /    A nd           | Copyright (C) 2015-2016 OpenFOAM Foundation
+#    \\/     M anipulation  |
+#-------------------------------------------------------------------------------
+# License
+#     This file is part of OpenFOAM.
+#
+#     OpenFOAM is free software: you can redistribute it and/or modify it
+#     under the terms of the GNU General Public License as published by
+#     the Free Software Foundation, either version 3 of the License, or
+#     (at your option) any later version.
+#
+#     OpenFOAM is distributed in the hope that it will be useful, but WITHOUT
+#     ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+#     FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+#     for more details.
+#
+#     You should have received a copy of the GNU General Public License
+#     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
+#
+# Script
+#     wmakeFunctions
+#
+# Description
+#     Functions to check wmake environment and find .dep and .o files
+#------------------------------------------------------------------------------
+
+#------------------------------------------------------------------------------
+# Check environment variables
+#------------------------------------------------------------------------------
+
+checkEnv()
+{
+    for envar in WM_OPTIONS WM_DIR WM_PROJECT_DIR
+    do
+        eval test "\$$envar" || {
+            echo "$Script error: environment variable \$$envar not set" 1>&2
+            exit 1
+        }
+    done
+}
+
+
+#------------------------------------------------------------------------------
+# Search up directories tree for the Make sub-directory
+#------------------------------------------------------------------------------
+
+expandPath()
+{
+    if [ -d "$1" ]
+    then
+        exPath=$(cd "$1" && pwd -P)
+    else
+        exPath=$(cd $(dirname "$1") && pwd -P)
+    fi
+}
+
+findTarget()
+{
+    expandPath $WM_PROJECT_DIR
+    wmpdir=$exPath
+    expandPath $1
+
+    if [ "$exPath" = "$wmpdir" \
+                   -o "$exPath" = "$HOME" \
+                   -o "$exPath" = "/" \
+       ]
+    then
+        echo "$Script error: could not find Make directory" 1>&2
+        exit 1
+    elif [ -d "$1/Make" ]; then
+        dir=$1
+    else
+        findTarget "$1/.."
+    fi
+}
+
+findObjectDir()
+{
+    expandPath $WM_PROJECT_DIR
+    wmpdir=$exPath
+    expandPath $1
+
+    if echo $exPath | grep --colour=never "$wmpdir" > /dev/null
+    then
+        platformPath=$WM_PROJECT_DIR/platforms/${WM_OPTIONS}
+        objectsDir=$platformPath$(echo $exPath | sed s%$wmpdir%% )
+    else
+        path=$exPath
+        dir=.
+        if [ ! -d Make ]
+        then
+            findTarget .
+        fi
+        appDir=$dir
+        expandPath $appDir/.
+        objectsDir=$appDir/Make/${WM_OPTIONS}$(echo $path | sed s%$exPath%% )
+    fi
+}
+
+depToSource()
+{
+    sourceFile=$(echo ${depFile%.dep} | \
+        sed -e s%platforms/${WM_OPTIONS}/%% -e s%Make/${WM_OPTIONS}/%% \
+            -e s%platforms/${WM_OPTIONS}${WM_MPLIB}/%% \
+            -e s%Make/${WM_OPTIONS}${WM_MPLIB}/%% )
+}
+
+#------------------------------------------------------------------------------

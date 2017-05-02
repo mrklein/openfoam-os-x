@@ -1,0 +1,424 @@
+#!/bin/sh
+#------------------------------------------------------------------------------
+# =========                 |
+# \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+#  \\    /   O peration     |
+#   \\  /    A nd           | Copyright (C) 2011-2016 OpenFOAM Foundation
+#    \\/     M anipulation  |
+#-------------------------------------------------------------------------------
+# License
+#     This file is part of OpenFOAM.
+#
+#     OpenFOAM is free software: you can redistribute it and/or modify it
+#     under the terms of the GNU General Public License as published by
+#     the Free Software Foundation, either version 3 of the License, or
+#     (at your option) any later version.
+#
+#     OpenFOAM is distributed in the hope that it will be useful, but WITHOUT
+#     ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+#     FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+#     for more details.
+#
+#     You should have received a copy of the GNU General Public License
+#     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
+#
+# Script
+#     wmake
+#
+# Description
+#     General, easy to use make system for multi-platform development
+#     with support for local and network parallel compilation.
+#
+#     This updated wmake supports out-of-tree object and dependency files to
+#     avoid the clutter which accumulates in the source-tree with the original
+#     wmake system.  Now when building the OpenFOAM package both the object and
+#     dependency files are now located in a tree with the same structure as the
+#     source tree but in the platforms/$WM_OPTIONS sub-directory of
+#     $WM_PROJECT_DIR.
+#
+#     When building user libraries and applications which are not located in the
+#     OpenFOAM source-tree the object and dependency files are located in a tree
+#     with the same structure as the source tree but in the Make/$WM_OPTIONS
+#     sub-directory.
+#
+#     The disadvantage of the out-of-tree compilation is that the dependency
+#     files are harder to find but are sometimes useful to study which header
+#     files are included.  For those who need access to the dependency files the
+#     new wdep script is provided to locate them.  See the wdep script header or
+#     run:
+#         wdep -h
+#
+# See also
+#     wmakeLnInclude, wmakeLnIncludeAll, wdep, wrmdep, wrmo,
+#     wclean, wcleanPlatform, wcleanLnIncludeAll
+#
+#------------------------------------------------------------------------------
+Script=${0##*/}
+
+usage() {
+    exec 1>&2
+    while [ "$#" -ge 1 ]; do echo "$1"; shift; done
+    cat<<USAGE
+
+Usage: $Script [OPTION] [dir]
+       $Script [OPTION] target [dir [MakeDir]]
+
+options:
+  -q | -quiet       Be quiet (use more terse output)
+  -s | -silent      Run make in 'silent' mode (do not echo commands)
+  -a | -all         Run wmake in all subdirectories
+  -h | -help        Print the usage
+
+
+A general, easy-to-use make system for multi-platform development
+with support for local and network parallel compilation.
+
+The 'target' is a Makefile target:
+  e.g., platforms/linux64GccDPOpt/.../fvMesh.o
+
+or a special target:
+  all               wmake all subdirectories, running Allwmake files if present
+  exe               Compile statically linked executable
+  lib               Compile statically linked archive lib (.a)
+  libo              Compile statically linked lib (.o)
+  libso             Compile dynamically linked lib (.so)
+  dep               Compile lnInclude and dependencies only
+  updatedep         Compile dependencies only (in case of broken dependencies)
+
+USAGE
+    exit 1
+}
+
+
+# Default make is the "make" in the path
+make="make"
+
+
+#------------------------------------------------------------------------------
+# Parse arguments and options
+#------------------------------------------------------------------------------
+
+# Default to compiling the local target only
+all=
+# Default to be noisy if WM_QUIET_RULES is not set
+quiet=
+[ -n "$WM_QUIET_RULES" ] && quiet="V=0"
+
+while [ "$#" -gt 0 ]
+do
+    case "$1" in
+    -h | -help)
+        usage
+        ;;
+    -q | -quiet)
+        quiet="V=0"
+        ;;
+    -s | -silent)
+        make="$make -s"
+        shift
+        ;;
+    -a | -all | all)
+        all="all"
+        shift
+        ;;
+    -*)
+        usage "unknown option: '$*'"
+        ;;
+    *)
+        break
+        ;;
+    esac
+done
+
+
+#------------------------------------------------------------------------------
+# Check environment variables
+#------------------------------------------------------------------------------
+
+for envar in WM_OPTIONS WM_LINK_LANGUAGE WM_DIR
+do
+    eval test "\$$envar" || {
+        echo "$Script error: environment variable \$$envar not set" 1>&2
+        exit 1
+    }
+done
+
+
+# When compiling anything but a standalone exe WM_PROJECT and WM_PROJECT_DIR
+# must be set
+[ "$1" = exe -o \( "$WM_PROJECT" -a "$WM_PROJECT_DIR" \) ] || {
+    echo "$Script error:" 1>&2
+    echo "    environment variable \$WM_PROJECT or " \
+         "\$WM_PROJECT_DIR not set" 1>&2
+    echo "    while building project library" 1>&2
+    exit 1
+}
+
+
+#------------------------------------------------------------------------------
+# Setup parallel compilation
+#------------------------------------------------------------------------------
+
+# Set WM_NCOMPPROCS automatically when both WM_HOSTS and WM_SCHEDULER are set
+if [ -z "$WM_NCOMPPROCS" -a -n "$WM_HOSTS" -a -n "$WM_SCHEDULER" ]
+then
+    WM_NCOMPPROCS=$(wmakeScheduler -count)
+    [ $? -eq 0 ] || unset WM_NCOMPPROCS
+fi
+
+if [ "$WM_NCOMPPROCS" ]
+then
+    if [ "$WM_NCOMPPROCS" -gt 1 -a ! "$MAKEFLAGS" ]
+    then
+        lockDir=$HOME/.$WM_PROJECT/.wmake
+
+        if [ -d $lockDir ]
+        then
+            rm -f $lockDir/*
+        else
+            mkdir -p $lockDir
+        fi
+
+        make="$make --no-print-directory -j "$WM_NCOMPPROCS
+    fi
+fi
+
+
+#------------------------------------------------------------------------------
+# Check arguments and change to the directory in which to run wmake
+#------------------------------------------------------------------------------
+
+unset dir targetType
+MakeDir=Make
+
+if [ $# -ge 1 ]
+then
+    if [ -d "$1" ]
+    then
+        dir=$1
+    else
+        targetType=$1
+    fi
+
+    # Specified directory name:
+    [ $# -ge 2 ] && dir=$2
+
+    # Specified alternative name for the Make sub-directory:
+    [ $# -ge 3 ] && MakeDir=$3
+
+    if [ "$dir" ]
+    then
+        cd $dir 2>/dev/null || {
+            echo "$Script error: could not change to directory '$dir'" 1>&2
+            exit 1
+        }
+    fi
+fi
+
+
+#------------------------------------------------------------------------------
+# Recurse the source tree to compile "all" targets
+#------------------------------------------------------------------------------
+
+if [ "$all" = "all" ]
+then
+    if [ -e Allwmake ]
+    then
+        ./Allwmake
+        exit $?
+    else
+        # Have to keep track of the main exit code for the call to "make"
+        makeExitCode=0
+
+        # Find all the sub-directories containing a 'Make' directory
+        FOAM_APPS=$(\
+                       for d in *; \
+                       do [ -d "$d" -a "$d" != Optional -a "$d" != Make ] \
+                          && echo "$d"; \
+                       done | xargs \
+                 )
+        if [ ! "$FOAM_APPS" = "" ]
+        then
+            # Compile all applications in sub-directories
+            $make ${WM_CONTINUE_ON_ERROR:+-k} \
+                  -f $WM_DIR/makefiles/apps \
+                  TARGET="$targetType" FOAM_APPS="$FOAM_APPS" $quiet
+            makeExitCode=$?
+        fi
+        # If the current directory contains a 'Make' directory continue
+        # otherwise exit, or always exit in case of error
+        if [ ! -d $MakeDir -o $makeExitCode -ne 0 ]
+        then
+            exit $makeExitCode
+        fi
+
+        # Clean up tracking variable
+        unset makeExitCode
+    fi
+fi
+
+
+#------------------------------------------------------------------------------
+# Search up the directory tree for the Make sub-directory,
+# check the existance of the 'files' file and build there if present
+#------------------------------------------------------------------------------
+
+unset dir
+
+expandPath()
+{
+    dir=$(dirname $1)
+    cwd=$PWD
+    cd $dir
+    exPath=$PWD
+    cd $cwd
+}
+
+findTarget()
+{
+    expandPath $1
+
+    if [ "$exPath" = "$WM_PROJECT_DIR" \
+                   -o "$exPath" = "$HOME" \
+                   -o "$exPath" = "/" \
+       ]
+    then
+        echo "$Script error: could not find Make directory" 1>&2
+    elif [ -d "$1/Make" ]; then
+        echo "    Found target directory " $1
+        dir=$1
+    else
+        findTarget "$1/.."
+    fi
+}
+
+if [ ! -d $MakeDir ]
+then
+    echo "$Script: '$MakeDir' directory does not exist in $PWD" 1>&2
+    echo "    Searching up directories tree for Make directory"
+
+    findTarget .
+    targetType=
+
+    if [ "$dir" ]
+    then
+        cd $dir 2>/dev/null || {
+            echo "$Script error: could not change to directory '$dir'" 1>&2
+            exit 1
+        }
+    fi
+fi
+
+
+[ -r $MakeDir/files ] || {
+    echo "$Script error: file '$MakeDir/files' does not exist in $PWD" 1>&2
+    exit 1
+}
+
+
+#------------------------------------------------------------------------------
+# Transform options
+#------------------------------------------------------------------------------
+
+# Transform no option to "libso" if that looks appropriate or remove it
+# so that the call to make builds the application
+if [ "$targetType" = "" ]
+then
+    unset targetType
+    if grep --colour=never -e '^ *LIB *=' "$MakeDir/files" >/dev/null 2>&1
+    then
+        targetType=libso
+    fi
+fi
+
+
+#------------------------------------------------------------------------------
+# Spawn a sub-shell and unset MAKEFLAGS in that sub-shell to avoid
+# files and options being built in parallel
+#------------------------------------------------------------------------------
+
+objectsDir=$MakeDir/$WM_OPTIONS
+if echo $PWD | grep --colour=never "$WM_PROJECT_DIR"
+then
+    platformPath=$WM_PROJECT_DIR/platforms/${WM_OPTIONS}
+    objectsDir=$platformPath$(echo $PWD | sed s%$WM_PROJECT_DIR%% )
+fi
+
+(
+    unset MAKEFLAGS
+    mkdir -p $objectsDir
+
+    # Pre-build the $WM_OPTIONS/options file
+    # which is included when building the $WM_OPTIONS/files file
+    $make -s -f $WM_DIR/makefiles/files MAKE_DIR=$MakeDir \
+          OBJECTS_DIR=$objectsDir $quiet $objectsDir/options
+
+    $make -s -f $WM_DIR/makefiles/files MAKE_DIR=$MakeDir \
+          OBJECTS_DIR=$objectsDir $quiet
+)
+
+
+#------------------------------------------------------------------------------
+# Check the $objectsDir/sourceFiles file was created successfully
+#------------------------------------------------------------------------------
+
+[ -r $objectsDir/sourceFiles ] || {
+    echo "$Script error: file '$objectsDir/sourceFiles'" \
+         "could not be created in $PWD" 1>&2
+    exit 1
+}
+
+
+#------------------------------------------------------------------------------
+# Make the dependency files
+#------------------------------------------------------------------------------
+
+# For libraries create lnInclude ...
+case "$targetType" in
+    lib | libo | libso | dep )
+        # ... but only if 'LIB' is declared in 'Make/files'
+        if grep --colour=never -e '^ *LIB *=' "$MakeDir/files" >/dev/null 2>&1
+        then
+            $make -s -f $WM_DIR/makefiles/general MAKE_DIR=$MakeDir \
+                  OBJECTS_DIR=$objectsDir $quiet lnInclude
+        fi
+        ;;
+esac
+
+
+#------------------------------------------------------------------------------
+# When WM_UPDATE_DEPENDENCIES is set, use forced dependency files update
+#------------------------------------------------------------------------------
+
+if [ -n "$WM_UPDATE_DEPENDENCIES" ]
+then
+
+    $make -f $WM_DIR/makefiles/general MAKE_DIR=$MakeDir \
+        OBJECTS_DIR=$objectsDir $quiet updatedep
+    makeExitCode=$?
+
+    if [ $makeExitCode -ne 0 ]
+    then
+        exit $makeExitCode
+    fi
+
+    unset makeExitCode
+fi
+
+
+#------------------------------------------------------------------------------
+# Make the dependency files or object files and link
+#------------------------------------------------------------------------------
+
+exec $make -f $WM_DIR/makefiles/general MAKE_DIR=$MakeDir \
+     OBJECTS_DIR=$objectsDir $quiet $targetType
+
+
+#------------------------------------------------------------------------------
+# Cleanup local variables and functions
+#------------------------------------------------------------------------------
+
+unset Script usage expandPath findTarget
+
+
+#------------------------------------------------------------------------------

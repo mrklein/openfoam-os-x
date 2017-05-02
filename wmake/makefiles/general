@@ -1,0 +1,215 @@
+#-------------------------------*- makefile -*---------------------------------
+# =========                 |
+# \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+#  \\    /   O peration     |
+#   \\  /    A nd           | Copyright (C) 2011-2016 OpenFOAM Foundation
+#    \\/     M anipulation  |
+#------------------------------------------------------------------------------
+# License
+#     This file is part of OpenFOAM.
+#
+#     OpenFOAM is free software: you can redistribute it and/or modify it
+#     under the terms of the GNU General Public License as published by
+#     the Free Software Foundation, either version 3 of the License, or
+#     (at your option) any later version.
+#
+#     OpenFOAM is distributed in the hope that it will be useful, but WITHOUT
+#     ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+#     FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+#     for more details.
+#
+#     You should have received a copy of the GNU General Public License
+#     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
+#
+# File
+#     wmake/makefiles/general
+#
+# Description
+#     Makefile used by wmake to make dependency files and libs and applications
+#
+#------------------------------------------------------------------------------
+
+#------------------------------------------------------------------------------
+# The Makefile uses a POSIX shell
+#------------------------------------------------------------------------------
+
+SHELL           = /bin/sh
+
+
+#------------------------------------------------------------------------------
+# Unset suffices list (suffix rules are not used)
+#------------------------------------------------------------------------------
+
+.SUFFIXES:
+
+
+#------------------------------------------------------------------------------
+# Set the directory containing the wmake scripts
+#------------------------------------------------------------------------------
+
+WM_SCRIPTS      = $(WM_DIR)/scripts
+
+
+#------------------------------------------------------------------------------
+# Declare default paths
+#------------------------------------------------------------------------------
+
+LIB_SRC         = $(WM_PROJECT_DIR)/src
+LIB_PLATFORMS   = $(WM_PROJECT_DIR)/platforms/$(WM_OPTIONS)/lib
+OBJECTS_DIR     = $(MAKE_DIR)/$(WM_OPTIONS)
+
+SYS_INC         =
+SYS_LIBS        =
+
+PROJECT_INC     = -I$(LIB_SRC)/$(WM_PROJECT)/lnInclude \
+		     -I$(LIB_SRC)/OSspecific/$(WM_OSTYPE)/lnInclude
+
+PROJECT_LIBS    = -l$(WM_PROJECT)
+
+EXE_INC         =
+EXE_LIBS        =
+
+LIB_LIBS        =
+
+
+#------------------------------------------------------------------------------
+# Declare default name of libraries and executables
+#------------------------------------------------------------------------------
+
+# Library
+LIB             = libNULL
+
+# Shared library extension
+ifeq ($(shell uname -s),Darwin)
+SO		= dylib
+else
+SO              = so
+endif
+
+# Project executable
+EXE             = $(WM_PROJECT).out
+
+# Standalone executable
+SEXE            = a.out
+
+#------------------------------------------------------------------------------
+# Set compilation and dependency building rules
+#------------------------------------------------------------------------------
+
+GENERAL_RULES = $(WM_DIR)/rules/General
+include $(GENERAL_RULES)/general
+
+
+#------------------------------------------------------------------------------
+# Include PROJECT directory tree file and
+# source, object and dependency list files.
+# These are constructed by MakefileFiles
+#------------------------------------------------------------------------------
+
+include $(OBJECTS_DIR)/options
+include $(OBJECTS_DIR)/variables
+include $(OBJECTS_DIR)/sourceFiles
+DEPENDENCIES=$(SOURCE:%=$(OBJECTS_DIR)/%.dep)
+BASENAMES=$(basename $(SOURCE))
+OBJECTS=$(BASENAMES:%=$(OBJECTS_DIR)/%.o)
+
+
+#------------------------------------------------------------------------------
+# Set header file include paths
+#------------------------------------------------------------------------------
+
+LIB_HEADER_DIRS = \
+        $(EXE_INC) \
+        -IlnInclude \
+        -I. \
+        $(PROJECT_INC) \
+        $(GINC) \
+        $(SYS_INC)
+
+
+#------------------------------------------------------------------------------
+# Define link statements for executables
+#------------------------------------------------------------------------------
+
+$(EXE): $(OBJECTS)
+	@$(WM_SCRIPTS)/makeTargetDir $(EXE)
+	$(call WM_MESSAGE,LD,$(notdir $(EXE)))
+	$(AT)$(LINKEXE) $(OBJECTS) -L$(LIB_PLATFORMS) \
+		$(EXE_LIBS) $(PROJECT_LIBS) $(SYS_LIBS) \
+		$(LINK_LIBS) $(GLIBS) -o $(EXE)
+
+exe:    $(SEXE)
+	$(call WM_REPORT,$(SEXE))
+
+$(SEXE):$(OBJECTS)
+	@$(WM_SCRIPTS)/makeTargetDir $(SEXE)
+	$(call WM_MESSAGE,LD,$(notdir $(EXE)))
+	$(AT)$(LINKEXE) $(OBJECTS) $(EXE_LIBS) \
+		$(SYS_LIBS) $(LINK_LIBS) $(GLIBS) -o $(SEXE)
+
+#------------------------------------------------------------------------------
+# Define link statements for libraries
+#------------------------------------------------------------------------------
+
+objects: $(OBJECTS)
+
+libso:  $(LIB).$(SO)
+	$(call WM_REPORT,$(LIB).$(SO))
+
+$(LIB).$(SO): $(OBJECTS)
+	@$(WM_SCRIPTS)/makeTargetDir $(LIB)
+	$(call WM_MESSAGE,LD,$(notdir $(LIB).$(SO)))
+	$(AT)$(LINKLIBSO) $(OBJECTS) -L$(LIB_PLATFORMS) \
+		$(LIB_LIBS) $(GLIB_LIBS) -o $(LIB).$(SO)
+
+lib:    $(LIB).a
+	$(call WM_REPORT,$(LIB).a)
+
+$(LIB).a: $(OBJECTS)
+	@$(WM_SCRIPTS)/makeTargetDir $(LIB)
+	@rm -f $(LIB).a
+	$(call WM_MESSAGE,AR,$(notdir $(LIB)))
+	$(AT)$(AR) $(ARFLAGS) $(notdir $(LIB)).a $(OBJECTS)
+	$(call WM_MESSAGE,RANLIB,$(notdir $(LIB)))
+	$(AT)$(RANLIB) $(LIB).a
+
+libo:   $(LIB).o
+	$(call WM_REPORT,$(LIB).o)
+
+$(LIB).o: $(OBJECTS)
+	@$(WM_SCRIPTS)/makeTargetDir $(LIB)
+	@rm -f $(LIB).o
+	$(call WM_MESSAGE,LD,$(notdir $(LIB).o))
+	$(AT)$(LD) -r -o $(LIB).o $(OBJECTS)
+
+#------------------------------------------------------------------------------
+# Set rule to create the include directory for libraries
+#------------------------------------------------------------------------------
+
+lnInclude: $(MAKE_DIR)/files $(MAKE_DIR)/options
+	@rm -rf lnInclude ; wmakeLnInclude .
+
+
+#------------------------------------------------------------------------------
+# Declare all object files depend on $(OBJECTS_DIR)/options
+#------------------------------------------------------------------------------
+
+$(OBJECTS) : $(OBJECTS_DIR)/options
+$(foreach S,$(SOURCE),$(eval $(OBJECTS_DIR)/$(basename $S).o : $(OBJECTS_DIR)/$S.dep))
+
+
+#------------------------------------------------------------------------------
+# Set dependency rule and include dependency lists
+#------------------------------------------------------------------------------
+
+.PHONY: dep updatedep
+dep: $(DEPENDENCIES)
+
+updatedep: dep
+
+ifeq ($(findstring lnInclude,$(MAKECMDGOALS))$(findstring updatedep,$(MAKECMDGOALS)),)
+-include $(DEPENDENCIES)
+endif
+
+
+#----------------------------- vi: set ft=make: -------------------------------

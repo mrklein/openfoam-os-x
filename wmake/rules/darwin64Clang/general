@@ -1,0 +1,12 @@
+CPP        = xcrun cpp -traditional-cpp $(GFLAGS)
+
+PROJECT_LIBS = -l$(WM_PROJECT) -ldl
+
+OSX_SDK_PATH = $(shell xcrun --show-sdk-path)
+
+include $(GENERAL_RULES)/standard
+
+include $(RULES)/c
+include $(RULES)/c++
+
+#----------------------------- vi: set ft=make: -------------------------------

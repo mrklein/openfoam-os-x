@@ -1,0 +1,44 @@
+#-------------------------------*- makefile -*---------------------------------
+
+ifeq ("$(V)","0")
+WM_MESSAGE = @echo "  $1	$2"
+MESSAGE = echo "  $1	$2"
+WM_REPORT = @echo ">> $(notdir $1)"
+AT = @
+else
+MESSAGE = true
+WM_MESSAGE =
+WM_REPORT = @echo \'$1\' is up to date.
+AT =
+endif
+
+XCRUN =
+ifeq ("$(shell uname -s)","Darwin")
+XCRUN = xcrun
+endif
+
+AR         = $(XCRUN) ar
+ARFLAGS    = $(XCRUN) cr
+RANLIB     = $(XCRUN) ranlib
+CPP        = $(XCRUN) cpp
+LD         = $(XCRUN) ld
+
+GFLAGS     = -D$(WM_ARCH) -DWM_ARCH_OPTION=$(WM_ARCH_OPTION) \
+             -DWM_$(WM_PRECISION_OPTION) -DWM_LABEL_SIZE=$(WM_LABEL_SIZE)
+GINC       =
+GLIBS      = -lm
+GLIB_LIBS  =
+
+
+COMPILER_TYPE   = $(shell echo $(WM_COMPILER) | tr -d [:digit:])
+DEFAULT_RULES   = $(WM_DIR)/rules/$(WM_ARCH)$(COMPILER_TYPE)
+RULES           = $(WM_DIR)/rules/$(WM_ARCH)$(WM_COMPILER)
+WMAKE_BIN       = $(WM_DIR)/platforms/$(WM_ARCH)$(WM_COMPILER)
+
+include $(DEFAULT_RULES)/general
+include $(DEFAULT_RULES)/$(WM_LINK_LANGUAGE)
+-include $(RULES)/general
+-include $(RULES)/$(WM_LINK_LANGUAGE)
+include $(GENERAL_RULES)/transform
+
+#----------------------------- vi: set ft=make: -------------------------------

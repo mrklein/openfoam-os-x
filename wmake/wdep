@@ -1,0 +1,118 @@
+#!/bin/sh
+#------------------------------------------------------------------------------
+# =========                 |
+# \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+#  \\    /   O peration     |
+#   \\  /    A nd           | Copyright (C) 2014-2015 OpenFOAM Foundation
+#    \\/     M anipulation  |
+#-------------------------------------------------------------------------------
+# License
+#     This file is part of OpenFOAM.
+#
+#     OpenFOAM is free software: you can redistribute it and/or modify it
+#     under the terms of the GNU General Public License as published by
+#     the Free Software Foundation, either version 3 of the License, or
+#     (at your option) any later version.
+#
+#     OpenFOAM is distributed in the hope that it will be useful, but WITHOUT
+#     ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+#     FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+#     for more details.
+#
+#     You should have received a copy of the GNU General Public License
+#     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
+#
+# Script
+#     wdep
+#
+# Usage
+#     wdep <file>
+#     cat `wdep <file>`
+#
+# Description
+#     Find the .dep file corresponding to <file> and print the path.
+#     If <file> is not in the current directory the tree is searched for
+#     the first occurrence.
+#
+#------------------------------------------------------------------------------
+Script=${0##*/}
+
+# Source the wmake functions
+. ${0%/*}/scripts/wmakeFunctions
+
+usage() {
+    exec 1>&2
+    while [ "$#" -ge 1 ]; do echo "$1"; shift; done
+    cat<<USAGE
+
+Usage: $Script <file>
+
+Find the dep-file corresponding to <file> in the current directory
+and print the path.
+
+USAGE
+    exit 1
+}
+
+
+#------------------------------------------------------------------------------
+# Parse arguments and options
+#------------------------------------------------------------------------------
+
+while [ "$#" -gt 0 ]
+do
+    case "$1" in
+    -h | -help)
+        usage
+        ;;
+    -*)
+        usage "unknown option: '$*'"
+        ;;
+    *)
+        break
+        ;;
+    esac
+done
+
+# Check environment variables
+checkEnv
+
+
+#------------------------------------------------------------------------------
+# Check <file> is is the current directory,
+# otherwise search tree for first occurrance
+#------------------------------------------------------------------------------
+
+sourceFile=$1
+
+if [ ! -e $1 ]
+then
+    sourceFile=$(find . -name $sourceFile -print -quit)
+    if [ -z "$sourceFile" ]
+    then
+        echo "$Script: cannot find source file $1" 1>&2
+        exit 1
+    fi
+fi
+
+
+#------------------------------------------------------------------------------
+# Search up directories tree for the Make sub-directory containing dep files
+# and echo path for the dep file corresponding to the specified source file
+#------------------------------------------------------------------------------
+
+findObjectDir $sourceFile
+
+fileName=${1##*/}
+
+echo $objectsDir/$fileName.dep
+
+
+#------------------------------------------------------------------------------
+# Cleanup local variables and functions
+#------------------------------------------------------------------------------
+
+unset Script usage
+
+
+#------------------------------------------------------------------------------

@@ -1,0 +1,77 @@
+#-------------------------------*- makefile -*---------------------------------
+# =========                 |
+# \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+#  \\    /   O peration     |
+#   \\  /    A nd           | Copyright (C) 2011-2016 OpenFOAM Foundation
+#    \\/     M anipulation  |
+#------------------------------------------------------------------------------
+# License
+#     This file is part of OpenFOAM.
+#
+#     OpenFOAM is free software: you can redistribute it and/or modify it
+#     under the terms of the GNU General Public License as published by
+#     the Free Software Foundation, either version 3 of the License, or
+#     (at your option) any later version.
+#
+#     OpenFOAM is distributed in the hope that it will be useful, but WITHOUT
+#     ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+#     FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+#     for more details.
+#
+#     You should have received a copy of the GNU General Public License
+#     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
+#
+# File
+#     wmake/makefiles/files
+#
+# Description
+#     A Makefile for the 'options' and 'files' files, used by wmake
+#
+#------------------------------------------------------------------------------
+
+GENERAL_RULES   = $(WM_DIR)/rules/General
+include $(GENERAL_RULES)/general
+
+
+#------------------------------------------------------------------------------
+# Declare names of make system control files derived from file 'files'
+#------------------------------------------------------------------------------
+
+OBJECTS_DIR     = $(MAKE_DIR)/$(WM_OPTIONS)
+OPTIONS         = $(OBJECTS_DIR)/options
+FILES           = $(OBJECTS_DIR)/files
+VARS            = $(OBJECTS_DIR)/variables
+SFILES          = $(OBJECTS_DIR)/sourceFiles
+
+-include $(OPTIONS)
+
+
+#------------------------------------------------------------------------------
+# Declare dependency of all make system files on FILES
+# Causes all derived files to be remade if any are changed or missing
+#------------------------------------------------------------------------------
+
+all : $(OPTIONS) $(SFILES) $(VARS)
+
+$(OPTIONS) : $(MAKE_DIR)/options
+	@$(CPP) $(GFLAGS) $(MAKE_DIR)/options | sed -e 's@   *@ @g' > $(OPTIONS)
+
+$(SFILES): $(MAKE_DIR)/files
+	@$(CPP) $(GFLAGS) $(MAKE_DIR)/files | sed -e 's@   *@ @g' > $(FILES)
+	# Find all macro definitions in the files
+	@grep --colour=never "=" $(FILES) > $(VARS)
+	echo "SOURCE = " > $(SFILES)
+	# Remove all macro definitions from the files list
+	@grep --colour=never -v "=" $(FILES) >> $(SFILES)
+	@rm -f $(FILES)
+	# Add a newline to files to ensure the last line is followed by a newline
+	@echo "" >> $(SFILES)
+	# Remove commented lines, blank lines, and trailing blanks from files
+	@sed -i~ -e '/^#/ d' -e '/^[ \t]*$$/ d' -e 's,[ \t]*$$,,' $(SFILES)
+	# Add backslashes
+	@sed -i~ -e 's,$$, \\,' -e '$$s,\\,,' $(SFILES)
+	@rm $(SFILES)~
+
+$(VARS): $(SFILES)
+
+#----------------------------- vi: set ft=make: -------------------------------

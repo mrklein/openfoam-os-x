@@ -1,0 +1,5 @@
+PFLAGS     = -DMPICH_SKIP_MPICXX
+PINC       = -isystem $(MPI_ARCH_PATH)/include64
+PLIBS      = -L$(MPI_ARCH_PATH)/lib64 -lmpi
+
+#----------------------------- vi: set ft=make: -------------------------------

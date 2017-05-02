@@ -1,0 +1,35 @@
+SUFFIXES += .C
+SUFFIXES += .cxx
+SUFFIXES += .cc
+SUFFIXES += .cpp
+
+c++WARN     = -Wall -Wextra -Wno-unused-parameter -Wno-overloaded-virtual \
+              -Wno-unused-variable -Wno-unused-local-typedef -Wno-invalid-offsetof \
+	      -Wno-deprecated-register -Wno-undefined-var-template
+
+c++LESSWARN = -Wno-shift-negative-value
+
+CC          = xcrun c++ -arch x86_64 -std=c++14
+
+include $(RULES)/c++$(WM_COMPILE_OPTION)
+
+ptFLAGS     = -DNoRepository -ftemplate-depth-100
+
+c++FLAGS    = $(GFLAGS) $(c++WARN) $(c++OPT) $(c++DBUG) $(ptFLAGS) $(LIB_HEADER_DIRS) -fPIC
+
+ifneq ("$(OSX_SDK_PATH)","")
+c++FLAGS += -isysroot $(OSX_SDK_PATH)
+endif
+
+Ctoo        = $(WM_SCHEDULER) $(CC) $(c++FLAGS) -c $< -o $@
+cxxtoo      = $(Ctoo)
+cctoo       = $(Ctoo)
+cpptoo      = $(Ctoo)
+
+LINK_LIBS   = $(c++DBUG)
+
+LINKLIBSO   = $(CC) $(c++FLAGS) -Wl,-dylib,-undefined,dynamic_lookup
+
+LINKEXE     = $(CC) $(c++FLAGS) -Wl,-execute,-undefined,dynamic_lookup
+
+#----------------------------- vi: set ft=make: -------------------------------

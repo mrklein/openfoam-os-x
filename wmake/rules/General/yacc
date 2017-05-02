@@ -1,0 +1,9 @@
+SUFFIXES += .y .Y
+
+ytoo = $(call WM_MESSAGE,YY); $(AT)yacc -v -d $< ; mv y.tab.c $(@D)/$(<F).c ; mv y.tab.h $(@D)/parser.h ; \
+       $(CC) $(c++FLAGS) -c $(@D)/$(<F).c -o $@
+
+Ytoo = $(call WM_MESSAGE,YY); $(AT)yacc -v -d $< ; mv y.tab.c $(@D)/$(<F).C ; mv y.tab.h $(@D)/parser.H ; \
+       $(CC) $(c++FLAGS) -c $(@D)/$(<F).C -o $@
+
+#----------------------------- vi: set ft=make: -------------------------------

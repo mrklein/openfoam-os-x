@@ -1,0 +1,23 @@
+SUFFIXES += .c
+
+cWARN        = -Wall
+
+cc          = xcrun cc -arch x86_64
+
+include $(RULES)/c$(WM_COMPILE_OPTION)
+
+cFLAGS      = $(GFLAGS) $(cWARN) $(cOPT) $(cDBUG) $(LIB_HEADER_DIRS) -fPIC
+
+ifneq ("$(OSX_SDK_PATH)","")
+cFLAGS += -isysroot $(OSX_SDK_PATH)
+endif
+
+ctoo        = $(WM_SCHEDULER) $(cc) $(cFLAGS) -c $< -o $@
+
+LINK_LIBS   = $(cDBUG)
+
+LINKLIBSO   = $(cc) -Wl,-dylib,-undefined,dynamic_lookup
+
+LINKEXE     = $(cc) -Wl,-execute,-undefined,dynamic_lookup
+
+#----------------------------- vi: set ft=make: -------------------------------

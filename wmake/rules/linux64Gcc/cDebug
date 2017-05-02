@@ -1,0 +1,4 @@
+cDBUG       = -ggdb -DFULLDEBUG
+cOPT        = -O1 -fdefault-inline -finline-functions
+
+#----------------------------- vi: set ft=make: -------------------------------

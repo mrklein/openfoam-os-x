@@ -1,0 +1,5 @@
+SUFFIXES += .qt
+
+qttoo = $(call WM_MESSAGE,MOC,$<); $(AT)$(QTDIR)/bin/moc -f $< -o $(@D)/$(<F).C ; $(CC) $(c++FLAGS) -c $(@D)/$(<F).C -o $@
+
+#----------------------------- vi: set ft=make: -------------------------------

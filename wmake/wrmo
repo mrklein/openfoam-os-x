@@ -1,0 +1,116 @@
+#!/bin/sh
+#------------------------------------------------------------------------------
+# =========                 |
+# \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+#  \\    /   O peration     |
+#   \\  /    A nd           | Copyright (C) 2015 OpenFOAM Foundation
+#    \\/     M anipulation  |
+#-------------------------------------------------------------------------------
+# License
+#     This file is part of OpenFOAM.
+#
+#     OpenFOAM is free software: you can redistribute it and/or modify it
+#     under the terms of the GNU General Public License as published by
+#     the Free Software Foundation, either version 3 of the License, or
+#     (at your option) any later version.
+#
+#     OpenFOAM is distributed in the hope that it will be useful, but WITHOUT
+#     ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+#     FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+#     for more details.
+#
+#     You should have received a copy of the GNU General Public License
+#     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
+#
+# Script
+#     wrmo
+#
+# Usage
+#     wrmo [-a | -all | all] [file]
+#
+# Description
+#     Remove all .o files from the object directory tree corresponding to the
+#     current source derectory or remove only the .o file corresponding to the
+#     optionally specified [file].  With the -a/-all/all option the .o files
+#     are removed for all platforms rather than just the current platform.
+#
+#------------------------------------------------------------------------------
+Script=${0##*/}
+
+# Source the wmake functions
+. ${0%/*}/scripts/wmakeFunctions
+
+usage() {
+    exec 1>&2
+    while [ "$#" -ge 1 ]; do echo "$1"; shift; done
+    cat<<USAGE
+Usage: $Script [file]
+
+Remove all .o files or remove .o file corresponding to <file>
+
+USAGE
+    exit 1
+}
+
+
+#------------------------------------------------------------------------------
+# Parse arguments and options
+#------------------------------------------------------------------------------
+
+# Default to processing only the current platform
+all=
+
+while [ "$#" -gt 0 ]
+do
+    case "$1" in
+    -h | -help)
+        usage
+        ;;
+    # Non-stop compilation, ignoring errors
+    -a | -all | all)
+        all="all"
+        shift
+        ;;
+    -*)
+       usage "unknown option: '$*'"
+       ;;
+    *)
+       break
+       ;;
+    esac
+done
+
+# Check environment variables
+checkEnv
+
+
+#------------------------------------------------------------------------------
+# Remove the selected .o files from the object tree
+#------------------------------------------------------------------------------
+
+findObjectDir .
+
+# With the -a/-all option replace the current platform with a wildcard
+if [ "$all" = "all" ]
+then
+    objectsDir=$(echo $objectsDir | sed s%$WM_OPTIONS%*% )
+fi
+
+if [ "$#" -eq 0 ]
+then
+    echo "removing all .o files ..."
+    find $objectsDir -name '*.o' -print | xargs -t rm 2>/dev/null
+else
+    echo "removing .o files corresponding to $1 ..."
+    rm $objectsDir/${1%%.*}.o
+fi
+
+
+#------------------------------------------------------------------------------
+# Cleanup local variables and functions
+#------------------------------------------------------------------------------
+
+unset Script usage
+
+
+#------------------------------------------------------------------------------
