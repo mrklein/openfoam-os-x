@@ -87,7 +87,7 @@ setWM_NCOMPPROCS()
         WM_NCOMPPROCS=$(egrep "^processor" /proc/cpuinfo | wc -l)
     elif [ -x /usr/sbin/sysctl -a -n "$(sysctl -q -n hw.ncpu)" ]
     then
-    	WM_NCOMPPROCS=$(sysctl -n hw.ncpu)
+        WM_NCOMPPROCS=$(sysctl -n hw.ncpu)
     else
         WM_NCOMPPROCS=1
     fi
