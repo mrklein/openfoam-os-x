@@ -3,6 +3,27 @@
 Patches for OpenFOAM compilation on OS X. Detailed installation instructions
 can be found in [wiki](https://github.com/mrklein/openfoam-os-x/wiki).
 
+## May 8, 2017
+
+Update.
+
+- Only 2.2.x, 2.4.x, 4.0, 4.1, and 4.x patches are kept. Other versions
+  could appear later, but since I do not use them, odds are rather low (old
+  patches still can be found in repository history).
+- wmake is unified across versions (with `WM_QUIET_RULES`, to reduce noise in
+  log-files).
+- Latest CLT update requires addition of `-Wno-undefined-var-template` to avoid
+  excess of warnings.
+- Paraview configuration file now looks for Paraview\*.app, this resolves #32.
+- Check for wxt terminal is added to foamMonitor script, a workaround for #31.
+- IOobject emits mode-line for vi and adds foamVersion to header.
+
+Build process was tested on
+
+```
+
+```
+
 ## Oct. 28, 2016
 
 Following recent bug-reports updated `dev` patch (up to commit `37c5d28`).

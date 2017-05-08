@@ -9,7 +9,9 @@
  .../postProcessing/graphics/PVReaders/Allwmake     |   7 +-
  bin/foamInstallationTest                           |  21 +++-
  bin/foamJob                                        |   6 +
+ bin/foamMonitor                                    |   7 +-
  bin/paraFoam                                       |   5 +
+ bin/tools/CleanFunctions                           |   2 +-
  bin/tools/RunFunctions                             |  22 +++-
  etc/bashrc                                         | 100 ++++++++++++---
  etc/config.sh/mac/CGAL                             |  69 +++++++++++
@@ -26,9 +28,13 @@
  src/OSspecific/POSIX/signals/sigFpe.C              |  92 +++++++++++++-
  src/OSspecific/POSIX/signals/sigFpe.H              |  14 ++-
  src/OpenFOAM/Make/files                            |   6 +
+ src/OpenFOAM/db/IOobject/IOobject.H                |   3 +-
+ src/OpenFOAM/db/IOobject/IOobjectI.H               |  17 ++-
+ src/OpenFOAM/db/IOobject/IOobjectWriteHeader.C     |   2 +
  src/OpenFOAM/db/IOstreams/IOstreams.H              |   4 +
  .../db/dynamicLibrary/dynamicCode/dynamicCode.C    |   4 +
  .../db/dynamicLibrary/dynamicCode/dynamicCode.H    |   4 +
+ src/OpenFOAM/fields/Fields/Field/FieldMapper.H     |   2 +-
  src/OpenFOAM/primitives/Scalar/doubleFloat.H       |  15 +++
  src/OpenFOAM/primitives/ints/int/int.H             |   8 ++
  src/OpenFOAM/primitives/ints/long/long.C           |  50 ++++++++
@@ -37,8 +43,12 @@
  src/OpenFOAM/primitives/ints/ulong/ulong.C         |  52 ++++++++
  src/OpenFOAM/primitives/ints/ulong/ulong.H         | 138 +++++++++++++++++++++
  src/OpenFOAM/primitives/ints/ulong/ulongIO.C       | 101 +++++++++++++++
+ .../primitives/ranges/labelRange/labelRangeI.H     |   4 +-
+ .../primitives/ranges/labelRange/labelRangesI.H    |   2 +-
+ src/conversion/ensight/part/ensightPartCells.C     |   4 +-
  src/fvAgglomerationMethods/Allwmake                |   9 +-
  .../MGridGenGamgAgglomeration/Make/options         |  16 ++-
+ .../edgeFaceCirculator/edgeFaceCirculator.C        |   2 +-
  src/parallel/decompose/Allwmake                    |   4 +-
  src/parallel/decompose/metisDecomp/Allwmake        |  10 +-
  src/parallel/decompose/metisDecomp/Make/options    |   1 -
@@ -47,30 +57,72 @@
  src/parallel/decompose/scotchDecomp/Make/options   |   8 +-
  src/renumber/Allwmake                              |  12 +-
  src/renumber/SloanRenumber/Make/options            |  31 +++--
- wmake/makefiles/files                              |   5 +-
- wmake/makefiles/general                            |  58 ++++++++-
- wmake/rules/General/CGAL                           |   7 +-
- wmake/rules/General/bison                          |   8 ++
- wmake/rules/General/btyacc                         |   6 +
- wmake/rules/General/btyacc++                       |   6 +
- wmake/rules/General/byacc                          |   6 +
- wmake/rules/General/flex                           |   5 +
- wmake/rules/General/flex++                         |   5 +
- wmake/rules/General/moc                            |   5 +
- wmake/rules/General/transform                      |  10 ++
- wmake/rules/darwin64Clang/c                        |  21 ++++
- wmake/rules/darwin64Clang/c++                      |  33 +++++
- wmake/rules/darwin64Clang/c++Debug                 |   2 +
- wmake/rules/darwin64Clang/c++Opt                   |   3 +
- wmake/rules/darwin64Clang/c++Prof                  |   2 +
- wmake/rules/darwin64Clang/cDebug                   |   2 +
- wmake/rules/darwin64Clang/cOpt                     |   2 +
- wmake/rules/darwin64Clang/cProf                    |   2 +
- wmake/rules/darwin64Clang/general                  |  10 ++
- wmake/src/Makefile                                 |  13 ++
+ wmake/makefiles/apps                               |   3 +-
+ wmake/makefiles/files                              |  12 +-
+ wmake/makefiles/general                            |  43 ++++---
+ wmake/rules/General/CGAL                           |   9 +-
+ wmake/rules/General/X                              |   2 +
+ wmake/rules/General/bison                          |   6 +-
+ wmake/rules/General/btyacc                         |   4 +-
+ wmake/rules/General/btyacc++                       |   4 +-
+ wmake/rules/General/byacc                          |   4 +-
+ wmake/rules/General/flex                           |   4 +-
+ wmake/rules/General/flex++                         |   4 +-
+ wmake/rules/General/general                        |  30 +++--
+ wmake/rules/General/moc                            |   4 +-
+ wmake/rules/General/mplib                          |   2 +
+ wmake/rules/General/mplibMPICH                     |   2 +
+ wmake/rules/General/mplibMPICH-GM                  |   2 +
+ wmake/rules/General/mplibOPENMPI                   |   1 +
+ wmake/rules/General/mplibQSMPI                     |   2 +
+ wmake/rules/General/mplibSGIMPI                    |   2 +
+ wmake/rules/General/mplibSYSTEMMPI                 |   2 +
+ wmake/rules/General/mplibSYSTEMOPENMPI             |   2 +
+ wmake/rules/General/standard                       |   2 +-
+ wmake/rules/General/transform                      |   6 +-
+ wmake/rules/General/version                        |  12 +-
+ wmake/rules/General/yacc                           |  10 +-
+ wmake/rules/darwin64Clang/c                        |  23 ++++
+ wmake/rules/darwin64Clang/c++                      |  35 ++++++
+ wmake/rules/darwin64Clang/c++Debug                 |   4 +
+ wmake/rules/darwin64Clang/c++Opt                   |   5 +
+ wmake/rules/darwin64Clang/c++Prof                  |   4 +
+ wmake/rules/darwin64Clang/cDebug                   |   4 +
+ wmake/rules/darwin64Clang/cOpt                     |   4 +
+ wmake/rules/darwin64Clang/cProf                    |   4 +
+ wmake/rules/darwin64Clang/general                  |  12 ++
+ wmake/rules/linux64Clang/c                         |   2 +
+ wmake/rules/linux64Clang/c++                       |   2 +
+ wmake/rules/linux64Clang/c++Debug                  |   2 +
+ wmake/rules/linux64Clang/c++Opt                    |   2 +
+ wmake/rules/linux64Clang/c++Prof                   |   2 +
+ wmake/rules/linux64Clang/cDebug                    |   2 +
+ wmake/rules/linux64Clang/cOpt                      |   2 +
+ wmake/rules/linux64Clang/cProf                     |   2 +
+ wmake/rules/linux64Clang/general                   |   2 +
+ wmake/rules/linux64Clang/mplibHPMPI                |   2 +
+ wmake/rules/linux64Clang/mplibINTELMPI             |   2 +
+ wmake/rules/linux64Gcc/c                           |   2 +
+ wmake/rules/linux64Gcc/c++                         |   2 +
+ wmake/rules/linux64Gcc/c++Debug                    |   2 +
+ wmake/rules/linux64Gcc/c++Opt                      |   2 +
+ wmake/rules/linux64Gcc/c++Prof                     |   2 +
+ wmake/rules/linux64Gcc/cDebug                      |   2 +
+ wmake/rules/linux64Gcc/cOpt                        |   2 +
+ wmake/rules/linux64Gcc/cProf                       |   2 +
+ wmake/rules/linux64Gcc/general                     |   2 +
+ wmake/rules/linux64Gcc/mplibHPMPI                  |   2 +
+ wmake/rules/linux64Gcc/mplibINTELMPI               |   2 +
+ wmake/scripts/AllwmakeParseArguments               |   3 +
+ wmake/scripts/wmakeFunctions                       |   2 +-
+ wmake/src/Makefile                                 |  14 ++-
  wmake/src/wmkdep.l                                 |  14 ++-
+ wmake/wclean                                       |   6 +-
+ wmake/wmake                                        |  25 ++--
  wmake/wmakeLnInclude                               |   7 +-
- 72 files changed, 1604 insertions(+), 102 deletions(-)
+ wmake/wmakeLnIncludeAll                            |   2 +-
+ wmake/wrmdep                                       |   2 +-
+ 124 files changed, 1725 insertions(+), 182 deletions(-)
 
 diff --git a/.gitignore b/.gitignore
 index a897b81..8f59031 100644
@@ -312,6 +364,24 @@ index 6646e5d..479ddad 100755
      #
      # Run (on single processor)
      #
+diff --git a/bin/foamMonitor b/bin/foamMonitor
+index 8ae1985..af5ee46 100755
+--- a/bin/foamMonitor
++++ b/bin/foamMonitor
+@@ -57,7 +57,12 @@ USAGE
+ 
+ plotFileHeader() {
+     cat<<EOF
+-set term x11 1 font "helvetica,17" linewidth 1.5 persist noraise
++if (strstrt(GPVAL_TERMINALS, 'wxt')) {
++    selected_terminal = 'wxt'
++} else {
++    selected_terminal = 'x11'
++}
++set term selected_terminal 1 font "helvetica,17" linewidth 1.5 persist noraise
+ $LOGSCALE
+ $YRANGE
+ set title "Data Monitoring"
 diff --git a/bin/paraFoam b/bin/paraFoam
 index 84b82ec..e965e69 100755
 --- a/bin/paraFoam
@@ -328,8 +398,18 @@ index 84b82ec..e965e69 100755
  # Parse options
  while [ "$#" -gt 0 ]
  do
+diff --git a/bin/tools/CleanFunctions b/bin/tools/CleanFunctions
+index dde53ba..cc4a9da 100644
+--- a/bin/tools/CleanFunctions
++++ b/bin/tools/CleanFunctions
+@@ -119,4 +119,4 @@ cleanApplication()
+ }
+ 
+ 
+-#------------------------------------------------------------------------------
++#------------------------------ vim: set ft=sh: -------------------------------
 diff --git a/bin/tools/RunFunctions b/bin/tools/RunFunctions
-index 4703fee..15d6ab9 100644
+index 4703fee..35e5024 100644
 --- a/bin/tools/RunFunctions
 +++ b/bin/tools/RunFunctions
 @@ -28,6 +28,18 @@
@@ -385,7 +465,7 @@ index 4703fee..15d6ab9 100644
  }
  
 -#------------------------------------------------------------------------------
-+# vim: set ft=sh et sw=4 ts=4 sts=4:
++#------------------------------ vim: set ft=sh: -------------------------------
 diff --git a/etc/bashrc b/etc/bashrc
 index 69f709e..18b77a3 100644
 --- a/etc/bashrc
@@ -817,16 +897,16 @@ index 0000000..bb87346
 +#------------------------------------------------------------------------------
 diff --git a/etc/config.sh/mac/paraview b/etc/config.sh/mac/paraview
 new file mode 100644
-index 0000000..0836c4a
+index 0000000..fe379b3
 --- /dev/null
 +++ b/etc/config.sh/mac/paraview
 @@ -0,0 +1,16 @@
-+if [ -d "/Applications/paraview.app" ];
++if [ -d /Applications/Paraview*.app ];
 +then
-+    [ "$FOAM_VERBOSE" -a "$PS1" ] && echo "Using /Applications/paraview.app"
++    [ "$FOAM_VERBOSE" -a "$PS1" ] && echo Using /Applications/Paraview*.app
 +
 +    paraview () {
-+        "/Applications/paraview.app/Contents/MacOS/paraview" "$@"
++        /Applications/Paraview*.app/Contents/MacOS/paraview "$@"
 +    }
 +
 +    export -f paraview
@@ -1430,6 +1510,69 @@ index c975296..4ba87b7 100644
  
  primitives/Scalar/doubleScalar/doubleScalar.C
  primitives/Scalar/floatScalar/floatScalar.C
+diff --git a/src/OpenFOAM/db/IOobject/IOobject.H b/src/OpenFOAM/db/IOobject/IOobject.H
+index 15235b9..feb04e8 100644
+--- a/src/OpenFOAM/db/IOobject/IOobject.H
++++ b/src/OpenFOAM/db/IOobject/IOobject.H
+@@ -393,7 +393,8 @@ public:
+ 
+             //- Write the standard end file divider
+             template<class Stream>
+-            static inline Stream& writeEndDivider(Stream& os);
++            static inline Stream& writeEndDivider(
++                Stream& os, bool noHint=false);
+ 
+             //- Write header
+             bool writeHeader(Ostream&) const;
+diff --git a/src/OpenFOAM/db/IOobject/IOobjectI.H b/src/OpenFOAM/db/IOobject/IOobjectI.H
+index ed83109..f955661 100644
+--- a/src/OpenFOAM/db/IOobject/IOobjectI.H
++++ b/src/OpenFOAM/db/IOobject/IOobjectI.H
+@@ -105,11 +105,20 @@ inline Stream& Foam::IOobject::writeDivider(Stream& os)
+ }
+ 
+ template<class Stream>
+-inline Stream& Foam::IOobject::writeEndDivider(Stream& os)
++inline Stream& Foam::IOobject::writeEndDivider(Stream& os, bool noHint)
+ {
+-    os  << "\n\n"
+-        "// *****************************************"
+-        "******************************** //\n";
++    if (noHint)
++    {
++        os  << "\n\n"
++            "// *****************************************"
++            "******************************** //\n";
++    }
++    else
++    {
++        os  << "\n\n"
++            "// **************************** vi: set ft=foam: "
++            "*************************** //\n";
++    }
+ 
+     return os;
+ }
+diff --git a/src/OpenFOAM/db/IOobject/IOobjectWriteHeader.C b/src/OpenFOAM/db/IOobject/IOobjectWriteHeader.C
+index bb19caf..f1a92c7 100644
+--- a/src/OpenFOAM/db/IOobject/IOobjectWriteHeader.C
++++ b/src/OpenFOAM/db/IOobject/IOobjectWriteHeader.C
+@@ -29,6 +29,7 @@ Description
+ 
+ #include "IOobject.H"
+ #include "objectRegistry.H"
++#include "foamVersion.H"
+ 
+ // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+ 
+@@ -46,6 +47,7 @@ bool Foam::IOobject::writeHeader(Ostream& os, const word& type) const
+     writeBanner(os)
+         << "FoamFile\n{\n"
+         << "    version     " << os.version() << ";\n"
++        << "    foamVersion \"" << FOAMversion << "\";\n"
+         << "    format      " << os.format() << ";\n"
+         << "    class       " << type << ";\n";
+ 
 diff --git a/src/OpenFOAM/db/IOstreams/IOstreams.H b/src/OpenFOAM/db/IOstreams/IOstreams.H
 index 438133d..64b7f9f 100644
 --- a/src/OpenFOAM/db/IOstreams/IOstreams.H
@@ -1477,6 +1620,19 @@ index 852ba6d..cecf678 100644
          }
  
          //- Path for specified code name relative to \$FOAM_CASE
+diff --git a/src/OpenFOAM/fields/Fields/Field/FieldMapper.H b/src/OpenFOAM/fields/Fields/Field/FieldMapper.H
+index b40e2fd..fd126b8 100644
+--- a/src/OpenFOAM/fields/Fields/Field/FieldMapper.H
++++ b/src/OpenFOAM/fields/Fields/Field/FieldMapper.H
+@@ -76,7 +76,7 @@ public:
+             FatalErrorInFunction
+                 << "attempt to access null distributeMap"
+                 << abort(FatalError);
+-            return *reinterpret_cast<mapDistributeBase*>(NULL);
++            return NullObjectRef<mapDistributeBase>();
+         }
+ 
+         //- Are there unmapped values? I.e. do all size() elements get
 diff --git a/src/OpenFOAM/primitives/Scalar/doubleFloat.H b/src/OpenFOAM/primitives/Scalar/doubleFloat.H
 index 57373e0..b560586 100644
 --- a/src/OpenFOAM/primitives/Scalar/doubleFloat.H
@@ -2155,6 +2311,63 @@ index 0000000..aa62c61
 +
 +
 +// ************************************************************************* //
+diff --git a/src/OpenFOAM/primitives/ranges/labelRange/labelRangeI.H b/src/OpenFOAM/primitives/ranges/labelRange/labelRangeI.H
+index 21e839c..218bba9 100644
+--- a/src/OpenFOAM/primitives/ranges/labelRange/labelRangeI.H
++++ b/src/OpenFOAM/primitives/ranges/labelRange/labelRangeI.H
+@@ -23,6 +23,8 @@ License
+ 
+ \*---------------------------------------------------------------------------*/
+ 
++#include "nullObject.H"
++
+ 
+ // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
+ 
+@@ -50,7 +52,7 @@ inline Foam::labelRange::labelRange(const label start, const label size)
+ 
+ inline Foam::labelRange::const_iterator::const_iterator()
+ :
+-   range_(*reinterpret_cast<Foam::labelRange* >(0)),
++   range_(Foam::NullObjectRef<Foam::labelRange>()),
+    index_(-1)
+ {}
+ 
+diff --git a/src/OpenFOAM/primitives/ranges/labelRange/labelRangesI.H b/src/OpenFOAM/primitives/ranges/labelRange/labelRangesI.H
+index 739d582..82a77c7 100644
+--- a/src/OpenFOAM/primitives/ranges/labelRange/labelRangesI.H
++++ b/src/OpenFOAM/primitives/ranges/labelRange/labelRangesI.H
+@@ -42,7 +42,7 @@ inline Foam::labelRanges::labelRanges(const label nElem)
+ 
+ inline Foam::labelRanges::const_iterator::const_iterator()
+ :
+-   list_(*reinterpret_cast<Foam::labelRanges* >(0)),
++   list_(Foam::NullObjectRef<Foam::labelRanges>()),
+    index_(-1),
+    subIndex_(-1)
+ {}
+diff --git a/src/conversion/ensight/part/ensightPartCells.C b/src/conversion/ensight/part/ensightPartCells.C
+index 82ef148..1ab2716 100644
+--- a/src/conversion/ensight/part/ensightPartCells.C
++++ b/src/conversion/ensight/part/ensightPartCells.C
+@@ -182,7 +182,7 @@ Foam::ensightPartCells::ensightPartCells
+ )
+ :
+     ensightPart(partNumber, partDescription),
+-    mesh_(*reinterpret_cast<polyMesh*>(0))
++    mesh_(NullObjectRef<polyMesh>())
+ {}
+ 
+ 
+@@ -237,7 +237,7 @@ Foam::ensightPartCells::ensightPartCells(const ensightPartCells& part)
+ Foam::ensightPartCells::ensightPartCells(Istream& is)
+ :
+     ensightPart(),
+-    mesh_(*reinterpret_cast<polyMesh*>(0))
++    mesh_(NullObjectRef<polyMesh>())
+ {
+     reconstruct(is);
+ }
 diff --git a/src/fvAgglomerationMethods/Allwmake b/src/fvAgglomerationMethods/Allwmake
 index f5cfa2c..10c3cbb 100755
 --- a/src/fvAgglomerationMethods/Allwmake
@@ -2202,6 +2415,19 @@ index a58b65f..a135baf 100644
 +endif
 +
 +/* vim:set ft=make sw=4 ts=4 et: */
+diff --git a/src/meshTools/edgeFaceCirculator/edgeFaceCirculator.C b/src/meshTools/edgeFaceCirculator/edgeFaceCirculator.C
+index 9149eaf..e9a4ff6 100644
+--- a/src/meshTools/edgeFaceCirculator/edgeFaceCirculator.C
++++ b/src/meshTools/edgeFaceCirculator/edgeFaceCirculator.C
+@@ -30,7 +30,7 @@ License
+ 
+ const Foam::edgeFaceCirculator Foam::edgeFaceCirculator::endConstIter
+ (
+-    *reinterpret_cast<primitiveMesh*>(0),       // primitiveMesh
++    NullObjectRef<primitiveMesh>(),             // primitiveMesh
+     -1,                                         // faceLabel
+     false,                                      // ownerSide
+     -1,                                         // index
 diff --git a/src/parallel/decompose/Allwmake b/src/parallel/decompose/Allwmake
 index c692633..7c68146 100755
 --- a/src/parallel/decompose/Allwmake
@@ -2381,11 +2607,32 @@ index 492a3ae..29597e3 100644
 +else
 +LIB_LIBS += -lboost_thread
 +endif
+diff --git a/wmake/makefiles/apps b/wmake/makefiles/apps
+index b8abcd2..38837a3 100644
+--- a/wmake/makefiles/apps
++++ b/wmake/makefiles/apps
+@@ -38,5 +38,4 @@ application: $(FOAM_APPS)
+ $(FOAM_APPS):
+ 	+@wmake -all $(TARGET) $@
+ 
+-
+-#------------------------------------------------------------------------------
++#----------------------------- vi: set ft=make: -------------------------------
 diff --git a/wmake/makefiles/files b/wmake/makefiles/files
-index c17179e..bb0e3d4 100644
+index c17179e..bd12124 100644
 --- a/wmake/makefiles/files
 +++ b/wmake/makefiles/files
-@@ -67,9 +67,10 @@ $(SFILES): $(MAKE_DIR)/files
+@@ -59,19 +59,19 @@ $(OPTIONS) : $(MAKE_DIR)/options
+ $(SFILES): $(MAKE_DIR)/files
+ 	@$(CPP) $(GFLAGS) $(MAKE_DIR)/files | sed -e 's@   *@ @g' > $(FILES)
+ 	# Find all macro definitions in the files
+-	@grep "=" $(FILES) > $(VARS)
++	@grep --colour=never "=" $(FILES) > $(VARS)
+ 	echo "SOURCE = " > $(SFILES)
+ 	# Remove all macro definitions from the files list
+-	@grep -v "=" $(FILES) >> $(SFILES)
++	@grep --colour=never -v "=" $(FILES) >> $(SFILES)
+ 	@rm -f $(FILES)
  	# Add a newline to files to ensure the last line is followed by a newline
  	@echo "" >> $(SFILES)
  	# Remove commented lines, blank lines, and trailing blanks from files
@@ -2398,8 +2645,11 @@ index c17179e..bb0e3d4 100644
  
  $(VARS): $(SFILES)
  
+-
+-#------------------------------------------------------------------------------
++#----------------------------- vi: set ft=make: -------------------------------
 diff --git a/wmake/makefiles/general b/wmake/makefiles/general
-index b9a4f99..611f7e5 100644
+index b9a4f99..767b6a5 100644
 --- a/wmake/makefiles/general
 +++ b/wmake/makefiles/general
 @@ -80,7 +80,11 @@ LIB_LIBS        =
@@ -2414,111 +2664,95 @@ index b9a4f99..611f7e5 100644
  
  # Project executable
  EXE             = $(WM_PROJECT).out
-@@ -130,17 +134,34 @@ LIB_HEADER_DIRS = \
+@@ -88,7 +92,6 @@ EXE             = $(WM_PROJECT).out
+ # Standalone executable
+ SEXE            = a.out
+ 
+-
+ #------------------------------------------------------------------------------
+ # Set compilation and dependency building rules
+ #------------------------------------------------------------------------------
+@@ -130,18 +133,19 @@ LIB_HEADER_DIRS = \
  
  $(EXE): $(OBJECTS)
  	@$(WM_SCRIPTS)/makeTargetDir $(EXE)
-+ifdef WM_SILENT_RULES
-+	@echo "    LD $(notdir $(EXE))"
-+	@$(LINKEXE) $(OBJECTS) -L$(LIB_PLATFORMS) \
+-	$(LINKEXE) $(OBJECTS) -L$(LIB_PLATFORMS) \
+-	    $(EXE_LIBS) $(PROJECT_LIBS) $(SYS_LIBS) \
+-	    $(LINK_LIBS) $(GLIBS) -o $(EXE)
++	$(call WM_MESSAGE,LD,$(notdir $(EXE)))
++	$(AT)$(LINKEXE) $(OBJECTS) -L$(LIB_PLATFORMS) \
 +		$(EXE_LIBS) $(PROJECT_LIBS) $(SYS_LIBS) \
 +		$(LINK_LIBS) $(GLIBS) -o $(EXE)
-+else
- 	$(LINKEXE) $(OBJECTS) -L$(LIB_PLATFORMS) \
- 	    $(EXE_LIBS) $(PROJECT_LIBS) $(SYS_LIBS) \
- 	    $(LINK_LIBS) $(GLIBS) -o $(EXE)
-+endif
  
  exe:    $(SEXE)
-+ifdef WM_SILENT_RULES
-+	@echo "->> $(notdir SEXE)"
-+else
- 	@echo \'$(SEXE)\' is up to date.
-+endif
+-	@echo \'$(SEXE)\' is up to date.
++	$(call WM_REPORT,$(SEXE))
  
  $(SEXE):$(OBJECTS)
  	@$(WM_SCRIPTS)/makeTargetDir $(SEXE)
-+ifdef WM_SILENT_RULES
-+	@echo "    LD $(notdir $(EXE))"
-+	@$(LINKEXE) $(OBJECTS) $(EXE_LIBS) \
-+		$(SYS_LIBS) $(LINK_LIBS) $(GLIBS) -o $(SEXE)
-+else
- 	$(LINKEXE) $(OBJECTS) $(EXE_LIBS) \
+-	$(LINKEXE) $(OBJECTS) $(EXE_LIBS) \
 -	    $(SYS_LIBS) $(LINK_LIBS) $(GLIBS) -o $(SEXE)
+-
++	$(call WM_MESSAGE,LD,$(notdir $(EXE)))
++	$(AT)$(LINKEXE) $(OBJECTS) $(EXE_LIBS) \
 +		$(SYS_LIBS) $(LINK_LIBS) $(GLIBS) -o $(SEXE)
-+endif
- 
  
  #------------------------------------------------------------------------------
-@@ -150,29 +171,62 @@ $(SEXE):$(OBJECTS)
+ # Define link statements for libraries
+@@ -150,30 +154,33 @@ $(SEXE):$(OBJECTS)
  objects: $(OBJECTS)
  
  libso:  $(LIB).$(SO)
-+ifdef WM_SILENT_RULES
-+	@echo "->> $(notdir $(LIB)).$(SO)"
-+else
- 	@echo \'$(LIB).$(SO)\' is up to date.
-+endif
+-	@echo \'$(LIB).$(SO)\' is up to date.
++	$(call WM_REPORT,$(LIB).$(SO))
  
  $(LIB).$(SO): $(OBJECTS)
  	@$(WM_SCRIPTS)/makeTargetDir $(LIB)
-+ifdef WM_SILENT_RULES
-+	@echo "    LD $(notdir $(LIB)).$(SO)"
-+	@$(LINKLIBSO) $(OBJECTS) -L$(LIB_PLATFORMS) \
-+		$(LIB_LIBS) $(GLIB_LIBS) -o $(LIB).$(SO)
-+else
- 	$(LINKLIBSO) $(OBJECTS) -L$(LIB_PLATFORMS) \
+-	$(LINKLIBSO) $(OBJECTS) -L$(LIB_PLATFORMS) \
 -	    $(LIB_LIBS) $(GLIB_LIBS) -o $(LIB).$(SO)
++	$(call WM_MESSAGE,LD,$(notdir $(LIB).$(SO)))
++	$(AT)$(LINKLIBSO) $(OBJECTS) -L$(LIB_PLATFORMS) \
 +		$(LIB_LIBS) $(GLIB_LIBS) -o $(LIB).$(SO)
-+endif
  
  lib:    $(LIB).a
-+ifdef WM_SILENT_RULES
-+	@echo "->> $(notdir $(LIB)).a"
-+else
- 	@echo \'$(LIB).a\' is up to date.
-+endif
+-	@echo \'$(LIB).a\' is up to date.
++	$(call WM_REPORT,$(LIB).a)
  
  $(LIB).a: $(OBJECTS)
  	@$(WM_SCRIPTS)/makeTargetDir $(LIB)
  	@rm -f $(LIB).a
-+ifdef WM_SILENT_RULES
-+	@echo "    AR $(LIB)"
-+	@$(AR) $(ARFLAGS) $(notdir $(LIB)).a $(OBJECTS)
-+else
- 	$(AR) $(ARFLAGS) $(LIB).a $(OBJECTS)
-+endif
-+ifdef WM_SILENT_RULES
-+	@echo "RANLIB $(notdir $(LIB))"
-+	@$(RANLIB) $(LIB).a
-+else
- 	$(RANLIB) $(LIB).a
-+endif
+-	$(AR) $(ARFLAGS) $(LIB).a $(OBJECTS)
+-	$(RANLIB) $(LIB).a
++	$(call WM_MESSAGE,AR,$(notdir $(LIB)))
++	$(AT)$(AR) $(ARFLAGS) $(notdir $(LIB)).a $(OBJECTS)
++	$(call WM_MESSAGE,RANLIB,$(notdir $(LIB)))
++	$(AT)$(RANLIB) $(LIB).a
  
  libo:   $(LIB).o
-+ifdef WM_SILENT_RULES
-+	@echo "->> $(notdir $(LIB)).o"
-+else
- 	@echo \'$(LIB).o\' is up to date.
-+endif
+-	@echo \'$(LIB).o\' is up to date.
++	$(call WM_REPORT,$(LIB).o)
  
  $(LIB).o: $(OBJECTS)
  	@$(WM_SCRIPTS)/makeTargetDir $(LIB)
  	@rm -f $(LIB).o
-+ifdef WM_SILENT_RULES
-+	@echo "    LD $(notdir $(LIB)).o"
-+	@$(LD) -r -o $(LIB).o $(OBJECTS)
-+else
- 	$(LD) -r -o $(LIB).o $(OBJECTS)
-+endif
- 
+-	$(LD) -r -o $(LIB).o $(OBJECTS)
+-
++	$(call WM_MESSAGE,LD,$(notdir $(LIB).o))
++	$(AT)$(LD) -r -o $(LIB).o $(OBJECTS)
  
  #------------------------------------------------------------------------------
+ # Set rule to create the include directory for libraries
+@@ -205,4 +212,4 @@ ifeq ($(findstring lnInclude,$(MAKECMDGOALS))$(findstring updatedep,$(MAKECMDGOA
+ endif
+ 
+ 
+-#------------------------------------------------------------------------------
++#----------------------------- vi: set ft=make: -------------------------------
 diff --git a/wmake/rules/General/CGAL b/wmake/rules/General/CGAL
-index 8097684..354e719 100644
+index 8097684..1642529 100644
 --- a/wmake/rules/General/CGAL
 +++ b/wmake/rules/General/CGAL
-@@ -2,12 +2,11 @@ CGAL_INC = \
+@@ -2,13 +2,14 @@ CGAL_INC = \
      -I$(CGAL_ARCH_PATH)/include \
      -I$(MPFR_ARCH_PATH)/include \
      -I$(GMP_ARCH_PATH)/include \
@@ -2534,145 +2768,305 @@ index 8097684..354e719 100644
      -L$(BOOST_ARCH_PATH)/lib \
      -L$(CGAL_ARCH_PATH)/lib \
      -lCGAL \
+     -lmpfr
++
++#----------------------------- vi: set ft=make: -------------------------------
+diff --git a/wmake/rules/General/X b/wmake/rules/General/X
+index f55fa8b..01e1df8 100644
+--- a/wmake/rules/General/X
++++ b/wmake/rules/General/X
+@@ -3,3 +3,5 @@
+ XFLAGS     =
+ XINC       = $(XFLAGS) -I/usr/include/X11
+ XLIBS      = -lXext -lX11
++
++#----------------------------- vi: set ft=make: -------------------------------
 diff --git a/wmake/rules/General/bison b/wmake/rules/General/bison
-index b741436..3e0f30e 100644
+index b741436..dce8a18 100644
 --- a/wmake/rules/General/bison
 +++ b/wmake/rules/General/bison
-@@ -1,7 +1,15 @@
+@@ -1,7 +1,9 @@
  SUFFIXES += .y .Y
  
-+ifneq ("$(WM_SILENT_RULES)","")
-+ytoo = @echo "    yy $<"; bison -v -d -y $< ; mv y.tab.c $(@D)/$(<F).c ; \
-+	mv y.tab.h $(@D)/$(<F).h ; $(cc) $(cFLAGS) -c  $(@D)/$(<F).c -o $@
-+
-+Ytoo = @echo "    YY $<"; @bison -v -d -y $< ; mv y.tab.c $(@D)/$(<F).C ; \
-+	mv y.tab.h $(@D)/$(<F).H ; $(CC) $(c++FLAGS) -c  $(@D)/$(<F).C -o $@
-+else
- ytoo = bison -v -d -y $< ; mv y.tab.c $(@D)/$(<F).c ; mv y.tab.h $(@D)/$(<F).h ; \
+-ytoo = bison -v -d -y $< ; mv y.tab.c $(@D)/$(<F).c ; mv y.tab.h $(@D)/$(<F).h ; \
++ytoo = $(call WM_MESSAGE,yy,$<); $(AT)bison -v -d -y $< ; mv y.tab.c $(@D)/$(<F).c ; mv y.tab.h $(@D)/$(<F).h ; \
       $(cc) $(cFLAGS) -c  $(@D)/$(<F).c -o $@
  
- Ytoo = bison -v -d -y $< ; mv y.tab.c $(@D)/$(<F).C ; mv y.tab.h $(@D)/$(<F).H ; \
+-Ytoo = bison -v -d -y $< ; mv y.tab.c $(@D)/$(<F).C ; mv y.tab.h $(@D)/$(<F).H ; \
++Ytoo = $(call WM_MESSAGE,YY,$<); $(AT)bison -v -d -y $< ; mv y.tab.c $(@D)/$(<F).C ; mv y.tab.h $(@D)/$(<F).H ; \
       $(CC) $(c++FLAGS) -c  $(@D)/$(<F).C -o $@
-+endif
++
++#----------------------------- vi: set ft=make: -------------------------------
 diff --git a/wmake/rules/General/btyacc b/wmake/rules/General/btyacc
-index 44a58c3..0ac84a2 100644
+index 44a58c3..7c2922b 100644
 --- a/wmake/rules/General/btyacc
 +++ b/wmake/rules/General/btyacc
-@@ -1,4 +1,10 @@
+@@ -1,4 +1,6 @@
  SUFFIXES += .y
  
-+ifneq ("$(WM_SILENT_RULES)","")
-+ytoo = @echo "    yy $<"; btyacc -v -d $(SKELETON) $< ; \
-+    mv y_tab.c $(@D)/$(<F).C ; mv y_tab.h $(@D)/$(<F).H ; \
-+    $(CC) $(c++FLAGS) -c $(@D)/$(<F).C -o $@
-+else
- ytoo = btyacc -v -d $(SKELETON) $< ; mv y_tab.c $(@D)/$(<F).C ; mv y_tab.h $(@D)/$(<F).H ; \
+-ytoo = btyacc -v -d $(SKELETON) $< ; mv y_tab.c $(@D)/$(<F).C ; mv y_tab.h $(@D)/$(<F).H ; \
++ytoo = $(call WM_MESSAGE,yy,$<); $(AT)btyacc -v -d $(SKELETON) $< ; mv y_tab.c $(@D)/$(<F).C ; mv y_tab.h $(@D)/$(<F).H ; \
       $(CC) $(c++FLAGS) -c $(@D)/$(<F).C -o $@
-+endif
++
++#----------------------------- vi: set ft=make: -------------------------------
 diff --git a/wmake/rules/General/btyacc++ b/wmake/rules/General/btyacc++
-index 7844558..60b838d 100644
+index 7844558..de7550a 100644
 --- a/wmake/rules/General/btyacc++
 +++ b/wmake/rules/General/btyacc++
-@@ -1,4 +1,10 @@
+@@ -1,4 +1,6 @@
  SUFFIXES += .Y
  
-+ifneq ("$(WM_SILENT_RULES)","")
-+Ytoo = @echo "    YY $<"; btyacc++ -v -d $(SKELETON) $< ; \
-+     mv y_tab.c $(@D)/$(<F).C ; mv y_tab.h $(@D)/$(<F).H ; \
-+     $(CC) $(c++FLAGS) -c $(@D)/$(<F).C -o $@
-+else
- Ytoo = btyacc++ -v -d $(SKELETON) $< ; mv y_tab.c $(@D)/$(<F).C ; mv y_tab.h $(@D)/$(<F).H ; \
+-Ytoo = btyacc++ -v -d $(SKELETON) $< ; mv y_tab.c $(@D)/$(<F).C ; mv y_tab.h $(@D)/$(<F).H ; \
++Ytoo = $(call WM_MESSAGE,YY,$<); $(AT)btyacc++ -v -d $(SKELETON) $< ; mv y_tab.c $(@D)/$(<F).C ; mv y_tab.h $(@D)/$(<F).H ; \
       $(CC) $(c++FLAGS) -c $(@D)/$(<F).C -o $@
-+endif
++
++#----------------------------- vi: set ft=make: -------------------------------
 diff --git a/wmake/rules/General/byacc b/wmake/rules/General/byacc
-index 60a9e18..527441d 100644
+index 60a9e18..803b7ba 100644
 --- a/wmake/rules/General/byacc
 +++ b/wmake/rules/General/byacc
-@@ -1,4 +1,10 @@
+@@ -1,4 +1,6 @@
  SUFFIXES += .y
  
-+ifneq ("$(WM_SILENT_RULES)","")
-+ytoo = @echo "    yy @<"; byacc -v $(YYPREFIX) -d $< ; \
-+     mv y.tab.c $(@D)/$(<F).C ; mv y.tab.h $(@D)/$(<F).H ; \
-+     $(CC) $(c++FLAGS) -c $(@D)/$(<F).C -o $@
-+else
- ytoo = byacc -v $(YYPREFIX) -d $< ; mv y.tab.c $(@D)/$(<F).C ; mv y.tab.h $(@D)/$(<F).H ; \
+-ytoo = byacc -v $(YYPREFIX) -d $< ; mv y.tab.c $(@D)/$(<F).C ; mv y.tab.h $(@D)/$(<F).H ; \
++ytoo = $(call WM_MESSAGE,yy,$<); $(AT)byacc -v $(YYPREFIX) -d $< ; mv y.tab.c $(@D)/$(<F).C ; mv y.tab.h $(@D)/$(<F).H ; \
       $(CC) $(c++FLAGS) -c $(@D)/$(<F).C -o $@
-+endif
++
++#----------------------------- vi: set ft=make: -------------------------------
 diff --git a/wmake/rules/General/flex b/wmake/rules/General/flex
-index 2b65bb2..d65a75b 100644
+index 2b65bb2..a910e79 100644
 --- a/wmake/rules/General/flex
 +++ b/wmake/rules/General/flex
-@@ -1,3 +1,8 @@
+@@ -1,3 +1,5 @@
  SUFFIXES += .l
  
-+ifneq ("$(WM_SILENT_RULES)","")
-+ltoo = @echo "    ll $@"; flex -o $(@D)/$(<F).c $< ; \
-+     $(cc) $(cFLAGS) -c  $(@D)/$(<F).c -o $@
-+else
- ltoo = flex -o $(@D)/$(<F).c $< ; $(cc) $(cFLAGS) -c  $(@D)/$(<F).c -o $@
-+endif
+-ltoo = flex -o $(@D)/$(<F).c $< ; $(cc) $(cFLAGS) -c  $(@D)/$(<F).c -o $@
++ltoo = $(call WM_MESSAGE,ll,$<); $(AT)flex -o $(@D)/$(<F).c $< ; $(cc) $(cFLAGS) -c  $(@D)/$(<F).c -o $@
++
++#----------------------------- vi: set ft=make: -------------------------------
 diff --git a/wmake/rules/General/flex++ b/wmake/rules/General/flex++
-index 894181b..8f7eaa1 100644
+index 894181b..128a6bb 100644
 --- a/wmake/rules/General/flex++
 +++ b/wmake/rules/General/flex++
-@@ -1,3 +1,8 @@
+@@ -1,3 +1,5 @@
  SUFFIXES += .L
  
-+ifneq ("$(WM_SILENT_RULES)","")
-+Ltoo = @echo "    LL $<"; flex -+ -o$(@D)/$(<F).C -f $< ; \
-+    $(CC) $(c++FLAGS) $(c++LESSWARN) -c $(@D)/$(<F).C -o $@
+-Ltoo = flex -+ -o$(@D)/$(<F).C -f $< ; $(CC) $(c++FLAGS) $(c++LESSWARN) -c $(@D)/$(<F).C -o $@
++Ltoo = $(call WM_MESSAGE,LL,$<); flex -+ -o$(@D)/$(<F).C -f $< ; $(CC) $(c++FLAGS) $(c++LESSWARN) -c $(@D)/$(<F).C -o $@
++
++#----------------------------- vi: set ft=make: -------------------------------
+diff --git a/wmake/rules/General/general b/wmake/rules/General/general
+index b3f20b4..7d7552f 100644
+--- a/wmake/rules/General/general
++++ b/wmake/rules/General/general
+@@ -1,10 +1,27 @@
+ #-------------------------------*- makefile -*---------------------------------
+ 
+-AR         = ar
+-ARFLAGS    = cr
+-RANLIB     = ranlib
+-CPP        = cpp
+-LD         = ld
++ifeq ("$(V)","0")
++WM_MESSAGE = @echo "  $1	$2"
++MESSAGE = echo "  $1	$2"
++WM_REPORT = @echo ">> $(notdir $1)"
++AT = @
 +else
- Ltoo = flex -+ -o$(@D)/$(<F).C -f $< ; $(CC) $(c++FLAGS) $(c++LESSWARN) -c $(@D)/$(<F).C -o $@
++MESSAGE = true
++WM_MESSAGE =
++WM_REPORT = @echo \'$1\' is up to date.
++AT =
 +endif
++
++XCRUN =
++ifeq ("$(shell uname -s)","Darwin")
++XCRUN = xcrun
++endif
++
++AR         = $(XCRUN) ar
++ARFLAGS    = $(XCRUN) cr
++RANLIB     = $(XCRUN) ranlib
++CPP        = $(XCRUN) cpp
++LD         = $(XCRUN) ld
+ 
+ GFLAGS     = -D$(WM_ARCH) -DWM_ARCH_OPTION=$(WM_ARCH_OPTION) \
+              -DWM_$(WM_PRECISION_OPTION) -DWM_LABEL_SIZE=$(WM_LABEL_SIZE)
+@@ -24,5 +41,4 @@ include $(DEFAULT_RULES)/$(WM_LINK_LANGUAGE)
+ -include $(RULES)/$(WM_LINK_LANGUAGE)
+ include $(GENERAL_RULES)/transform
+ 
+-
+-#------------------------------------------------------------------------------
++#----------------------------- vi: set ft=make: -------------------------------
 diff --git a/wmake/rules/General/moc b/wmake/rules/General/moc
-index 9374973..21c2bc7 100644
+index 9374973..38ec7e6 100644
 --- a/wmake/rules/General/moc
 +++ b/wmake/rules/General/moc
-@@ -1,3 +1,8 @@
+@@ -1,3 +1,5 @@
  SUFFIXES += .qt
  
-+ifneq ("$(WM_SILENT_RULES)","")
-+qttoo = @echo "   MOC $@"; $(QTDIR)/bin/moc -f $< -o $(@D)/$(<F).C ; \
-+     $(CC) $(c++FLAGS) -c $(@D)/$(<F).C -o $@
-+else
- qttoo = $(QTDIR)/bin/moc -f $< -o $(@D)/$(<F).C ; $(CC) $(c++FLAGS) -c $(@D)/$(<F).C -o $@
-+endif
+-qttoo = $(QTDIR)/bin/moc -f $< -o $(@D)/$(<F).C ; $(CC) $(c++FLAGS) -c $(@D)/$(<F).C -o $@
++qttoo = $(call WM_MESSAGE,MOC,$<); $(AT)$(QTDIR)/bin/moc -f $< -o $(@D)/$(<F).C ; $(CC) $(c++FLAGS) -c $(@D)/$(<F).C -o $@
++
++#----------------------------- vi: set ft=make: -------------------------------
+diff --git a/wmake/rules/General/mplib b/wmake/rules/General/mplib
+index 294bd86..8ccb07f 100644
+--- a/wmake/rules/General/mplib
++++ b/wmake/rules/General/mplib
+@@ -1,3 +1,5 @@
+ PFLAGS     =
+ PINC       =
+ PLIBS      =
++
++#----------------------------- vi: set ft=make: -------------------------------
+diff --git a/wmake/rules/General/mplibMPICH b/wmake/rules/General/mplibMPICH
+index 611641a..9bf21ec 100644
+--- a/wmake/rules/General/mplibMPICH
++++ b/wmake/rules/General/mplibMPICH
+@@ -1,3 +1,5 @@
+ PFLAGS     = -DMPICH_SKIP_MPICXX
+ PINC       = -isystem $(MPI_ARCH_PATH)/include
+ PLIBS      = -L$(MPI_ARCH_PATH)/lib$(WM_COMPILER_LIB_ARCH) -L$(MPI_ARCH_PATH)/lib -lmpich -lrt
++
++#----------------------------- vi: set ft=make: -------------------------------
+diff --git a/wmake/rules/General/mplibMPICH-GM b/wmake/rules/General/mplibMPICH-GM
+index 1921318..6c569ec 100644
+--- a/wmake/rules/General/mplibMPICH-GM
++++ b/wmake/rules/General/mplibMPICH-GM
+@@ -1,3 +1,5 @@
+ PFLAGS     =
+ PINC       = -isystem $(MPI_ARCH_PATH)/include
+ PLIBS      = -L$(MPI_ARCH_PATH)/lib$(WM_COMPILER_LIB_ARCH) -L$(MPI_ARCH_PATH)/lib -lmpich -L$(GM_LIB_PATH) -lgm
++
++#----------------------------- vi: set ft=make: -------------------------------
+diff --git a/wmake/rules/General/mplibOPENMPI b/wmake/rules/General/mplibOPENMPI
+index f1f8899..216ce56 100644
+--- a/wmake/rules/General/mplibOPENMPI
++++ b/wmake/rules/General/mplibOPENMPI
+@@ -1,3 +1,4 @@
+ PFLAGS     = -DOMPI_SKIP_MPICXX
+ PINC       = -isystem $(MPI_ARCH_PATH)/include
+ PLIBS      = -L$(MPI_ARCH_PATH)/lib$(WM_COMPILER_LIB_ARCH) -L$(MPI_ARCH_PATH)/lib -lmpi
++#----------------------------- vi: set ft=make: -------------------------------
+diff --git a/wmake/rules/General/mplibQSMPI b/wmake/rules/General/mplibQSMPI
+index aa15c1b..d54766d 100644
+--- a/wmake/rules/General/mplibQSMPI
++++ b/wmake/rules/General/mplibQSMPI
+@@ -1,3 +1,5 @@
+ PFLAGS     =
+ PINC       = -isystem $(MPI_ARCH_PATH)/include
+ PLIBS      = -L$(MPI_ARCH_PATH)/lib -lmpi
++
++#----------------------------- vi: set ft=make: -------------------------------
+diff --git a/wmake/rules/General/mplibSGIMPI b/wmake/rules/General/mplibSGIMPI
+index 205b940..4fda8ee 100644
+--- a/wmake/rules/General/mplibSGIMPI
++++ b/wmake/rules/General/mplibSGIMPI
+@@ -1,3 +1,5 @@
+ PFLAGS     = -DSGIMPI -DMPI_NO_CPPBIND
+ PINC       = -isystem $(MPI_ARCH_PATH)/include
+ PLIBS      = -L$(MPI_ARCH_PATH)/lib -lmpi
++
++#----------------------------- vi: set ft=make: -------------------------------
+diff --git a/wmake/rules/General/mplibSYSTEMMPI b/wmake/rules/General/mplibSYSTEMMPI
+index a0d3d30..112530e 100644
+--- a/wmake/rules/General/mplibSYSTEMMPI
++++ b/wmake/rules/General/mplibSYSTEMMPI
+@@ -3,3 +3,5 @@
+ PFLAGS     = $(MPI_ARCH_FLAGS)
+ PINC       = $(MPI_ARCH_INC)
+ PLIBS      = $(MPI_ARCH_LIBS)
++
++#----------------------------- vi: set ft=make: -------------------------------
+diff --git a/wmake/rules/General/mplibSYSTEMOPENMPI b/wmake/rules/General/mplibSYSTEMOPENMPI
+index 639c8ce..c0854b7 100644
+--- a/wmake/rules/General/mplibSYSTEMOPENMPI
++++ b/wmake/rules/General/mplibSYSTEMOPENMPI
+@@ -3,3 +3,5 @@
+ PFLAGS     = -DOMPI_SKIP_MPICXX
+ PINC       = $(shell mpicc --showme:compile)
+ PLIBS      = $(shell mpicc --showme:link)
++
++#----------------------------- vi: set ft=make: -------------------------------
+diff --git a/wmake/rules/General/standard b/wmake/rules/General/standard
+index ccd69ce..2534345 100644
+--- a/wmake/rules/General/standard
++++ b/wmake/rules/General/standard
+@@ -11,4 +11,4 @@ include $(GENERAL_RULES)/bison
+ include $(GENERAL_RULES)/moc
+ include $(GENERAL_RULES)/X
+ 
+-#------------------------------------------------------------------------------
++#----------------------------- vi: set ft=make: -------------------------------
 diff --git a/wmake/rules/General/transform b/wmake/rules/General/transform
-index bffe605..bfb507c 100644
+index bffe605..5e06256 100644
 --- a/wmake/rules/General/transform
 +++ b/wmake/rules/General/transform
-@@ -2,14 +2,24 @@
+@@ -2,14 +2,16 @@
  
  define DEFINE_TRANSFORM
  $(OBJECTS_DIR)/%.o : %$1
-+ifdef WM_SILENT_RULES
-+	@echo "    CC $(value <F)"
-+	@$$($(subst .,,$(1))too)
-+else
- 	$$($(subst .,,$(1))too)
-+endif
+-	$$($(subst .,,$(1))too)
++	$(call WM_MESSAGE,CC,$(value <F))
++	$(AT)$$($(subst .,,$(1))too)
  endef
  
  $(foreach s,$(SUFFIXES),$(eval $(call DEFINE_TRANSFORM,$(s))))
  
  $(OBJECTS_DIR)/%.dep : %
  	@$(WM_SCRIPTS)/makeTargetDir $@
-+ifdef WM_SILENT_RULES
++	$(call WM_MESSAGE,DEP,$(notdir $<))
  	@$(WMAKE_BIN)/wmkdep -I$(*D) $(LIB_HEADER_DIRS) $< | \
  	    sed 's,$(WM_PROJECT_DIR),$$(WM_PROJECT_DIR),' > $@
-+else
-+	@$(WMAKE_BIN)/wmkdep -v -I$(*D) $(LIB_HEADER_DIRS) $< | \
-+	    sed 's,$(WM_PROJECT_DIR),$$(WM_PROJECT_DIR),' > $@
-+endif
  
- #------------------------------------------------------------------------------
+-#------------------------------------------------------------------------------
++#----------------------------- vi: set ft=make: -------------------------------
+diff --git a/wmake/rules/General/version b/wmake/rules/General/version
+index ffd070d..911ab5d 100644
+--- a/wmake/rules/General/version
++++ b/wmake/rules/General/version
+@@ -3,10 +3,10 @@
+ SUFFIXES += .Cver
+ 
+ # Update version strings in C++ file and in $WM_PROJECT_DIR/.build file
+-Cvertoo = \
+-    sed -e 's!VERSION_STRING!$(shell wmakePrintBuild -major)!' \
+-        -e 's!BUILD_STRING!$(shell wmakePrintBuild -update)!' \
+-        $< > $(@D)/$(<F).C; \
+-    $(CC) $(c++FLAGS) -c $(@D)/$(<F).C -o $@
++Cvertoo = sed -e 's!VERSION_STRING!$(shell wmakePrintBuild -major)!' \
++	  -e 's!BUILD_STRING!$(shell wmakePrintBuild -update)!' \
++	  $< > $(@D)/$(<F).C; \
++	  $(call MESSAGE,CC,$(notdir $(@D)/$(<F).C)); \
++	  $(CC) $(c++FLAGS) -c $(@D)/$(<F).C -o $@
+ 
+-#------------------------------------------------------------------------------
++#----------------------------- vi: set ft=make: -------------------------------
+diff --git a/wmake/rules/General/yacc b/wmake/rules/General/yacc
+index d583a63..7b6f699 100644
+--- a/wmake/rules/General/yacc
++++ b/wmake/rules/General/yacc
+@@ -1,7 +1,9 @@
+ SUFFIXES += .y .Y
+ 
+-ytoo = yacc -v -d $< ; mv y.tab.c $(@D)/$(<F).c ; mv y.tab.h $(@D)/parser.h ; \
+-     $(CC) $(c++FLAGS) -c $(@D)/$(<F).c -o $@
++ytoo = $(call WM_MESSAGE,YY); $(AT)yacc -v -d $< ; mv y.tab.c $(@D)/$(<F).c ; mv y.tab.h $(@D)/parser.h ; \
++       $(CC) $(c++FLAGS) -c $(@D)/$(<F).c -o $@
+ 
+-Ytoo = yacc -v -d $< ; mv y.tab.c $(@D)/$(<F).C ; mv y.tab.h $(@D)/parser.H ; \
+-     $(CC) $(c++FLAGS) -c $(@D)/$(<F).C -o $@
++Ytoo = $(call WM_MESSAGE,YY); $(AT)yacc -v -d $< ; mv y.tab.c $(@D)/$(<F).C ; mv y.tab.h $(@D)/parser.H ; \
++       $(CC) $(c++FLAGS) -c $(@D)/$(<F).C -o $@
++
++#----------------------------- vi: set ft=make: -------------------------------
 diff --git a/wmake/rules/darwin64Clang/c b/wmake/rules/darwin64Clang/c
 new file mode 100644
-index 0000000..a595302
+index 0000000..5aeb7e5
 --- /dev/null
 +++ b/wmake/rules/darwin64Clang/c
-@@ -0,0 +1,21 @@
+@@ -0,0 +1,23 @@
 +SUFFIXES += .c
 +
 +cWARN        = -Wall
@@ -2694,12 +3088,14 @@ index 0000000..a595302
 +LINKLIBSO   = $(cc) -Wl,-dylib,-undefined,dynamic_lookup
 +
 +LINKEXE     = $(cc) -Wl,-execute,-undefined,dynamic_lookup
++
++#----------------------------- vi: set ft=make: -------------------------------
 diff --git a/wmake/rules/darwin64Clang/c++ b/wmake/rules/darwin64Clang/c++
 new file mode 100644
-index 0000000..0f61422
+index 0000000..817522d
 --- /dev/null
 +++ b/wmake/rules/darwin64Clang/c++
-@@ -0,0 +1,33 @@
+@@ -0,0 +1,35 @@
 +SUFFIXES += .C
 +SUFFIXES += .cxx
 +SUFFIXES += .cc
@@ -2707,7 +3103,7 @@ index 0000000..0f61422
 +
 +c++WARN     = -Wall -Wextra -Wno-unused-parameter -Wno-overloaded-virtual \
 +              -Wno-unused-variable -Wno-unused-local-typedef -Wno-invalid-offsetof \
-+	      -Wno-deprecated-register
++	      -Wno-deprecated-register -Wno-undefined-var-template
 +
 +c++LESSWARN = -Wno-shift-negative-value
 +
@@ -2719,8 +3115,8 @@ index 0000000..0f61422
 +
 +c++FLAGS    = $(GFLAGS) $(c++WARN) $(c++OPT) $(c++DBUG) $(ptFLAGS) $(LIB_HEADER_DIRS) -fPIC
 +
-+ifneq ("","$(OSX_SDK_PATH)")
-+c++FLAGS   += -isysroot $(OSX_SDK_PATH)
++ifneq ("$(OSX_SDK_PATH)","")
++c++FLAGS += -isysroot $(OSX_SDK_PATH)
 +endif
 +
 +Ctoo        = $(WM_SCHEDULER) $(CC) $(c++FLAGS) -c $< -o $@
@@ -2733,62 +3129,76 @@ index 0000000..0f61422
 +LINKLIBSO   = $(CC) $(c++FLAGS) -Wl,-dylib,-undefined,dynamic_lookup
 +
 +LINKEXE     = $(CC) $(c++FLAGS) -Wl,-execute,-undefined,dynamic_lookup
++
++#----------------------------- vi: set ft=make: -------------------------------
 diff --git a/wmake/rules/darwin64Clang/c++Debug b/wmake/rules/darwin64Clang/c++Debug
 new file mode 100644
-index 0000000..1c63335
+index 0000000..0ed0af6
 --- /dev/null
 +++ b/wmake/rules/darwin64Clang/c++Debug
-@@ -0,0 +1,2 @@
+@@ -0,0 +1,4 @@
 +c++DBUG    = -g -DFULLDEBUG
 +c++OPT      = -O0
++
++#----------------------------- vi: set ft=make: -------------------------------
 diff --git a/wmake/rules/darwin64Clang/c++Opt b/wmake/rules/darwin64Clang/c++Opt
 new file mode 100644
-index 0000000..3363be8
+index 0000000..db78543
 --- /dev/null
 +++ b/wmake/rules/darwin64Clang/c++Opt
-@@ -0,0 +1,3 @@
+@@ -0,0 +1,5 @@
 +#c++DBUG     = -O0 -DFULLDEBUG -g
 +c++DBUG     =
 +c++OPT      = -O3
++
++#----------------------------- vi: set ft=make: -------------------------------
 diff --git a/wmake/rules/darwin64Clang/c++Prof b/wmake/rules/darwin64Clang/c++Prof
 new file mode 100644
-index 0000000..f65166b
+index 0000000..f86e0d9
 --- /dev/null
 +++ b/wmake/rules/darwin64Clang/c++Prof
-@@ -0,0 +1,2 @@
+@@ -0,0 +1,4 @@
 +c++DBUG    = -gline-tables-only
 +c++OPT     = -O2
++
++#----------------------------- vi: set ft=make: -------------------------------
 diff --git a/wmake/rules/darwin64Clang/cDebug b/wmake/rules/darwin64Clang/cDebug
 new file mode 100644
-index 0000000..7b7adf1
+index 0000000..d455989
 --- /dev/null
 +++ b/wmake/rules/darwin64Clang/cDebug
-@@ -0,0 +1,2 @@
+@@ -0,0 +1,4 @@
 +cDBUG       = -g -DFULLDEBUG
 +cOPT        = -O0
++
++#----------------------------- vi: set ft=make: -------------------------------
 diff --git a/wmake/rules/darwin64Clang/cOpt b/wmake/rules/darwin64Clang/cOpt
 new file mode 100644
-index 0000000..1731870
+index 0000000..0c2e03c
 --- /dev/null
 +++ b/wmake/rules/darwin64Clang/cOpt
-@@ -0,0 +1,2 @@
+@@ -0,0 +1,4 @@
 +cDBUG       =
 +cOPT        = -O3
++
++#----------------------------- vi: set ft=make: -------------------------------
 diff --git a/wmake/rules/darwin64Clang/cProf b/wmake/rules/darwin64Clang/cProf
 new file mode 100644
-index 0000000..ca3ac9b
+index 0000000..864f043
 --- /dev/null
 +++ b/wmake/rules/darwin64Clang/cProf
-@@ -0,0 +1,2 @@
+@@ -0,0 +1,4 @@
 +cDBUG       = -pg
 +cOPT        = -O2
++
++#----------------------------- vi: set ft=make: -------------------------------
 diff --git a/wmake/rules/darwin64Clang/general b/wmake/rules/darwin64Clang/general
 new file mode 100644
-index 0000000..f7377fa
+index 0000000..9de78f2
 --- /dev/null
 +++ b/wmake/rules/darwin64Clang/general
-@@ -0,0 +1,10 @@
-+CPP        = cpp -traditional-cpp $(GFLAGS)
+@@ -0,0 +1,12 @@
++CPP        = xcrun cpp -traditional-cpp $(GFLAGS)
 +
 +PROJECT_LIBS = -l$(WM_PROJECT) -ldl
 +
@@ -2798,11 +3208,257 @@ index 0000000..f7377fa
 +
 +include $(RULES)/c
 +include $(RULES)/c++
++
++#----------------------------- vi: set ft=make: -------------------------------
+diff --git a/wmake/rules/linux64Clang/c b/wmake/rules/linux64Clang/c
+index b743e3f..fdaa072 100644
+--- a/wmake/rules/linux64Clang/c
++++ b/wmake/rules/linux64Clang/c
+@@ -14,3 +14,5 @@ LINK_LIBS   = $(cDBUG)
+ 
+ LINKLIBSO   = $(cc) -shared
+ LINKEXE     = $(cc) -Xlinker --add-needed -Xlinker -z -Xlinker nodefs
++
++#----------------------------- vi: set ft=make: -------------------------------
+diff --git a/wmake/rules/linux64Clang/c++ b/wmake/rules/linux64Clang/c++
+index 84ed0f4..4bb059b 100644
+--- a/wmake/rules/linux64Clang/c++
++++ b/wmake/rules/linux64Clang/c++
+@@ -22,3 +22,5 @@ LINK_LIBS   = $(c++DBUG)
+ 
+ LINKLIBSO   = $(CC) $(c++FLAGS) -shared
+ LINKEXE     = $(CC) $(c++FLAGS) -Xlinker --add-needed
++
++#----------------------------- vi: set ft=make: -------------------------------
+diff --git a/wmake/rules/linux64Clang/c++Debug b/wmake/rules/linux64Clang/c++Debug
+index 1c63335..0ed0af6 100644
+--- a/wmake/rules/linux64Clang/c++Debug
++++ b/wmake/rules/linux64Clang/c++Debug
+@@ -1,2 +1,4 @@
+ c++DBUG    = -g -DFULLDEBUG
+ c++OPT      = -O0
++
++#----------------------------- vi: set ft=make: -------------------------------
+diff --git a/wmake/rules/linux64Clang/c++Opt b/wmake/rules/linux64Clang/c++Opt
+index 2aedabd..a741879 100644
+--- a/wmake/rules/linux64Clang/c++Opt
++++ b/wmake/rules/linux64Clang/c++Opt
+@@ -1,2 +1,4 @@
+ c++DBUG     =
+ c++OPT      = -O3
++
++#----------------------------- vi: set ft=make: -------------------------------
+diff --git a/wmake/rules/linux64Clang/c++Prof b/wmake/rules/linux64Clang/c++Prof
+index 3bda4da..e2b16ef 100644
+--- a/wmake/rules/linux64Clang/c++Prof
++++ b/wmake/rules/linux64Clang/c++Prof
+@@ -1,2 +1,4 @@
+ c++DBUG    = -pg
+ c++OPT     = -O2
++
++#----------------------------- vi: set ft=make: -------------------------------
+diff --git a/wmake/rules/linux64Clang/cDebug b/wmake/rules/linux64Clang/cDebug
+index 7b7adf1..d455989 100644
+--- a/wmake/rules/linux64Clang/cDebug
++++ b/wmake/rules/linux64Clang/cDebug
+@@ -1,2 +1,4 @@
+ cDBUG       = -g -DFULLDEBUG
+ cOPT        = -O0
++
++#----------------------------- vi: set ft=make: -------------------------------
+diff --git a/wmake/rules/linux64Clang/cOpt b/wmake/rules/linux64Clang/cOpt
+index 1731870..0c2e03c 100644
+--- a/wmake/rules/linux64Clang/cOpt
++++ b/wmake/rules/linux64Clang/cOpt
+@@ -1,2 +1,4 @@
+ cDBUG       =
+ cOPT        = -O3
++
++#----------------------------- vi: set ft=make: -------------------------------
+diff --git a/wmake/rules/linux64Clang/cProf b/wmake/rules/linux64Clang/cProf
+index ca3ac9b..864f043 100644
+--- a/wmake/rules/linux64Clang/cProf
++++ b/wmake/rules/linux64Clang/cProf
+@@ -1,2 +1,4 @@
+ cDBUG       = -pg
+ cOPT        = -O2
++
++#----------------------------- vi: set ft=make: -------------------------------
+diff --git a/wmake/rules/linux64Clang/general b/wmake/rules/linux64Clang/general
+index 1002cb1..6065b13 100644
+--- a/wmake/rules/linux64Clang/general
++++ b/wmake/rules/linux64Clang/general
+@@ -6,3 +6,5 @@ include $(GENERAL_RULES)/standard
+ 
+ include $(DEFAULT_RULES)/c
+ include $(DEFAULT_RULES)/c++
++
++#----------------------------- vi: set ft=make: -------------------------------
+diff --git a/wmake/rules/linux64Clang/mplibHPMPI b/wmake/rules/linux64Clang/mplibHPMPI
+index d7c4b0c..57cba69 100644
+--- a/wmake/rules/linux64Clang/mplibHPMPI
++++ b/wmake/rules/linux64Clang/mplibHPMPI
+@@ -1,3 +1,5 @@
+ PFLAGS     =
+ PINC       = -isystem $(MPI_ARCH_PATH)/include -D_MPICC_H
+ PLIBS      = -L$(MPI_ARCH_PATH)/lib/linux_amd64 -lmpi
++
++#----------------------------- vi: set ft=make: -------------------------------
+diff --git a/wmake/rules/linux64Clang/mplibINTELMPI b/wmake/rules/linux64Clang/mplibINTELMPI
+index 278e0b0..634628d 100644
+--- a/wmake/rules/linux64Clang/mplibINTELMPI
++++ b/wmake/rules/linux64Clang/mplibINTELMPI
+@@ -1,3 +1,5 @@
+ PFLAGS     = -DMPICH_SKIP_MPICXX
+ PINC       = -isystem $(MPI_ARCH_PATH)/include64
+ PLIBS      = -L$(MPI_ARCH_PATH)/lib64 -lmpi
++
++#----------------------------- vi: set ft=make: -------------------------------
+diff --git a/wmake/rules/linux64Gcc/c b/wmake/rules/linux64Gcc/c
+index 1097b3a..6dd2f9a 100644
+--- a/wmake/rules/linux64Gcc/c
++++ b/wmake/rules/linux64Gcc/c
+@@ -14,3 +14,5 @@ LINK_LIBS   = $(cDBUG)
+ 
+ LINKLIBSO   = $(cc) -shared
+ LINKEXE     = $(cc) -Xlinker --add-needed -Xlinker -z -Xlinker nodefs
++
++#----------------------------- vi: set ft=make: -------------------------------
+diff --git a/wmake/rules/linux64Gcc/c++ b/wmake/rules/linux64Gcc/c++
+index a47d0d4..a4a0c0d 100644
+--- a/wmake/rules/linux64Gcc/c++
++++ b/wmake/rules/linux64Gcc/c++
+@@ -22,3 +22,5 @@ LINK_LIBS   = $(c++DBUG)
+ 
+ LINKLIBSO   = $(CC) $(c++FLAGS) -shared -Xlinker --add-needed -Xlinker --no-as-needed
+ LINKEXE     = $(CC) $(c++FLAGS) -Xlinker --add-needed -Xlinker --no-as-needed
++
++#----------------------------- vi: set ft=make: -------------------------------
+diff --git a/wmake/rules/linux64Gcc/c++Debug b/wmake/rules/linux64Gcc/c++Debug
+index 19bdb9c..bcc9059 100644
+--- a/wmake/rules/linux64Gcc/c++Debug
++++ b/wmake/rules/linux64Gcc/c++Debug
+@@ -1,2 +1,4 @@
+ c++DBUG    = -ggdb3 -DFULLDEBUG
+ c++OPT      = -O0 -fdefault-inline
++
++#----------------------------- vi: set ft=make: -------------------------------
+diff --git a/wmake/rules/linux64Gcc/c++Opt b/wmake/rules/linux64Gcc/c++Opt
+index 599e6ab..5b0c396 100644
+--- a/wmake/rules/linux64Gcc/c++Opt
++++ b/wmake/rules/linux64Gcc/c++Opt
+@@ -2,3 +2,5 @@ c++DBUG     =
+ c++OPT      = -O3
+ 
+ ROUNDING_MATH = -frounding-math
++
++#----------------------------- vi: set ft=make: -------------------------------
+diff --git a/wmake/rules/linux64Gcc/c++Prof b/wmake/rules/linux64Gcc/c++Prof
+index 3bda4da..e2b16ef 100644
+--- a/wmake/rules/linux64Gcc/c++Prof
++++ b/wmake/rules/linux64Gcc/c++Prof
+@@ -1,2 +1,4 @@
+ c++DBUG    = -pg
+ c++OPT     = -O2
++
++#----------------------------- vi: set ft=make: -------------------------------
+diff --git a/wmake/rules/linux64Gcc/cDebug b/wmake/rules/linux64Gcc/cDebug
+index 72b638f..4bd3224 100644
+--- a/wmake/rules/linux64Gcc/cDebug
++++ b/wmake/rules/linux64Gcc/cDebug
+@@ -1,2 +1,4 @@
+ cDBUG       = -ggdb -DFULLDEBUG
+ cOPT        = -O1 -fdefault-inline -finline-functions
++
++#----------------------------- vi: set ft=make: -------------------------------
+diff --git a/wmake/rules/linux64Gcc/cOpt b/wmake/rules/linux64Gcc/cOpt
+index 1731870..0c2e03c 100644
+--- a/wmake/rules/linux64Gcc/cOpt
++++ b/wmake/rules/linux64Gcc/cOpt
+@@ -1,2 +1,4 @@
+ cDBUG       =
+ cOPT        = -O3
++
++#----------------------------- vi: set ft=make: -------------------------------
+diff --git a/wmake/rules/linux64Gcc/cProf b/wmake/rules/linux64Gcc/cProf
+index ca3ac9b..864f043 100644
+--- a/wmake/rules/linux64Gcc/cProf
++++ b/wmake/rules/linux64Gcc/cProf
+@@ -1,2 +1,4 @@
+ cDBUG       = -pg
+ cOPT        = -O2
++
++#----------------------------- vi: set ft=make: -------------------------------
+diff --git a/wmake/rules/linux64Gcc/general b/wmake/rules/linux64Gcc/general
+index 1002cb1..6065b13 100644
+--- a/wmake/rules/linux64Gcc/general
++++ b/wmake/rules/linux64Gcc/general
+@@ -6,3 +6,5 @@ include $(GENERAL_RULES)/standard
+ 
+ include $(DEFAULT_RULES)/c
+ include $(DEFAULT_RULES)/c++
++
++#----------------------------- vi: set ft=make: -------------------------------
+diff --git a/wmake/rules/linux64Gcc/mplibHPMPI b/wmake/rules/linux64Gcc/mplibHPMPI
+index d7c4b0c..57cba69 100644
+--- a/wmake/rules/linux64Gcc/mplibHPMPI
++++ b/wmake/rules/linux64Gcc/mplibHPMPI
+@@ -1,3 +1,5 @@
+ PFLAGS     =
+ PINC       = -isystem $(MPI_ARCH_PATH)/include -D_MPICC_H
+ PLIBS      = -L$(MPI_ARCH_PATH)/lib/linux_amd64 -lmpi
++
++#----------------------------- vi: set ft=make: -------------------------------
+diff --git a/wmake/rules/linux64Gcc/mplibINTELMPI b/wmake/rules/linux64Gcc/mplibINTELMPI
+index 278e0b0..634628d 100644
+--- a/wmake/rules/linux64Gcc/mplibINTELMPI
++++ b/wmake/rules/linux64Gcc/mplibINTELMPI
+@@ -1,3 +1,5 @@
+ PFLAGS     = -DMPICH_SKIP_MPICXX
+ PINC       = -isystem $(MPI_ARCH_PATH)/include64
+ PLIBS      = -L$(MPI_ARCH_PATH)/lib64 -lmpi
++
++#----------------------------- vi: set ft=make: -------------------------------
+diff --git a/wmake/scripts/AllwmakeParseArguments b/wmake/scripts/AllwmakeParseArguments
+index d77c86f..c1722e4 100644
+--- a/wmake/scripts/AllwmakeParseArguments
++++ b/wmake/scripts/AllwmakeParseArguments
+@@ -85,6 +85,9 @@ setWM_NCOMPPROCS()
+     if [ -r /proc/cpuinfo ]
+     then
+         WM_NCOMPPROCS=$(egrep "^processor" /proc/cpuinfo | wc -l)
++    elif [ -x /usr/sbin/sysctl -a -n "$(sysctl -q -n hw.ncpu)" ]
++    then
++        WM_NCOMPPROCS=$(sysctl -n hw.ncpu)
+     else
+         WM_NCOMPPROCS=1
+     fi
+diff --git a/wmake/scripts/wmakeFunctions b/wmake/scripts/wmakeFunctions
+index 63cbb9f..9828ee4 100755
+--- a/wmake/scripts/wmakeFunctions
++++ b/wmake/scripts/wmakeFunctions
+@@ -85,7 +85,7 @@ findObjectDir()
+     wmpdir=$exPath
+     expandPath $1
+ 
+-    if echo $exPath | grep "$wmpdir" > /dev/null
++    if echo $exPath | grep --colour=never "$wmpdir" > /dev/null
+     then
+         platformPath=$WM_PROJECT_DIR/platforms/${WM_OPTIONS}
+         objectsDir=$platformPath$(echo $exPath | sed s%$wmpdir%% )
 diff --git a/wmake/src/Makefile b/wmake/src/Makefile
-index f14baad..854538a 100644
+index f14baad..eb7e273 100644
 --- a/wmake/src/Makefile
 +++ b/wmake/src/Makefile
-@@ -52,6 +52,7 @@ WM_COMPILE_OPTION = Opt
+@@ -49,9 +49,15 @@ SHELL      = /bin/sh
+ # Locally set optimized compilation
+ WM_COMPILE_OPTION = Opt
+ 
++V = 1
++ifneq ("$(WM_QUIET_RULES)","")
++V = 0
++endif
++
  GENERAL_RULES   = $(WM_DIR)/rules/General
  include $(GENERAL_RULES)/general
  
@@ -2810,34 +3466,27 @@ index f14baad..854538a 100644
  
  #------------------------------------------------------------------------------
  # Targets
-@@ -65,13 +66,25 @@ clean:
+@@ -65,13 +71,15 @@ clean:
  
  $(WMAKE_BIN)/dirToString: dirToString.c
  	@mkdir -p $(WMAKE_BIN)
-+ifneq ("$(WM_SILENT_RULES)","")
-+	@echo "    cc $?"
-+	@$(cc) $(cFLAGS) dirToString.c -o $(WMAKE_BIN)/dirToString
-+else
- 	$(cc) $(cFLAGS) dirToString.c -o $(WMAKE_BIN)/dirToString
-+endif
+-	$(cc) $(cFLAGS) dirToString.c -o $(WMAKE_BIN)/dirToString
++	$(call WM_MESSAGE,cc,dirToString.c)
++	$(AT)$(cc) $(cFLAGS) dirToString.c -o $(WMAKE_BIN)/dirToString
  
  
  $(WMAKE_BIN)/wmkdep: wmkdep.l
  	@mkdir -p $(WMAKE_BIN)
-+ifneq ("$(WM_SILENT_RULES)","")
-+	@echo "   LEX $?"
-+	@flex wmkdep.l
-+	@echo "    CC lex.yy.c"
-+	@$(cc) $(cFLAGS) lex.yy.c -o $(WMAKE_BIN)/wmkdep
-+else
- 	flex wmkdep.l
- 	$(cc) $(cFLAGS) lex.yy.c -o $(WMAKE_BIN)/wmkdep
-+endif
+-	flex wmkdep.l
+-	$(cc) $(cFLAGS) lex.yy.c -o $(WMAKE_BIN)/wmkdep
++	$(call WM_MESSAGE,ll,$<)
++	$(AT)flex $<
++	$(AT)$(cc) $(cFLAGS) lex.yy.c -o $(WMAKE_BIN)/wmkdep
  	@rm -f lex.yy.c 2>/dev/null
  
  
 diff --git a/wmake/src/wmkdep.l b/wmake/src/wmkdep.l
-index a98a597..06a811d 100644
+index a98a597..d5ad12f 100644
 --- a/wmake/src/wmkdep.l
 +++ b/wmake/src/wmkdep.l
 @@ -47,6 +47,7 @@ Usage
@@ -2848,20 +3497,12 @@ index a98a597..06a811d 100644
  
  void nextFile(const char* fileName);
  void importFile(const char* fileName);
-@@ -145,7 +146,7 @@ const char* bufferPaths[FILE_STACK_SIZE];
- int main(int argc, char* argv[])
- {
-     char *basePos, *dotPos;
--    int i;
-+    int i, verbose;
- 
-     if (argc == 1)
-     {
-@@ -154,7 +155,16 @@ int main(int argc, char* argv[])
+@@ -154,7 +155,18 @@ int main(int argc, char* argv[])
      }
  
      sourceFile = strdup(argv[argc-1]);
 -    fprintf(stderr, "Making dependency list for source file %s\n", sourceFile);
++/*
 +    verbose = (strncmp(argv[1], "-v", 2) == 0);
 +    if (verbose)
 +    {
@@ -2870,13 +3511,143 @@ index a98a597..06a811d 100644
 +    }
 +    else
 +    {
-+        fprintf(stderr, "   DEP %s\n", basename(sourceFile));
++        fprintf(stderr, " [DEP] %s\n", basename(sourceFile));
 +    }
++*/
  
  
      if ((basePos = strrchr(sourceFile, '/')) == NULL)
+diff --git a/wmake/wclean b/wmake/wclean
+index 9f18e9c..996777d 100755
+--- a/wmake/wclean
++++ b/wmake/wclean
+@@ -171,10 +171,10 @@ then
+                 then
+                     # Delete the respective binary first
+                     binaryFile=$(cat $variablesFile |
+-                                grep -e '^ *\(EXE\|LIB\) *= *' )
++                                grep --colour=never -e '^ *\(EXE\|LIB\) *= *' )
+ 
+                     # Catch all file extension (o,a,so,?+) for libraries
+-                    if echo $binaryFile | grep -qe '^ *LIB *= *'
++                    if echo $binaryFile | grep --colour=never -qe '^ *LIB *= *'
+                     then
+                         binaryFile="${binaryFile}.*"
+                     fi
+@@ -248,7 +248,7 @@ unset targetType
+ if [ -d $MakeDir ]
+ then
+     objectsDir=$MakeDir/$WM_OPTIONS
+-    if echo $PWD | grep "$WM_PROJECT_DIR"
++    if echo $PWD | grep --colour=never "$WM_PROJECT_DIR"
+     then
+         platformPath=$WM_PROJECT_DIR/platforms/${WM_OPTIONS}
+         objectsDir=$platformPath$(echo $PWD | sed s%$WM_PROJECT_DIR%% )
+diff --git a/wmake/wmake b/wmake/wmake
+index 821c5bb..9756386 100755
+--- a/wmake/wmake
++++ b/wmake/wmake
+@@ -64,6 +64,7 @@ Usage: $Script [OPTION] [dir]
+        $Script [OPTION] target [dir [MakeDir]]
+ 
+ options:
++  -q | -quiet       Be quiet (use more terse output)
+   -s | -silent      Run make in 'silent' mode (do not echo commands)
+   -a | -all         Run wmake in all subdirectories
+   -h | -help        Print the usage
+@@ -99,6 +100,9 @@ make="make"
+ 
+ # Default to compiling the local target only
+ all=
++# Default to be noisy if WM_QUIET_RULES is not set
++quiet=
++[ -n "$WM_QUIET_RULES" ] && quiet="V=0"
+ 
+ while [ "$#" -gt 0 ]
+ do
+@@ -106,6 +110,9 @@ do
+     -h | -help)
+         usage
+         ;;
++    -q | -quiet)
++        quiet="V=0"
++        ;;
+     -s | -silent)
+         make="$make -s"
+         shift
+@@ -235,7 +242,7 @@ then
+             # Compile all applications in sub-directories
+             $make ${WM_CONTINUE_ON_ERROR:+-k} \
+                   -f $WM_DIR/makefiles/apps \
+-                  TARGET="$targetType" FOAM_APPS="$FOAM_APPS"
++                  TARGET="$targetType" FOAM_APPS="$FOAM_APPS" $quiet
+             makeExitCode=$?
+         fi
+         # If the current directory contains a 'Make' directory continue
+@@ -318,7 +325,7 @@ fi
+ if [ "$targetType" = "" ]
+ then
+     unset targetType
+-    if grep -e '^ *LIB *=' "$MakeDir/files" >/dev/null 2>&1
++    if grep --colour=never -e '^ *LIB *=' "$MakeDir/files" >/dev/null 2>&1
+     then
+         targetType=libso
+     fi
+@@ -331,7 +338,7 @@ fi
+ #------------------------------------------------------------------------------
+ 
+ objectsDir=$MakeDir/$WM_OPTIONS
+-if echo $PWD | grep "$WM_PROJECT_DIR"
++if echo $PWD | grep --colour=never "$WM_PROJECT_DIR"
+ then
+     platformPath=$WM_PROJECT_DIR/platforms/${WM_OPTIONS}
+     objectsDir=$platformPath$(echo $PWD | sed s%$WM_PROJECT_DIR%% )
+@@ -344,10 +351,10 @@ fi
+     # Pre-build the $WM_OPTIONS/options file
+     # which is included when building the $WM_OPTIONS/files file
+     $make -s -f $WM_DIR/makefiles/files MAKE_DIR=$MakeDir \
+-          OBJECTS_DIR=$objectsDir $objectsDir/options
++          OBJECTS_DIR=$objectsDir $quiet $objectsDir/options
+ 
+     $make -s -f $WM_DIR/makefiles/files MAKE_DIR=$MakeDir \
+-          OBJECTS_DIR=$objectsDir
++          OBJECTS_DIR=$objectsDir $quiet
+ )
+ 
+ 
+@@ -370,10 +377,10 @@ fi
+ case "$targetType" in
+     lib | libo | libso | dep )
+         # ... but only if 'LIB' is declared in 'Make/files'
+-        if grep -e '^ *LIB *=' "$MakeDir/files" >/dev/null 2>&1
++        if grep --colour=never -e '^ *LIB *=' "$MakeDir/files" >/dev/null 2>&1
+         then
+             $make -s -f $WM_DIR/makefiles/general MAKE_DIR=$MakeDir \
+-                  OBJECTS_DIR=$objectsDir lnInclude
++                  OBJECTS_DIR=$objectsDir $quiet lnInclude
+         fi
+         ;;
+ esac
+@@ -387,7 +394,7 @@ if [ -n "$WM_UPDATE_DEPENDENCIES" ]
+ then
+ 
+     $make -f $WM_DIR/makefiles/general MAKE_DIR=$MakeDir \
+-        OBJECTS_DIR=$objectsDir updatedep
++        OBJECTS_DIR=$objectsDir $quiet updatedep
+     makeExitCode=$?
+ 
+     if [ $makeExitCode -ne 0 ]
+@@ -404,7 +411,7 @@ fi
+ #------------------------------------------------------------------------------
+ 
+ exec $make -f $WM_DIR/makefiles/general MAKE_DIR=$MakeDir \
+-     OBJECTS_DIR=$objectsDir $targetType
++     OBJECTS_DIR=$objectsDir $quiet $targetType
+ 
+ 
+ #------------------------------------------------------------------------------
 diff --git a/wmake/wmakeLnInclude b/wmake/wmakeLnInclude
-index 28f4276..08648eb 100755
+index 28f4276..3753288 100755
 --- a/wmake/wmakeLnInclude
 +++ b/wmake/wmakeLnInclude
 @@ -143,7 +143,12 @@ cd $incDir || exit 1
@@ -2884,12 +3655,38 @@ index 28f4276..08648eb 100755
  if [ "$silentOpt" != true ]
  then
 -    echo "$Script: linking include files to $incDir" 1>&2
-+    if [ -n "$WM_SILENT_RULES" ]
++    if [ -n "$WM_QUIET_RULES" ]
 +    then
-+        echo "    LN $incDir" 1>&2
++        echo "  LN	$incDir" 1>&2
 +    else
 +        echo "$Script: linking include files to $incDir" 1>&2
 +    fi
  fi
  
+ 
+diff --git a/wmake/wmakeLnIncludeAll b/wmake/wmakeLnIncludeAll
+index 7c4c3fa..12062ac 100755
+--- a/wmake/wmakeLnIncludeAll
++++ b/wmake/wmakeLnIncludeAll
+@@ -91,7 +91,7 @@ do
+         topDir=${MakeDir%/Make}    # trim /Make from the end
+         if [ -d "$topDir" ]
+         then
+-            if grep -e '^ *LIB *=' "$MakeDir/files" >/dev/null 2>&1
++            if grep --colour=never -e '^ *LIB *=' "$MakeDir/files" >/dev/null 2>&1
+             then
+                 wmakeLnInclude -update $topDir
+             elif [ -d "$topDir/lnInclude" ]
+diff --git a/wmake/wrmdep b/wmake/wrmdep
+index 49e2934..8fab8cf 100755
+--- a/wmake/wrmdep
++++ b/wmake/wrmdep
+@@ -152,7 +152,7 @@ files)
+         find $objectsDir -name '*.dep' -print | xargs -t rm 2>/dev/null
+     else
+         echo "removing .dep files referring to $1 ..."
+-        find $objectsDir -name '*.dep' -exec grep -q "$1" '{}' \; \
++        find $objectsDir -name '*.dep' -exec grep --colour=never -q "$1" '{}' \; \
+              -exec rm '{}' \; -print
+     fi
  

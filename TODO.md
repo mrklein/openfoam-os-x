@@ -1,69 +1,14 @@
-- [ ] Script for updating rolling releases
-  - [ ] 2.4.x
-  - [ ] 3.0.x
-- [X] Extended functionality in RunFunctions
-  - [X] 2.4.0
+- [X] wmake unification
+- [X] vim mode line in IOobject
+  - [X] 4.x
+  - [X] 4.1
+  - [X] 4.0
   - [X] 2.4.x
-  - [X] 3.0.0
-  - [X] 3.0.x
-- [ ] Implement foamLookupEntry utility for querying dictionaries
-  - [ ] 2.4.0
-  - [ ] 2.4.x
-  - [X] 3.0.0
-  - [X] 3.0.x
-- [X] Dynamic code library name extension
   - [X] 2.2.x
-  - [X] 2.3.1
-  - [X] 2.3.x
-  - [X] 2.4.0
+- [X] foamVersion key in file header
+  - [X] 4.x
+  - [X] 4.1
+  - [X] 4.0
   - [X] 2.4.x
-  - [X] 3.0.0
-  - [X] 3.0.x
-- [X] Fallback dynamic library extension
   - [X] 2.2.x
-  - [X] 2.3.1
-  - [X] 2.3.x
-  - [X] 2.4.0
-  - [X] 2.4.x
-  - [X] 3.0.0
-  - [X] 3.0.x
-- [X] Query for Homebrew prefix
-  - [X] 2.2.x
-  - [X] 2.3.1
-  - [X] 2.3.x
-  - [X] 2.4.0
-  - [X] 2.4.x
-  - [X] 3.0.0
-  - [X] 3.0.x
-- [X] lnInclude regeneration for releases
-  - [X] 2.3.1
-  - [X] 2.4.0
-- [X] ulimit -n in settings.sh
-  - [X] 2.2.x
-  - [X] 2.3.1
-  - [X] 2.3.x
-  - [X] 2.4.0
-  - [X] 2.4.x
-  - [X] dev
-- [X] = instead of == for string comparison in shell scripts
-  - [X] 2.2.x
-  - [X] 2.3.1
-  - [X] 2.3.x
-  - [X] 2.4.0
-  - [X] 2.4.x
-  - [X] dev
-- [-] foamJob script fix for El Capitan (10.11.x)
-  - [X] 2.2.x
-  - [X] 2.3.1
-  - [X] 2.3.x
-  - [X] 2.4.0
-  - [X] 2.4.x
-  - [ ] dev
-- [-] Infinite loop after sigFpe due to OpenMPI's signal handler
-  - [X] 2.2.x
-  - [X] 2.3.1
-  - [X] 2.3.x
-  - [X] 2.4.0
-  - [X] 2.4.x
-  - [ ] dev
 - [X] Patch generation script
