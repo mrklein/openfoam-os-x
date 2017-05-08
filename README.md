@@ -21,7 +21,40 @@ Update.
 Build process was tested on
 
 ```
+$ sw_vers
+ProductName:	Mac OS X
+ProductVersion:	10.12.4
+BuildVersion:	16E195
+```
 
+with
+
+```
+$ clang++ --version
+Apple LLVM version 8.1.0 (clang-802.0.42)
+Target: x86_64-apple-darwin16.5.0
+Thread model: posix
+InstalledDir: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin
+```
+
+and the following third-party software
+
+```
+$ brew list --versions
+...
+boost 1.63.0
+cgal 4.9.1
+eigen 3.3.3
+gmp 6.1.2
+gnuplot 5.0.6
+isl 0.18
+libmpc 1.0.3
+metis 5.1.0
+mpfr 3.1.5
+open-mpi 2.1.0
+parmetis 4.0.3_4
+scotch 6.0.4_4
+...
 ```
 
 ## Oct. 28, 2016
