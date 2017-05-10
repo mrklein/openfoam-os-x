@@ -9,7 +9,7 @@
  .../postProcessing/graphics/PVReaders/Allwmake     |   7 +-
  bin/foamInstallationTest                           |  21 +++-
  bin/foamJob                                        |   6 +
- bin/foamMonitor                                    |   7 +-
+ bin/foamMonitor                                    |  11 +-
  bin/paraFoam                                       |   5 +
  bin/tools/CleanFunctions                           |   2 +-
  bin/tools/RunFunctions                             |  22 +++-
@@ -122,7 +122,7 @@
  wmake/wmakeLnInclude                               |   7 +-
  wmake/wmakeLnIncludeAll                            |   2 +-
  wmake/wrmdep                                       |   2 +-
- 124 files changed, 1725 insertions(+), 182 deletions(-)
+ 124 files changed, 1728 insertions(+), 183 deletions(-)
 
 diff --git a/.gitignore b/.gitignore
 index a897b81..8f59031 100644
@@ -365,7 +365,7 @@ index 6646e5d..479ddad 100755
      # Run (on single processor)
      #
 diff --git a/bin/foamMonitor b/bin/foamMonitor
-index 8ae1985..af5ee46 100755
+index 8ae1985..b7b8d1e 100755
 --- a/bin/foamMonitor
 +++ b/bin/foamMonitor
 @@ -57,7 +57,12 @@ USAGE
@@ -382,6 +382,24 @@ index 8ae1985..af5ee46 100755
  $LOGSCALE
  $YRANGE
  set title "Data Monitoring"
+@@ -82,6 +87,8 @@ LOGSCALE=""
+ YRANGE=""
+ GNUPLOT=$(which gnuplot)
+ ! [ "x$GNUPLOT" = "x" ] || usage "Gnuplot not installed"
++STAT="stat --format=%Y"
++[ "$(uname -s)" = "Darwin" ] && STAT="stat -f %m"
+ 
+ # parse options
+ while [ "$#" -gt 0 ]
+@@ -169,7 +176,7 @@ PID=$!
+ 
+ while true
+ do
+-    MODTIME=$(stat --format=%Y $FILE)
++    MODTIME=$($STAT $FILE)
+     IDLEAGO=$(expr $(date +%s) - $IDLE)
+     test "$MODTIME" -gt "$IDLEAGO" || break
+     sleep $REFRESH
 diff --git a/bin/paraFoam b/bin/paraFoam
 index 84b82ec..e965e69 100755
 --- a/bin/paraFoam
