@@ -3,6 +3,12 @@
 Patches for OpenFOAM compilation on OS X. Detailed installation instructions
 can be found in [wiki](https://github.com/mrklein/openfoam-os-x/wiki).
 
+## May 13, 2017
+
+wmake unification made it simpler to update patches, so returned 3.0.x and dev
+patches into tree (it seems 3.0.x is still widely used), updated foamJob script
+to account for releases greter than 15.
+
 ## May 8, 2017
 
 Update.
