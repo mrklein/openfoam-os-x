@@ -789,20 +789,20 @@ index e5c928e2..a303540a 100644
  
      labelListList featurePointNormals(nFeaturePoints);
 diff --git a/bin/foamJob b/bin/foamJob
-index fc5e082d..c69a7069 100755
+index fc5e082d..41bf131a 100755
 --- a/bin/foamJob
 +++ b/bin/foamJob
 @@ -265,6 +265,14 @@ then
      fi
  
  else
-+	# Check if we are on El Capitan
-+	if test "$(uname -s)" = "Darwin" && \
-+		{ test "$(uname -r | cut -d. -f1)" -eq "15"; }
-+	then
-+		# Using foamExec workaround to reexport (DY)LD_LIBRARY_PATH variables
-+		APPLICATION="foamExec $APPLICATION"
-+	fi
++    # Check if we are on El Capitan
++    if test "$(uname -s)" = "Darwin" && \
++        { test "$(uname -r | cut -d. -f1)" -gt "15"; }
++    then
++        # Using foamExec workaround to reexport (DY)LD_LIBRARY_PATH variables
++        APPLICATION="foamExec $APPLICATION"
++    fi
 +
      #
      # run (on single processor)

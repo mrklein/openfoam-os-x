@@ -348,19 +348,19 @@ index 17b285a..f11e61e 100755
      reportExecutable tar
  else
 diff --git a/bin/foamJob b/bin/foamJob
-index 6646e5d..479ddad 100755
+index 6646e5d..e24728f 100755
 --- a/bin/foamJob
 +++ b/bin/foamJob
 @@ -277,6 +277,12 @@ then
      fi
  
  else
-+	# Check if we are on El Capitan
-+	if test "$(uname -s)" = "Darwin" && \
-+		{ test "$(uname -r | cut -d. -f1)" -eq 15; }
-+	then
-+		APPLICATION="foamExec $APPLICATION"
-+	fi
++    # Check if we are on El Capitan
++    if test "$(uname -s)" = "Darwin" && \
++        { test "$(uname -r | cut -d. -f1)" -gt 15; }
++    then
++        APPLICATION="foamExec $APPLICATION"
++    fi
      #
      # Run (on single processor)
      #

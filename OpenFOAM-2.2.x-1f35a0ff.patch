@@ -1490,7 +1490,7 @@ index fe72e8ce..9870a35d 100755
      reportExecutable tar
  else
 diff --git a/bin/foamJob b/bin/foamJob
-index 20793c3d..5a35f186 100755
+index 20793c3d..d0d129df 100755
 --- a/bin/foamJob
 +++ b/bin/foamJob
 @@ -247,6 +247,14 @@ then
@@ -1498,12 +1498,12 @@ index 20793c3d..5a35f186 100755
  
  else
 +	# Check if we are on El Capitan
-+	if test "$(uname -s)" = "Darwin" && \
-+		{ test "$(uname -r | cut -d. -f1)" -eq "15"; }
-+	then
-+		# Using foamExec workaround to reexport (DY)LD_LIBRARY_PATH variables
-+		APPLICATION="foamExec $APPLICATION"
-+	fi
++    if test "$(uname -s)" = "Darwin" && \
++        { test "$(uname -r | cut -d. -f1)" -gt "15"; }
++    then
++        # Using foamExec workaround to reexport (DY)LD_LIBRARY_PATH variables
++        APPLICATION="foamExec $APPLICATION"
++    fi
 +
      #
      # run (on single processor)
