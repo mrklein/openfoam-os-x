@@ -1,5 +1,9 @@
 SUFFIXES += .qt
 
-qttoo = $(call WM_MESSAGE,MOC,$<); $(AT)$(QTDIR)/bin/moc -f $< -o $(@D)/$(<F).C ; $(CC) $(c++FLAGS) -c $(@D)/$(<F).C -o $@
+define qttoo
+$(call WM_MESSAGE,MOC,$(notdir $<))
+$(AT)$(QTDIR)/bin/moc -f $< -o $(@D)/$(<F).C
+$(AT)$(CC) $(c++FLAGS) -c $(@D)/$(<F).C -o $@
+endef
 
 #----------------------------- vi: set ft=make: -------------------------------

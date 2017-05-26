@@ -1,6 +1,11 @@
 SUFFIXES += .y
 
-ytoo = $(call WM_MESSAGE,yy,$<); $(AT)btyacc -v -d $(SKELETON) $< ; mv y_tab.c $(@D)/$(<F).C ; mv y_tab.h $(@D)/$(<F).H ; \
-     $(CC) $(c++FLAGS) -c $(@D)/$(<F).C -o $@
+define ytoo
+$(call WM_MESSAGE,yy,$<)
+$(AT)btyacc -v -d $(SKELETON) $<
+$(AT)mv y_tab.c $(@D)/$(<F).C
+$(AT)mv y_tab.h $(@D)/$(<F).H
+$(AT)$(CC) $(c++FLAGS) -c $(@D)/$(<F).C -o $@
+endef
 
 #----------------------------- vi: set ft=make: -------------------------------

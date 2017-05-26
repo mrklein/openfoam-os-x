@@ -1,9 +1,15 @@
 SUFFIXES += .y .Y
 
-ytoo = $(call WM_MESSAGE,yy,$<); $(AT)bison -v -d -y $< ; mv y.tab.c $(@D)/$(<F).c ; mv y.tab.h $(@D)/$(<F).h ; \
-     $(cc) $(cFLAGS) -c  $(@D)/$(<F).c -o $@
+define ytoo
+$(call WM_MESSAGE,yy,$<)
+$(AT)bison -v -d -y $< ; mv y.tab.c $(@D)/$(<F).c ; mv y.tab.h $(@D)/$(<F).h ; \
+	$(cc) $(cFLAGS) -c  $(@D)/$(<F).c -o $@
+endef
 
-Ytoo = $(call WM_MESSAGE,YY,$<); $(AT)bison -v -d -y $< ; mv y.tab.c $(@D)/$(<F).C ; mv y.tab.h $(@D)/$(<F).H ; \
-     $(CC) $(c++FLAGS) -c  $(@D)/$(<F).C -o $@
+define Ytoo
+$(call WM_MESSAGE,YY,$<)
+$(AT)bison -v -d -y $< ; mv y.tab.c $(@D)/$(<F).C ; mv y.tab.h $(@D)/$(<F).H ; \
+	$(CC) $(c++FLAGS) -c  $(@D)/$(<F).C -o $@
+endef
 
 #----------------------------- vi: set ft=make: -------------------------------

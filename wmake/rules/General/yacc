@@ -1,9 +1,19 @@
 SUFFIXES += .y .Y
 
-ytoo = $(call WM_MESSAGE,YY); $(AT)yacc -v -d $< ; mv y.tab.c $(@D)/$(<F).c ; mv y.tab.h $(@D)/parser.h ; \
-       $(CC) $(c++FLAGS) -c $(@D)/$(<F).c -o $@
+define ytoo
+$(call WM_MESSAGE,YY,$(notdir $<))
+$(AT)yacc -v -d $<
+$(AT)mv y.tab.c $(@D)/$(<F).c
+$(AT)mv y.tab.h $(@D)/parser.h
+$(AT)$(CC) $(c++FLAGS) -c $(@D)/$(<F).c -o $@
+endef
 
-Ytoo = $(call WM_MESSAGE,YY); $(AT)yacc -v -d $< ; mv y.tab.c $(@D)/$(<F).C ; mv y.tab.h $(@D)/parser.H ; \
-       $(CC) $(c++FLAGS) -c $(@D)/$(<F).C -o $@
+define Ytoo
+$(call WM_MESSAGE,YY,$(notdir $<))
+$(AT)yacc -v -d $<
+$(AT)mv y.tab.c $(@D)/$(<F).C
+$(AT)mv y.tab.h $(@D)/parser.H
+$(AT)$(CC) $(c++FLAGS) -c $(@D)/$(<F).C -o $@
+endef
 
 #----------------------------- vi: set ft=make: -------------------------------

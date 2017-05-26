@@ -1,5 +1,9 @@
 SUFFIXES += .L
 
-Ltoo = $(call WM_MESSAGE,LL,$<); flex -+ -o$(@D)/$(<F).C -f $< ; $(CC) $(c++FLAGS) $(c++LESSWARN) -c $(@D)/$(<F).C -o $@
+define Ltoo
+$(call WM_MESSAGE,LL,$(notdir $<))
+$(AT)flex -+ -o$(@D)/$(<F).C -f $<
+$(AT)$(CC) $(c++FLAGS) $(c++LESSWARN) -c $(@D)/$(<F).C -o $@
+endef
 
 #----------------------------- vi: set ft=make: -------------------------------
