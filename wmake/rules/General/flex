@@ -2,7 +2,7 @@ SUFFIXES += .l
 
 define ltoo
 $(call WM_MESSAGE,ll,$<)
-$(AT)flex -o $(@D)/$(<F).c $(notdir $<) 
+$(AT)flex -o $(@D)/$(<F).c $(notdir $<)
 $(AT)$(cc) $(cFLAGS) -c  $(@D)/$(<F).c -o $@
 endef
 
