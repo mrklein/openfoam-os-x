@@ -62,14 +62,14 @@
  wmake/makefiles/general                            |  43 ++++---
  wmake/rules/General/CGAL                           |   9 +-
  wmake/rules/General/X                              |   2 +
- wmake/rules/General/bison                          |   6 +-
- wmake/rules/General/btyacc                         |   4 +-
+ wmake/rules/General/bison                          |  16 ++-
+ wmake/rules/General/btyacc                         |  11 +-
  wmake/rules/General/btyacc++                       |   4 +-
- wmake/rules/General/byacc                          |   4 +-
- wmake/rules/General/flex                           |   4 +-
- wmake/rules/General/flex++                         |   4 +-
+ wmake/rules/General/byacc                          |  11 +-
+ wmake/rules/General/flex                           |   8 +-
+ wmake/rules/General/flex++                         |   8 +-
  wmake/rules/General/general                        |  30 +++--
- wmake/rules/General/moc                            |   4 +-
+ wmake/rules/General/moc                            |   8 +-
  wmake/rules/General/mplib                          |   2 +
  wmake/rules/General/mplibMPICH                     |   2 +
  wmake/rules/General/mplibMPICH-GM                  |   2 +
@@ -81,7 +81,7 @@
  wmake/rules/General/standard                       |   2 +-
  wmake/rules/General/transform                      |   6 +-
  wmake/rules/General/version                        |  12 +-
- wmake/rules/General/yacc                           |  10 +-
+ wmake/rules/General/yacc                           |  20 ++-
  wmake/rules/darwin64Clang/c                        |  23 ++++
  wmake/rules/darwin64Clang/c++                      |  35 ++++++
  wmake/rules/darwin64Clang/c++Debug                 |   4 +
@@ -122,7 +122,7 @@
  wmake/wmakeLnInclude                               |   7 +-
  wmake/wmakeLnIncludeAll                            |   2 +-
  wmake/wrmdep                                       |   2 +-
- 124 files changed, 1728 insertions(+), 183 deletions(-)
+ 124 files changed, 1770 insertions(+), 187 deletions(-)
 
 diff --git a/.gitignore b/.gitignore
 index a897b81..8f59031 100644
@@ -2800,31 +2800,45 @@ index f55fa8b..01e1df8 100644
 +
 +#----------------------------- vi: set ft=make: -------------------------------
 diff --git a/wmake/rules/General/bison b/wmake/rules/General/bison
-index b741436..dce8a18 100644
+index b741436..834a312 100644
 --- a/wmake/rules/General/bison
 +++ b/wmake/rules/General/bison
-@@ -1,7 +1,9 @@
+@@ -1,7 +1,15 @@
  SUFFIXES += .y .Y
  
 -ytoo = bison -v -d -y $< ; mv y.tab.c $(@D)/$(<F).c ; mv y.tab.h $(@D)/$(<F).h ; \
-+ytoo = $(call WM_MESSAGE,yy,$<); $(AT)bison -v -d -y $< ; mv y.tab.c $(@D)/$(<F).c ; mv y.tab.h $(@D)/$(<F).h ; \
-      $(cc) $(cFLAGS) -c  $(@D)/$(<F).c -o $@
+-     $(cc) $(cFLAGS) -c  $(@D)/$(<F).c -o $@
++define ytoo
++$(call WM_MESSAGE,yy,$<)
++$(AT)bison -v -d -y $< ; mv y.tab.c $(@D)/$(<F).c ; mv y.tab.h $(@D)/$(<F).h ; \
++	$(cc) $(cFLAGS) -c  $(@D)/$(<F).c -o $@
++endef
  
 -Ytoo = bison -v -d -y $< ; mv y.tab.c $(@D)/$(<F).C ; mv y.tab.h $(@D)/$(<F).H ; \
-+Ytoo = $(call WM_MESSAGE,YY,$<); $(AT)bison -v -d -y $< ; mv y.tab.c $(@D)/$(<F).C ; mv y.tab.h $(@D)/$(<F).H ; \
-      $(CC) $(c++FLAGS) -c  $(@D)/$(<F).C -o $@
+-     $(CC) $(c++FLAGS) -c  $(@D)/$(<F).C -o $@
++define Ytoo
++$(call WM_MESSAGE,YY,$<)
++$(AT)bison -v -d -y $< ; mv y.tab.c $(@D)/$(<F).C ; mv y.tab.h $(@D)/$(<F).H ; \
++	$(CC) $(c++FLAGS) -c  $(@D)/$(<F).C -o $@
++endef
 +
 +#----------------------------- vi: set ft=make: -------------------------------
 diff --git a/wmake/rules/General/btyacc b/wmake/rules/General/btyacc
-index 44a58c3..7c2922b 100644
+index 44a58c3..78d1c85 100644
 --- a/wmake/rules/General/btyacc
 +++ b/wmake/rules/General/btyacc
-@@ -1,4 +1,6 @@
+@@ -1,4 +1,11 @@
  SUFFIXES += .y
  
 -ytoo = btyacc -v -d $(SKELETON) $< ; mv y_tab.c $(@D)/$(<F).C ; mv y_tab.h $(@D)/$(<F).H ; \
-+ytoo = $(call WM_MESSAGE,yy,$<); $(AT)btyacc -v -d $(SKELETON) $< ; mv y_tab.c $(@D)/$(<F).C ; mv y_tab.h $(@D)/$(<F).H ; \
-      $(CC) $(c++FLAGS) -c $(@D)/$(<F).C -o $@
+-     $(CC) $(c++FLAGS) -c $(@D)/$(<F).C -o $@
++define ytoo
++$(call WM_MESSAGE,yy,$<)
++$(AT)btyacc -v -d $(SKELETON) $<
++$(AT)mv y_tab.c $(@D)/$(<F).C
++$(AT)mv y_tab.h $(@D)/$(<F).H
++$(AT)$(CC) $(c++FLAGS) -c $(@D)/$(<F).C -o $@
++endef
 +
 +#----------------------------- vi: set ft=make: -------------------------------
 diff --git a/wmake/rules/General/btyacc++ b/wmake/rules/General/btyacc++
@@ -2840,37 +2854,51 @@ index 7844558..de7550a 100644
 +
 +#----------------------------- vi: set ft=make: -------------------------------
 diff --git a/wmake/rules/General/byacc b/wmake/rules/General/byacc
-index 60a9e18..803b7ba 100644
+index 60a9e18..1f33ffb 100644
 --- a/wmake/rules/General/byacc
 +++ b/wmake/rules/General/byacc
-@@ -1,4 +1,6 @@
+@@ -1,4 +1,11 @@
  SUFFIXES += .y
  
 -ytoo = byacc -v $(YYPREFIX) -d $< ; mv y.tab.c $(@D)/$(<F).C ; mv y.tab.h $(@D)/$(<F).H ; \
-+ytoo = $(call WM_MESSAGE,yy,$<); $(AT)byacc -v $(YYPREFIX) -d $< ; mv y.tab.c $(@D)/$(<F).C ; mv y.tab.h $(@D)/$(<F).H ; \
-      $(CC) $(c++FLAGS) -c $(@D)/$(<F).C -o $@
+-     $(CC) $(c++FLAGS) -c $(@D)/$(<F).C -o $@
++define ytoo
++$(call WM_MESSAGE,yy,$(notdir $<))
++$(AT)byacc -v $(YYPREFIX) -d $<
++$(AT)mv y.tab.c $(@D)/$(<F).C
++$(AT)mv y.tab.h $(@D)/$(<F).H
++$(AT)$(CC) $(c++FLAGS) -c $(@D)/$(<F).C -o $@
++endef
 +
 +#----------------------------- vi: set ft=make: -------------------------------
 diff --git a/wmake/rules/General/flex b/wmake/rules/General/flex
-index 2b65bb2..a910e79 100644
+index 2b65bb2..aaa9155 100644
 --- a/wmake/rules/General/flex
 +++ b/wmake/rules/General/flex
-@@ -1,3 +1,5 @@
+@@ -1,3 +1,9 @@
  SUFFIXES += .l
  
 -ltoo = flex -o $(@D)/$(<F).c $< ; $(cc) $(cFLAGS) -c  $(@D)/$(<F).c -o $@
-+ltoo = $(call WM_MESSAGE,ll,$<); $(AT)flex -o $(@D)/$(<F).c $< ; $(cc) $(cFLAGS) -c  $(@D)/$(<F).c -o $@
++define ltoo
++$(call WM_MESSAGE,ll,$<)
++$(AT)flex -o $(@D)/$(<F).c $(notdir $<) 
++$(AT)$(cc) $(cFLAGS) -c  $(@D)/$(<F).c -o $@
++endef
 +
 +#----------------------------- vi: set ft=make: -------------------------------
 diff --git a/wmake/rules/General/flex++ b/wmake/rules/General/flex++
-index 894181b..128a6bb 100644
+index 894181b..d638d24 100644
 --- a/wmake/rules/General/flex++
 +++ b/wmake/rules/General/flex++
-@@ -1,3 +1,5 @@
+@@ -1,3 +1,9 @@
  SUFFIXES += .L
  
 -Ltoo = flex -+ -o$(@D)/$(<F).C -f $< ; $(CC) $(c++FLAGS) $(c++LESSWARN) -c $(@D)/$(<F).C -o $@
-+Ltoo = $(call WM_MESSAGE,LL,$<); flex -+ -o$(@D)/$(<F).C -f $< ; $(CC) $(c++FLAGS) $(c++LESSWARN) -c $(@D)/$(<F).C -o $@
++define Ltoo
++$(call WM_MESSAGE,LL,$(notdir $<))
++$(AT)flex -+ -o$(@D)/$(<F).C -f $<
++$(AT)$(CC) $(c++FLAGS) $(c++LESSWARN) -c $(@D)/$(<F).C -o $@
++endef
 +
 +#----------------------------- vi: set ft=make: -------------------------------
 diff --git a/wmake/rules/General/general b/wmake/rules/General/general
@@ -2918,14 +2946,18 @@ index b3f20b4..7d7552f 100644
 -#------------------------------------------------------------------------------
 +#----------------------------- vi: set ft=make: -------------------------------
 diff --git a/wmake/rules/General/moc b/wmake/rules/General/moc
-index 9374973..38ec7e6 100644
+index 9374973..9898125 100644
 --- a/wmake/rules/General/moc
 +++ b/wmake/rules/General/moc
-@@ -1,3 +1,5 @@
+@@ -1,3 +1,9 @@
  SUFFIXES += .qt
  
 -qttoo = $(QTDIR)/bin/moc -f $< -o $(@D)/$(<F).C ; $(CC) $(c++FLAGS) -c $(@D)/$(<F).C -o $@
-+qttoo = $(call WM_MESSAGE,MOC,$<); $(AT)$(QTDIR)/bin/moc -f $< -o $(@D)/$(<F).C ; $(CC) $(c++FLAGS) -c $(@D)/$(<F).C -o $@
++define qttoo
++$(call WM_MESSAGE,MOC,$(notdir $<))
++$(AT)$(QTDIR)/bin/moc -f $< -o $(@D)/$(<F).C
++$(AT)$(CC) $(c++FLAGS) -c $(@D)/$(<F).C -o $@
++endef
 +
 +#----------------------------- vi: set ft=make: -------------------------------
 diff --git a/wmake/rules/General/mplib b/wmake/rules/General/mplib
@@ -3062,21 +3094,31 @@ index ffd070d..911ab5d 100644
 -#------------------------------------------------------------------------------
 +#----------------------------- vi: set ft=make: -------------------------------
 diff --git a/wmake/rules/General/yacc b/wmake/rules/General/yacc
-index d583a63..7b6f699 100644
+index d583a63..91a5463 100644
 --- a/wmake/rules/General/yacc
 +++ b/wmake/rules/General/yacc
-@@ -1,7 +1,9 @@
+@@ -1,7 +1,19 @@
  SUFFIXES += .y .Y
  
 -ytoo = yacc -v -d $< ; mv y.tab.c $(@D)/$(<F).c ; mv y.tab.h $(@D)/parser.h ; \
 -     $(CC) $(c++FLAGS) -c $(@D)/$(<F).c -o $@
-+ytoo = $(call WM_MESSAGE,YY); $(AT)yacc -v -d $< ; mv y.tab.c $(@D)/$(<F).c ; mv y.tab.h $(@D)/parser.h ; \
-+       $(CC) $(c++FLAGS) -c $(@D)/$(<F).c -o $@
++define ytoo
++$(call WM_MESSAGE,YY,$(notdir $<))
++$(AT)yacc -v -d $<
++$(AT)mv y.tab.c $(@D)/$(<F).c
++$(AT)mv y.tab.h $(@D)/parser.h
++$(AT)$(CC) $(c++FLAGS) -c $(@D)/$(<F).c -o $@
++endef
  
 -Ytoo = yacc -v -d $< ; mv y.tab.c $(@D)/$(<F).C ; mv y.tab.h $(@D)/parser.H ; \
 -     $(CC) $(c++FLAGS) -c $(@D)/$(<F).C -o $@
-+Ytoo = $(call WM_MESSAGE,YY); $(AT)yacc -v -d $< ; mv y.tab.c $(@D)/$(<F).C ; mv y.tab.h $(@D)/parser.H ; \
-+       $(CC) $(c++FLAGS) -c $(@D)/$(<F).C -o $@
++define Ytoo
++$(call WM_MESSAGE,YY,$(notdir $<))
++$(AT)yacc -v -d $<
++$(AT)mv y.tab.c $(@D)/$(<F).C
++$(AT)mv y.tab.h $(@D)/parser.H
++$(AT)$(CC) $(c++FLAGS) -c $(@D)/$(<F).C -o $@
++endef
 +
 +#----------------------------- vi: set ft=make: -------------------------------
 diff --git a/wmake/rules/darwin64Clang/c b/wmake/rules/darwin64Clang/c
