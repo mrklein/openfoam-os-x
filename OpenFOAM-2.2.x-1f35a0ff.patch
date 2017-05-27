@@ -6075,7 +6075,7 @@ index 94264971..00000000
 -.atg.dep:
 -	$(MAKE_DEP)
 diff --git a/wmake/rules/General/flex b/wmake/rules/General/flex
-index 853780e1..aaa9155c 100644
+index 853780e1..fef4fa50 100644
 --- a/wmake/rules/General/flex
 +++ b/wmake/rules/General/flex
 @@ -1,6 +1,9 @@
@@ -6085,7 +6085,7 @@ index 853780e1..aaa9155c 100644
 -ltoo = flex -o$*.c $$SOURCE ; $(cc) $(cFLAGS) -c $*.c -o $@
 +define ltoo
 +$(call WM_MESSAGE,ll,$<)
-+$(AT)flex -o $(@D)/$(<F).c $(notdir $<) 
++$(AT)flex -o $(@D)/$(<F).c $(notdir $<)
 +$(AT)$(cc) $(cFLAGS) -c  $(@D)/$(<F).c -o $@
 +endef
  

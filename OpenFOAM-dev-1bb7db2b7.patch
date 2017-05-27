@@ -2731,7 +2731,7 @@ index 093d28745..1f33ffbda 100644
 +
 +#----------------------------- vi: set ft=make: -------------------------------
 diff --git a/wmake/rules/General/flex b/wmake/rules/General/flex
-index 4029b97b1..aaa9155c8 100644
+index 4029b97b1..fef4fa501 100644
 --- a/wmake/rules/General/flex
 +++ b/wmake/rules/General/flex
 @@ -1,5 +1,9 @@
@@ -2742,7 +2742,7 @@ index 4029b97b1..aaa9155c8 100644
 -    $(cc) $(cFLAGS) -c  $(@D)/$(<F).c -o $@
 +define ltoo
 +$(call WM_MESSAGE,ll,$<)
-+$(AT)flex -o $(@D)/$(<F).c $(notdir $<) 
++$(AT)flex -o $(@D)/$(<F).c $(notdir $<)
 +$(AT)$(cc) $(cFLAGS) -c  $(@D)/$(<F).c -o $@
 +endef
 +
