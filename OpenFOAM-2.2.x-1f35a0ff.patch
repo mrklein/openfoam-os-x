@@ -1956,15 +1956,15 @@ index 0f0ff507..d400eb71 100644
  
 diff --git a/etc/config/paraview-osx.sh b/etc/config/paraview-osx.sh
 new file mode 100644
-index 00000000..cd4d8654
+index 00000000..c01149b5
 --- /dev/null
 +++ b/etc/config/paraview-osx.sh
 @@ -0,0 +1,15 @@
-+if [ -d /Applications/Paraview*.app ]; then
-+	[ "$FOAM_VERBOSE" -a "$PS1" ] && echo Using /Applications/Paraview*.app
++if [ -d /Applications/[Pp][Aa][Rr][Aa][Vv][Ii][Ee][Ww]*.app ]; then
++	[ "$FOAM_VERBOSE" -a "$PS1" ] && echo Using /Applications/[Pp][Aa][Rr][Aa][Vv][Ii][Ee][Ww]*.app
 +
 +	paraview () {
-+		/Applications/Paraview*.app/Contents/MacOS/paraview "$@"
++		/Applications/[Pp][Aa][Rr][Aa][Vv][Ii][Ee][Ww]*.app/Contents/MacOS/paraview "$@"
 +	}
 +
 +	export -f paraview

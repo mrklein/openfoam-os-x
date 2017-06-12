@@ -893,16 +893,16 @@ index 0000000..bb87346
 +#------------------------------------------------------------------------------
 diff --git a/etc/config.sh/mac/paraview b/etc/config.sh/mac/paraview
 new file mode 100644
-index 0000000..fe379b3
+index 0000000..edfaa63
 --- /dev/null
 +++ b/etc/config.sh/mac/paraview
 @@ -0,0 +1,16 @@
-+if [ -d /Applications/Paraview*.app ];
++if [ -d /Applications/[Pp][Aa][Rr][Aa][Vv][Ii][Ee][Ww]*.app ];
 +then
-+    [ "$FOAM_VERBOSE" -a "$PS1" ] && echo Using /Applications/Paraview*.app
++    [ "$FOAM_VERBOSE" -a "$PS1" ] && echo Using /Applications/[Pp][Aa][Rr][Aa][Vv][Ii][Ee][Ww]*.app
 +
 +    paraview () {
-+        /Applications/Paraview*.app/Contents/MacOS/paraview "$@"
++        /Applications/[Pp][Aa][Rr][Aa][Vv][Ii][Ee][Ww]*.app/Contents/MacOS/paraview "$@"
 +    }
 +
 +    export -f paraview
