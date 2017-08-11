@@ -4,6 +4,15 @@ Patches for OpenFOAM(TM) compilation on macOS. Detailed installation
 instructions can be found in
 [wiki](https://github.com/mrklein/openfoam-os-x/wiki).
 
+## Aug. 11, 2017
+
+Update
+
+- Added patches for versions 5.0 and 5.x (they already started to diverge).
+- Updated patches for 4.0, 4.1, and 4.x to remedy a problem of 64-bit label build reported here: https://www.cfd-online.com/Forums/openfoam-installation-windows-mac/187102-installing-openfoam-4-1-mac-os-sierra.html#post658361.
+
+`WM_QUIET_RULES` are temporary gone in 5.x series.
+
 ## May 13, 2017
 
 wmake unification made it simpler to update patches, so returned 3.0.x and dev

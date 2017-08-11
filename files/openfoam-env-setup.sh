@@ -127,6 +127,18 @@ of4x() {
 
 export -f of4x
 
+of50() {
+    ofxxx "5.0"
+}
+
+export -f of50
+
+of5x() {
+    ofxxx "5.x"
+}
+
+export -f of5x
+
 ofdev() {
     ofxxx "dev"
 }
