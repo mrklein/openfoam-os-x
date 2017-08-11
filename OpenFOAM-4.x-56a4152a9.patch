@@ -680,7 +680,7 @@ index 000000000..3e5304369
 +# vim: set ft=sh:
 diff --git a/etc/config.sh/mac/functions b/etc/config.sh/mac/functions
 new file mode 100644
-index 000000000..e5e70e700
+index 000000000..ba089e6ec
 --- /dev/null
 +++ b/etc/config.sh/mac/functions
 @@ -0,0 +1,133 @@
@@ -743,10 +743,10 @@ index 000000000..e5e70e700
 +        if [ "x$(_foamBrew)" = "xY" ]
 +        then
 +            local prefix="$(_foamBrewPrefix)"
-+            if [ -d "$prefix/opt/$pkg" ]
++            if [ -d "$prefix/opt/$pkg" -a "$WM_LABEL_SIZE" -ne 64 ]
 +            then
 +                version="$(basename $(readlink "$prefix/opt/$pkg"))"
-+            elif [ -d "$prefix/opt/${pkg}64" ]
++            elif [ -d "$prefix/opt/${pkg}64" -a "$WM_LABEL_SIZE" -eq 64 ]
 +            then
 +                version="$(basename $(readlink "$prefix/opt/${pkg}64"))"
 +            else
@@ -770,10 +770,10 @@ index 000000000..e5e70e700
 +        if [ "x$(_foamBrew)" = "xY" ]
 +        then
 +            local prefix="$(_foamBrewPrefix)"
-+            if [ -d "$prefix/opt/$pkg" ]
++            if [ -d "$prefix/opt/$pkg" -a "$WM_LABEL_SIZE" -ne 64 ]
 +            then
 +                arch_path="$prefix/opt/$pkg"
-+            elif [ -d "$prefix/opt/${pkg}64" ]
++            elif [ -d "$prefix/opt/${pkg}64" -a "$WM_LABEL_SIZE" -eq 64 ]
 +            then
 +                arch_path="$prefix/opt/${pkg}64"
 +            else
