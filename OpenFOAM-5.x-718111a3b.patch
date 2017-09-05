@@ -1,5 +1,8 @@
  Allwmake                                           |   5 +-
  applications/Allwmake                              |   2 +
+ .../foamyMesh/conformalVoronoiMesh/Make/options    |   1 +
+ .../generation/foamyMesh/foamyHexMesh/Make/options |   1 +
+ .../foamyMesh/foamyQuadMesh/Make/options           |   1 +
  .../mesh/generation/snappyHexMesh/Make/options     |   1 -
  .../mesh/manipulation/renumberMesh/Allwmake        |   9 +-
  .../mesh/manipulation/renumberMesh/Make/options    |   1 -
@@ -8,10 +11,11 @@
  bin/paraFoam                                       |   6 +
  bin/tools/RunFunctions                             |  13 +-
  etc/bashrc                                         |  74 ++++++++---
+ etc/config.sh/bash_completion                      |   4 +-
  etc/config.sh/mac/CGAL                             |  69 +++++++++++
  etc/config.sh/mac/functions                        | 133 ++++++++++++++++++++
  etc/config.sh/mac/metis                            |  44 +++++++
- etc/config.sh/mac/paraview                         |  16 +++
+ etc/config.sh/mac/paraview                         |  18 +++
  etc/config.sh/mac/scotch                           |  47 +++++++
  etc/config.sh/mpi                                  |   2 +-
  etc/config.sh/settings                             |  18 ++-
@@ -45,7 +49,7 @@
  src/renumber/SloanRenumber/Make/options            |  14 ++-
  wmake/makefiles/files                              |   6 +-
  wmake/makefiles/general                            |   4 +
- wmake/rules/darwin64Clang/CGAL                     |   3 +
+ wmake/rules/darwin64Clang/CGAL                     |  13 ++
  wmake/rules/darwin64Clang/bison                    |  13 ++
  wmake/rules/darwin64Clang/c                        |  23 ++++
  wmake/rules/darwin64Clang/c++                      |  35 ++++++
@@ -60,7 +64,7 @@
  wmake/rules/darwin64Clang/general                  |  16 +++
  wmake/rules/darwin64Clang/yacc                     |  13 ++
  wmake/wmake                                        |   5 +
- 62 files changed, 1458 insertions(+), 59 deletions(-)
+ 66 files changed, 1475 insertions(+), 61 deletions(-)
 
 diff --git a/Allwmake b/Allwmake
 index 3f6a7523d..00810aff6 100755
@@ -108,6 +112,42 @@ index 2b725832b..8f96f6ec1 100755
  
  wmake -all $targetType solvers
  wmake -all $targetType utilities
+diff --git a/applications/utilities/mesh/generation/foamyMesh/conformalVoronoiMesh/Make/options b/applications/utilities/mesh/generation/foamyMesh/conformalVoronoiMesh/Make/options
+index 627614817..fc45a114e 100644
+--- a/applications/utilities/mesh/generation/foamyMesh/conformalVoronoiMesh/Make/options
++++ b/applications/utilities/mesh/generation/foamyMesh/conformalVoronoiMesh/Make/options
+@@ -5,6 +5,7 @@ CGAL_EXACT = /*-DCGAL_DONT_USE_LAZY_KERNEL*/
+ CGAL_INEXACT = -DCGAL_INEXACT
+ 
+ include $(GENERAL_RULES)/CGAL
++-include $(RULES)/CGAL
+ 
+ EXE_INC = \
+     ${ROUNDING_MATH} \
+diff --git a/applications/utilities/mesh/generation/foamyMesh/foamyHexMesh/Make/options b/applications/utilities/mesh/generation/foamyMesh/foamyHexMesh/Make/options
+index ecf9cc2b3..5e067a79c 100644
+--- a/applications/utilities/mesh/generation/foamyMesh/foamyHexMesh/Make/options
++++ b/applications/utilities/mesh/generation/foamyMesh/foamyHexMesh/Make/options
+@@ -5,6 +5,7 @@ CGAL_EXACT = /*-DCGAL_DONT_USE_LAZY_KERNEL*/
+ CGAL_INEXACT = -DCGAL_INEXACT
+ 
+ include $(GENERAL_RULES)/CGAL
++-include $(RULES)/CGAL
+ 
+ EXE_INC = \
+     ${ROUNDING_MATH} \
+diff --git a/applications/utilities/mesh/generation/foamyMesh/foamyQuadMesh/Make/options b/applications/utilities/mesh/generation/foamyMesh/foamyQuadMesh/Make/options
+index 37dda1856..28ecb42c8 100644
+--- a/applications/utilities/mesh/generation/foamyMesh/foamyQuadMesh/Make/options
++++ b/applications/utilities/mesh/generation/foamyMesh/foamyQuadMesh/Make/options
+@@ -2,6 +2,7 @@ EXE_DEBUG = -DFULLDEBUG -g -O0
+ EXE_NDEBUG = -DNDEBUG
+ 
+ include $(GENERAL_RULES)/CGAL
++-include $(RULES)/CGAL
+ 
+ EXE_INC = \
+     ${ROUNDING_MATH} \
 diff --git a/applications/utilities/mesh/generation/snappyHexMesh/Make/options b/applications/utilities/mesh/generation/snappyHexMesh/Make/options
 index b50c6396e..0fa291c8e 100644
 --- a/applications/utilities/mesh/generation/snappyHexMesh/Make/options
@@ -181,7 +221,7 @@ index 12b467924..17f3fd8b0 100755
  4* | 5*)
      if [ -d "$ParaView_DIR" -a -r "$ParaView_DIR" ]
 diff --git a/bin/foamMonitor b/bin/foamMonitor
-index df5aca2da..6e566c995 100755
+index df5aca2da..81eff5177 100755
 --- a/bin/foamMonitor
 +++ b/bin/foamMonitor
 @@ -61,7 +61,12 @@ error() {
@@ -194,7 +234,7 @@ index df5aca2da..6e566c995 100755
 +} else {
 +    selected_terminal = 'x11'
 +}
-+set term selected_term 1 font "helvetica,17" linewidth 1.5 persist noraise
++set term selected_terminal 1 font "helvetica,17" linewidth 1.5 persist noraise
  $logscale
  $yrange
  set title "Data Monitoring"
@@ -410,6 +450,28 @@ index c89693b50..742f9ab2b 100644
  # Source the bash completion file:
  # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  [ "$BASH" ] && . $WM_PROJECT_DIR/etc/config.sh/bash_completion
+diff --git a/etc/config.sh/bash_completion b/etc/config.sh/bash_completion
+index 34cbd3116..7ae653c6d 100644
+--- a/etc/config.sh/bash_completion
++++ b/etc/config.sh/bash_completion
+@@ -6638,7 +6638,7 @@ _ptot_ ()
+ }
+ complete -o filenames -o nospace -F _ptot_ ptot
+ 
+-_rm~all_ ()
++_rm_all_ ()
+ {
+     local cur="${COMP_WORDS[COMP_CWORD]}"
+     local prev="${COMP_WORDS[COMP_CWORD-1]}"
+@@ -6656,7 +6656,7 @@ _rm~all_ ()
+     esac
+     COMPREPLY=( $(compgen -W "${opts}" $extra -- ${cur}) )
+ }
+-complete -o filenames -o nospace -F _rm~all_ rm~all
++complete -o filenames -o nospace -F _rm_all_ rm~all
+ 
+ _rmcore_ ()
+ {
 diff --git a/etc/config.sh/mac/CGAL b/etc/config.sh/mac/CGAL
 new file mode 100644
 index 000000000..3e5304369
@@ -487,7 +549,7 @@ index 000000000..3e5304369
 +# vim: set ft=sh:
 diff --git a/etc/config.sh/mac/functions b/etc/config.sh/mac/functions
 new file mode 100644
-index 000000000..256467273
+index 000000000..68c723a63
 --- /dev/null
 +++ b/etc/config.sh/mac/functions
 @@ -0,0 +1,133 @@
@@ -550,12 +612,12 @@ index 000000000..256467273
 +        if [ "x$(_foamBrew)" = "xY" ]
 +        then
 +            local prefix="$(_foamBrewPrefix)"
-+            if [ -d "$prefix/opt/$pkg" -a "$WM_LABEL_SIZE" -ne 64 ]
-+            then
-+                version="$(basename $(readlink "$prefix/opt/$pkg"))"
-+            elif [ -d "$prefix/opt/${pkg}64" -a "$WM_LABEL_SIZE" -eq 64 ]
++            if [ -d "$prefix/opt/${pkg}64" -a "$WM_LABEL_SIZE" -eq 64 ]
 +            then
 +                version="$(basename $(readlink "$prefix/opt/${pkg}64"))"
++            elif [ -d "$prefix/opt/$pkg" ]
++            then
++                version="$(basename $(readlink "$prefix/opt/$pkg"))"
 +            else
 +                ret=1
 +            fi
@@ -577,12 +639,12 @@ index 000000000..256467273
 +        if [ "x$(_foamBrew)" = "xY" ]
 +        then
 +            local prefix="$(_foamBrewPrefix)"
-+            if [ -d "$prefix/opt/$pkg" -a "$WM_LABEL_SIZE" -ne 64 ]
-+            then
-+                arch_path="$prefix/opt/$pkg"
-+            elif [ -d "$prefix/opt/${pkg}64" -a "$WM_LABEL_SIZE" -eq 64 ]
++            if [ -d "$prefix/opt/${pkg}64" -a "$WM_LABEL_SIZE" -eq 64 ]
 +            then
 +                arch_path="$prefix/opt/${pkg}64"
++            elif [ -d "$prefix/opt/$pkg" ]
++            then
++                arch_path="$prefix/opt/$pkg"
 +            else
 +                ret=1
 +            fi
@@ -676,16 +738,18 @@ index 000000000..bb87346f7
 +#------------------------------------------------------------------------------
 diff --git a/etc/config.sh/mac/paraview b/etc/config.sh/mac/paraview
 new file mode 100644
-index 000000000..edfaa6306
+index 000000000..cc69c1942
 --- /dev/null
 +++ b/etc/config.sh/mac/paraview
-@@ -0,0 +1,16 @@
-+if [ -d /Applications/[Pp][Aa][Rr][Aa][Vv][Ii][Ee][Ww]*.app ];
+@@ -0,0 +1,18 @@
++_paraviews=(/Applications/[Pp][Aa][Rr][Aa][Vv][Ii][Ee][Ww]*.app)
++if test -d $_paraviews;
 +then
-+    [ "$FOAM_VERBOSE" -a "$PS1" ] && echo Using /Applications/[Pp][Aa][Rr][Aa][Vv][Ii][Ee][Ww]*.app
++    [ "$FOAM_VERBOSE" -a "$PS1" ] && echo Using $_paraviews
 +
 +    paraview () {
-+        /Applications/[Pp][Aa][Rr][Aa][Vv][Ii][Ee][Ww]*.app/Contents/MacOS/paraview "$@"
++        local _paraviews=(/Applications/[Pp][Aa][Rr][Aa][Vv][Ii][Ee][Ww]*.app)
++        $_paraviews/Contents/MacOS/paraview "$@"
 +    }
 +
 +    export -f paraview
@@ -2236,13 +2300,23 @@ index c4085123a..bfba265eb 100644
  EXE             = $(WM_PROJECT).out
 diff --git a/wmake/rules/darwin64Clang/CGAL b/wmake/rules/darwin64Clang/CGAL
 new file mode 100644
-index 000000000..8e182e5f7
+index 000000000..354e719aa
 --- /dev/null
 +++ b/wmake/rules/darwin64Clang/CGAL
-@@ -0,0 +1,3 @@
-+CGAL_INC =
+@@ -0,0 +1,13 @@
++CGAL_INC = \
++    -I$(CGAL_ARCH_PATH)/include \
++    -I$(MPFR_ARCH_PATH)/include \
++    -I$(GMP_ARCH_PATH)/include \
++    -I$(BOOST_ARCH_PATH)/include
 +
-+CGAL_LIBS = -lCGAL -lmpfr
++CGAL_LIBS = \
++    -L$(MPFR_ARCH_PATH)/lib \
++    -L$(GMP_ARCH_PATH)/lib \
++    -L$(BOOST_ARCH_PATH)/lib \
++    -L$(CGAL_ARCH_PATH)/lib \
++    -lCGAL \
++    -lmpfr
 diff --git a/wmake/rules/darwin64Clang/bison b/wmake/rules/darwin64Clang/bison
 new file mode 100644
 index 000000000..3d11bf122
