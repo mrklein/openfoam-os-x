@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-"""Strip full patch names from libraries and executables."""
+"""Strip full path names from libraries and executables."""
 
 from __future__ import print_function, division
 
@@ -117,8 +117,8 @@ def _make_archive(version):
     #   OS X kernel version: Version of OS X kernel where binaries were built
     #   For version 3.0.0 and higher value of WM_LABEL_SIZE is also added
     #   option is optimization level: opt, debug, prof
-    if version != 'dev':
-        major, minor, patch = version.split('.')
+    if version not in ['dev', 'v3.0+']:
+        major = version.split('.')[0]
     else:
         major = 999
     _dir, _opts, copt, label_size = _read_environment(version)
@@ -127,6 +127,14 @@ def _make_archive(version):
     bin_path = join('platforms', _opts, 'bin')
 
     filename_fmt = 'v{0}-r{1}{2}-{3}.tar.bz2'
+
+    if version == 'dev' or version.endswith('x'):
+        from mkpatches import COMMITS
+        if version in COMMITS['ROLLING'].keys():
+            filename_fmt = 'v{{0}}-{0}-r{{1}}{{2}}-{{3}}.tar.bz2'.format(
+                COMMITS['ROLLING'][version]
+            )
+
     if int(major) >= 3:
         filename = filename_fmt.format(version, _get_kernel_version(),
                                        '-ls{0}'.format(label_size),
