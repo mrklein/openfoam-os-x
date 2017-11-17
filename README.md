@@ -1,8 +1,19 @@
-# OpenFOAM(TM) on OS X
+# OpenFOAM(R) on OS X
 
-Patches for OpenFOAM(TM) compilation on macOS. Detailed installation
+Patches for OpenFOAM(R) compilation on macOS. Detailed installation
 instructions can be found in
 [wiki](https://github.com/mrklein/openfoam-os-x/wiki).
+
+## Disclaimer
+
+This offering is not approved or endorsed by OpenCFD Limited, producer and
+distributor of the OpenFOAM software via www.openfoam.com, and owner of the
+OPENFOAM(R)  and OpenCFD(R)  trade marks.
+
+## Acknowledgement
+
+OPENFOAM(R)  is a registered trade mark of OpenCFD Limited, producer and
+distributor of the OpenFOAM software via www.openfoam.com.
 
 ## Aug. 11, 2017
 
@@ -252,7 +263,7 @@ scotch 6.0.4_1
 Though OpenCFD distributes Docker images for OS X, to me native compilation
 looks more convenient (for people who does not like compilation, there are
 precompiled binaries). Installation guide is almost the same as for any other
-release ([OpenFOAM release & Homebrew](https://github.com/mrklein/openfoam-os-x/wiki/OpenFOAM%20release%20&%20Homebrew)),
+release ([OpenFOAM(R) release & Homebrew](https://github.com/mrklein/openfoam-os-x/wiki/OpenFOAM%20release%20&%20Homebrew)),
 except:
 
 1. Download URL is [OpenFOAM-v3.0+.tgz](https://sourceforge.net/projects/openfoamplus/files/OpenFOAM-v3.0+.tgz).
@@ -261,11 +272,11 @@ except:
 
 ## January 18, 2015
 
-Updated patch for development OpenFOAM(TM) branch.
+Updated patch for development OpenFOAM(R) branch.
 
 ## December 18, 2015
 
-1. Patch for OpenFOAM(TM) 3.0.1 (it was the same as the last 3.0.x patch)
+1. Patch for OpenFOAM(R) 3.0.1 (it was the same as the last 3.0.x patch)
 2. Since any way I am testing success of build process, decided to upload
    binary archives. More details can be found in [wiki](https://github.com/mrklein/openfoam-os-x/wiki/Binary-archives).
 
@@ -459,7 +470,7 @@ parmgridgen 0.0.1
 
 ## September 9, 2015
 
-Updated patches for OpenFOAM(TM) 2.3.1 and 2.4.0.
+Updated patches for OpenFOAM(R) 2.3.1 and 2.4.0.
 
 ## September 8, 2015
 
@@ -484,7 +495,7 @@ of modifications:
 2. Clang's cpp does not fully support "traditional mode", so it does not
    understand continuations after comments. There were two variants: remove
    these comments or install traditional cpp. Chose the first variant.
-3. Warnings. First type comes from OpenFOAM's desire to take address of the
+3. Warnings. First type comes from OpenFOAM(R)'s desire to take address of the
    reference and the other one comes from third party software (updated CGAL).
    First problem could be solved by `-Wno-...` flag, yet I have chosen
    `reinterpret_cast` way. The second problem is solved by conditional
@@ -597,7 +608,7 @@ scotch 6.0.4_1
 
 ## June 5, 2015
 
-Added patches for OpenFOAM(TM) 2.4.0 and 2.4.x (commit b750988).
+Added patches for OpenFOAM(R) 2.4.0 and 2.4.x (commit b750988).
 
 The patches are an attempt to build OpenFOAM with -Wall -Wextra -std=c++11
 flags. The following appears after addition of the flags:
