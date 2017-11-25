@@ -15,6 +15,11 @@ OPENFOAM(R)  and OpenCFD(R)  trade marks.
 OPENFOAM(R)  is a registered trade mark of OpenCFD Limited, producer and
 distributor of the OpenFOAM software via www.openfoam.com.
 
+## Nov. 25, 2017
+
+Updated 5.x and dev patches. Since Foundation decided to abandon version
+numbering, 5.0 patch will not receive any updates or corrections.
+
 ## Aug. 11, 2017
 
 Update
