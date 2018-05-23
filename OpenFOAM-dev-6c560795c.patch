@@ -1,29 +1,36 @@
  Allwmake                                           |   5 +-
  applications/Allwmake                              |   2 +
+ .../sizeDistribution/sizeDistribution.C            |   4 +-
+ .../coalescenceModels/PrinceBlanch/PrinceBlanch.C  |   5 +-
  .../foamyMesh/conformalVoronoiMesh/Make/options    |   1 +
+ .../conformalVoronoiMeshTemplates.C                |   2 +-
  .../generation/foamyMesh/foamyHexMesh/Make/options |   1 +
  .../foamyMesh/foamyQuadMesh/Make/options           |   1 +
  .../mesh/generation/snappyHexMesh/Make/options     |   1 -
  .../mesh/manipulation/renumberMesh/Allwmake        |   9 +-
  .../mesh/manipulation/renumberMesh/Make/options    |   1 -
+ applications/utilities/miscellaneous/Allwmake      |  16 ++
+ .../utilities/miscellaneous/addr2line/Make/files   |   3 +
+ .../utilities/miscellaneous/addr2line/Make/options |   3 +
+ .../utilities/miscellaneous/addr2line/addr2line.C  | 165 +++++++++++++++++++++
  .../postProcessing/graphics/PVReaders/Allwmake     |   6 +
  bin/foamMonitor                                    |  12 +-
  bin/paraFoam                                       |   6 +
  bin/tools/RunFunctions                             |  11 ++
- etc/bashrc                                         |  74 ++++++++---
- etc/config.sh/mac/CGAL                             |  69 +++++++++++
- etc/config.sh/mac/functions                        | 136 ++++++++++++++++++++
- etc/config.sh/mac/metis                            |  44 +++++++
+ etc/bashrc                                         |  74 +++++++--
+ etc/config.sh/mac/CGAL                             |  69 +++++++++
+ etc/config.sh/mac/functions                        | 136 +++++++++++++++++
+ etc/config.sh/mac/metis                            |  44 ++++++
  etc/config.sh/mac/paraview                         |  18 +++
- etc/config.sh/mac/scotch                           |  47 +++++++
+ etc/config.sh/mac/scotch                           |  47 ++++++
  etc/config.sh/mpi                                  |   2 +-
  etc/config.sh/settings                             |  18 ++-
  src/Allwmake                                       |   2 +
  src/OSspecific/POSIX/POSIX.C                       |  33 +++++
  src/OSspecific/POSIX/clockTime/clockTime.H         |   3 +
  src/OSspecific/POSIX/fileStat.C                    |   2 +
- src/OSspecific/POSIX/printStack.C                  |  54 +++++++-
- src/OSspecific/POSIX/signals/sigFpe.C              |  79 +++++++++++-
+ src/OSspecific/POSIX/printStack.C                  |  30 ++--
+ src/OSspecific/POSIX/signals/sigFpe.C              |  79 +++++++++-
  src/OSspecific/POSIX/signals/sigFpe.H              |  12 +-
  src/OpenFOAM/Make/files                            |  10 ++
  src/OpenFOAM/db/IOstreams/IOstreams.H              |   4 +
@@ -33,32 +40,40 @@
  .../Scalar/longDoubleScalar/longDoubleScalar.H     |   4 +-
  src/OpenFOAM/primitives/hashes/Hasher/Hasher.C     |   2 +-
  src/OpenFOAM/primitives/ints/int/int.H             |  13 ++
- src/OpenFOAM/primitives/ints/long/long.C           |  50 ++++++++
- src/OpenFOAM/primitives/ints/long/long.H           | 138 +++++++++++++++++++++
- src/OpenFOAM/primitives/ints/long/longIO.C         | 104 ++++++++++++++++
- src/OpenFOAM/primitives/ints/short/short.C         |  50 ++++++++
- src/OpenFOAM/primitives/ints/short/short.H         | 138 +++++++++++++++++++++
- src/OpenFOAM/primitives/ints/short/shortIO.C       | 104 ++++++++++++++++
- src/OpenFOAM/primitives/ints/ulong/ulong.C         |  52 ++++++++
- src/OpenFOAM/primitives/ints/ulong/ulong.H         | 138 +++++++++++++++++++++
- src/OpenFOAM/primitives/ints/ulong/ulongIO.C       | 101 +++++++++++++++
- src/OpenFOAM/primitives/ints/ushort/ushort.C       |  52 ++++++++
- src/OpenFOAM/primitives/ints/ushort/ushort.H       | 138 +++++++++++++++++++++
- src/OpenFOAM/primitives/ints/ushort/ushortIO.C     | 101 +++++++++++++++
+ src/OpenFOAM/primitives/ints/long/long.C           |  50 +++++++
+ src/OpenFOAM/primitives/ints/long/long.H           | 138 +++++++++++++++++
+ src/OpenFOAM/primitives/ints/long/longIO.C         | 104 +++++++++++++
+ src/OpenFOAM/primitives/ints/short/short.C         |  50 +++++++
+ src/OpenFOAM/primitives/ints/short/short.H         | 138 +++++++++++++++++
+ src/OpenFOAM/primitives/ints/short/shortIO.C       | 104 +++++++++++++
+ src/OpenFOAM/primitives/ints/ulong/ulong.C         |  52 +++++++
+ src/OpenFOAM/primitives/ints/ulong/ulong.H         | 138 +++++++++++++++++
+ src/OpenFOAM/primitives/ints/ulong/ulongIO.C       | 101 +++++++++++++
+ src/OpenFOAM/primitives/ints/ushort/ushort.C       |  52 +++++++
+ src/OpenFOAM/primitives/ints/ushort/ushort.H       | 138 +++++++++++++++++
+ src/OpenFOAM/primitives/ints/ushort/ushortIO.C     | 101 +++++++++++++
+ src/OpenFOAM/primitives/quaternion/quaternion.C    |   2 +-
+ src/functionObjects/forces/forces/forces.C         |   2 +-
  src/fvAgglomerationMethods/Allwmake                |  10 +-
- .../MGridGenGamgAgglomeration/Make/options         |  14 ++-
+ .../MGridGenGamgAgglomeration/Make/options         |  14 +-
+ .../Templates/KinematicCloud/KinematicCloudI.H     |   4 +-
+ .../blockMesh/blockEdges/lineDivide/lineDivide.C   |   4 +-
+ src/mesh/extrudeModel/extrudeModel/extrudeModel.C  |   4 +-
+ .../layerParameters/layerParameters.C              |  10 +-
  src/parallel/decompose/Allwmake                    |   5 +-
- src/parallel/decompose/metisDecomp/Allwmake        |  14 ++-
+ src/parallel/decompose/metisDecomp/Allwmake        |  14 +-
  src/parallel/decompose/metisDecomp/Make/options    |   1 -
+ src/parallel/decompose/metisDecomp/metisDecomp.C   |  64 ++++++--
  src/parallel/decompose/ptscotchDecomp/Make/options |  11 +-
  src/parallel/decompose/scotchDecomp/Make/options   |  10 +-
- src/renumber/SloanRenumber/Make/options            |  14 ++-
+ src/renumber/SloanRenumber/Make/options            |  14 +-
+ .../powerSeries/powerSeriesReactionRateI.H         |   2 +-
  wmake/makefiles/files                              |   6 +-
  wmake/makefiles/general                            |   4 +
  wmake/rules/darwin64Clang/CGAL                     |  13 ++
  wmake/rules/darwin64Clang/bison                    |  13 ++
- wmake/rules/darwin64Clang/c                        |  23 ++++
- wmake/rules/darwin64Clang/c++                      |  35 ++++++
+ wmake/rules/darwin64Clang/c                        |  23 +++
+ wmake/rules/darwin64Clang/c++                      |  35 +++++
  wmake/rules/darwin64Clang/c++Debug                 |   4 +
  wmake/rules/darwin64Clang/c++Opt                   |   5 +
  wmake/rules/darwin64Clang/c++Prof                  |   4 +
@@ -67,12 +82,12 @@
  wmake/rules/darwin64Clang/cProf                    |   4 +
  wmake/rules/darwin64Clang/flex                     |   5 +
  wmake/rules/darwin64Clang/flex++                   |   5 +
- wmake/rules/darwin64Clang/general                  |  16 +++
+ wmake/rules/darwin64Clang/general                  |  16 ++
  wmake/rules/darwin64Clang/yacc                     |  13 ++
  wmake/src/Makefile                                 |   2 +
- wmake/src/wmkdep.l                                 |   2 +-
+ wmake/src/wmkdep.l                                 |   1 +
  wmake/wmake                                        |   5 +
- 74 files changed, 2049 insertions(+), 62 deletions(-)
+ 89 files changed, 2277 insertions(+), 99 deletions(-)
 
 diff --git a/Allwmake b/Allwmake
 index 3f6a7523d..00810aff6 100755
@@ -120,6 +135,50 @@ index 2b725832b..8f96f6ec1 100755
  
  wmake -all $targetType solvers
  wmake -all $targetType utilities
+diff --git a/applications/solvers/multiphase/reactingEulerFoam/functionObjects/sizeDistribution/sizeDistribution.C b/applications/solvers/multiphase/reactingEulerFoam/functionObjects/sizeDistribution/sizeDistribution.C
+index bf37c8bff..e6fa2f6c4 100644
+--- a/applications/solvers/multiphase/reactingEulerFoam/functionObjects/sizeDistribution/sizeDistribution.C
++++ b/applications/solvers/multiphase/reactingEulerFoam/functionObjects/sizeDistribution/sizeDistribution.C
+@@ -469,14 +469,14 @@ bool Foam::functionObjects::sizeDistribution::write()
+                         {
+                             case atVolume:
+                             {
+-                                result += pow(fi.x().value(), m)*N_[i];
++                                result += ::pow(fi.x().value(), m)*N_[i];
+ 
+                                 break;
+                             }
+ 
+                             case atDiameter:
+                             {
+-                                result += pow(fi.d().value(), m)*N_[i];
++                                result += ::pow(fi.d().value(), m)*N_[i];
+ 
+                                 break;
+                             }
+diff --git a/applications/solvers/multiphase/reactingEulerFoam/phaseSystems/populationBalanceModel/coalescenceModels/PrinceBlanch/PrinceBlanch.C b/applications/solvers/multiphase/reactingEulerFoam/phaseSystems/populationBalanceModel/coalescenceModels/PrinceBlanch/PrinceBlanch.C
+index 030c689de..210510bd3 100644
+--- a/applications/solvers/multiphase/reactingEulerFoam/phaseSystems/populationBalanceModel/coalescenceModels/PrinceBlanch/PrinceBlanch.C
++++ b/applications/solvers/multiphase/reactingEulerFoam/phaseSystems/populationBalanceModel/coalescenceModels/PrinceBlanch/PrinceBlanch.C
+@@ -87,7 +87,7 @@ addToCoalescenceRate
+ 
+     dimensionedScalar rij = 1.0/(1.0/fi.d() + 1.0/fj.d());
+ 
+-    volScalarField collisionEfficiency =
++    volScalarField collisionEfficiency(
+         exp
+         (
+           - sqrt
+@@ -97,7 +97,8 @@ addToCoalescenceRate
+             )
+            *log(h0_/hf_)
+            *cbrt(popBal_.continuousTurbulence().epsilon())/pow(rij, 2.0/3.0)
+-        );
++        )
++    );
+ 
+     if (turbulentCollisions_)
+     {
 diff --git a/applications/utilities/mesh/generation/foamyMesh/conformalVoronoiMesh/Make/options b/applications/utilities/mesh/generation/foamyMesh/conformalVoronoiMesh/Make/options
 index 627614817..fc45a114e 100644
 --- a/applications/utilities/mesh/generation/foamyMesh/conformalVoronoiMesh/Make/options
@@ -132,6 +191,19 @@ index 627614817..fc45a114e 100644
  
  EXE_INC = \
      ${ROUNDING_MATH} \
+diff --git a/applications/utilities/mesh/generation/foamyMesh/conformalVoronoiMesh/conformalVoronoiMesh/conformalVoronoiMeshTemplates.C b/applications/utilities/mesh/generation/foamyMesh/conformalVoronoiMesh/conformalVoronoiMesh/conformalVoronoiMeshTemplates.C
+index c4fdca83d..9f4954bdb 100644
+--- a/applications/utilities/mesh/generation/foamyMesh/conformalVoronoiMesh/conformalVoronoiMesh/conformalVoronoiMeshTemplates.C
++++ b/applications/utilities/mesh/generation/foamyMesh/conformalVoronoiMesh/conformalVoronoiMesh/conformalVoronoiMeshTemplates.C
+@@ -124,7 +124,7 @@ bool Foam::conformalVoronoiMesh::distributeBackground(const Triangulation& mesh)
+             // Give a small but finite weight for empty cells.  Some
+             // decomposition methods have difficulty with integer overflows in
+             // the sum of the normalised weight field.
+-            cwi[cI] = max(cellVertices[cI], 1e-2);
++            cwi[cI] = max(scalar(cellVertices[cI]), 1e-2);
+         }
+ 
+         autoPtr<mapDistributePolyMesh> mapDist = decomposition_().distribute
 diff --git a/applications/utilities/mesh/generation/foamyMesh/foamyHexMesh/Make/options b/applications/utilities/mesh/generation/foamyMesh/foamyHexMesh/Make/options
 index ecf9cc2b3..5e067a79c 100644
 --- a/applications/utilities/mesh/generation/foamyMesh/foamyHexMesh/Make/options
@@ -211,6 +283,217 @@ index ef0651050..720011d74 100644
      ${COMPILE_FLAGS} \
      -I$(LIB_SRC)/meshTools/lnInclude \
      -I$(LIB_SRC)/dynamicMesh/lnInclude \
+diff --git a/applications/utilities/miscellaneous/Allwmake b/applications/utilities/miscellaneous/Allwmake
+new file mode 100755
+index 000000000..56519236c
+--- /dev/null
++++ b/applications/utilities/miscellaneous/Allwmake
+@@ -0,0 +1,16 @@
++#!/bin/sh
++cd ${0%/*} || exit 1    # Run from this directory
++
++# Parse arguments for compilation (at least for error catching)
++. $WM_PROJECT_DIR/wmake/scripts/AllwmakeParseArguments
++
++wmake -all $targetType foamDictionary
++wmake -all $targetType foamFormatConvert
++wmake -all $targetType foamHelp
++wmake -all $targetType foamListTimes
++wmake -all $targetType patchSummary
++
++# Build addr2line utility only on macOS
++[ "$(uname -s)" = "Darwin" ] && wmake $targetType addr2line
++
++#------------------------------------------------------------------------------
+diff --git a/applications/utilities/miscellaneous/addr2line/Make/files b/applications/utilities/miscellaneous/addr2line/Make/files
+new file mode 100644
+index 000000000..a3dc48dff
+--- /dev/null
++++ b/applications/utilities/miscellaneous/addr2line/Make/files
+@@ -0,0 +1,3 @@
++addr2line.C
++
++EXE = $(FOAM_APPBIN)/addr2line
+diff --git a/applications/utilities/miscellaneous/addr2line/Make/options b/applications/utilities/miscellaneous/addr2line/Make/options
+new file mode 100644
+index 000000000..4c3dd783c
+--- /dev/null
++++ b/applications/utilities/miscellaneous/addr2line/Make/options
+@@ -0,0 +1,3 @@
++EXE_INC =
++
++EXE_LIBS =
+diff --git a/applications/utilities/miscellaneous/addr2line/addr2line.C b/applications/utilities/miscellaneous/addr2line/addr2line.C
+new file mode 100644
+index 000000000..51c673bb5
+--- /dev/null
++++ b/applications/utilities/miscellaneous/addr2line/addr2line.C
+@@ -0,0 +1,165 @@
++// Emulation of addr2line utility for macOS.
++
++#include <getopt.h>
++#include <cstdlib>
++
++#include "IOstreams.H"
++
++using Foam::string;
++using Foam::Info;
++using Foam::endl;
++using Foam::word;
++using Foam::label;
++using Foam::List;
++using Foam::nl;
++using Foam::regExp;
++
++static void usage();
++static void version();
++static string getLine(const string&, const word&);
++static string pOpen(const string&, label=0);
++
++int main(int argc, char *argv[])
++{
++    int functionsf = 0;
++    int versionf = 0;
++    int helpf = 0;
++    int ch;
++    string filename = "a.out";
++    List<word> addresses;
++
++    static struct option opts[] =
++    {
++        {"target", required_argument, NULL, 'b'},
++        {"demangle", required_argument, NULL, 'C'},
++        {"exe", required_argument, NULL, 'e'},
++        {"functions", no_argument, &functionsf, 1},
++        {"version", no_argument, &versionf, 1},
++        {"basename", no_argument, NULL, 's'},
++        {"inlines", no_argument, NULL, 'i'},
++        {"section", required_argument, NULL, 'j'},
++        {"help", no_argument, &helpf, 1},
++        {NULL, 0, NULL, 0}
++    };
++
++    while ((ch = getopt_long(argc, argv, "b:C:e:fVsij:H", opts, NULL)) != -1)
++    {
++        switch (ch)
++        {
++            case 'e':
++                filename = Foam::string(optarg);
++                break;
++            case 'C':
++                // Ignoring this flag for now
++                break;
++            case 'f':
++                // Functions are demangled in printStack
++                break;
++            case 0:
++                if (helpf) usage();
++                if (versionf) version();
++                break;
++            default:
++                usage();
++        }
++    }
++
++    argc -= optind;
++    argv += optind;
++
++    if (argc <= 0)
++    {
++        usage();
++    }
++
++    while (argc > 0)
++    {
++        addresses.append(word(*argv));
++        argv++;
++        argc--;
++    }
++
++    forAll(addresses, i)
++    {
++        const word& addr = addresses[i];
++        string line = getLine(filename, addr);
++        Info << nl << line.c_str() << endl;
++    }
++
++    return 0;
++}
++
++void usage()
++{
++    Info << "usage: addr2line [-e filename|--exe=filename]"
++        " address [address...]" << endl;
++    exit(EXIT_FAILURE);
++}
++
++void version()
++{
++    Info << "OpenFOAM addr2line emulator v0.0.1" << endl;
++    exit(EXIT_SUCCESS);
++}
++
++string pOpen(const string& cmd, label line)
++{
++    string res = "\n";
++
++    FILE* cmdPipe = popen(cmd.c_str(), "r");
++
++    if (!cmdPipe) return "";
++
++    char* buf = nullptr;
++
++    // Read line number of lines
++    for (Foam::label cnt = 0; cnt <= line; cnt++)
++    {
++        size_t linecap = 0;
++        ssize_t linelen;
++        linelen = getline(&buf, &linecap, cmdPipe);
++
++        if (linelen < 0) break;
++
++        if (cnt == line)
++        {
++            res = Foam::string(buf);
++            break;
++        }
++    }
++
++    if (buf != nullptr) free(buf);
++
++    pclose(cmdPipe);
++
++    return res.substr(0, res.size() - 1);
++}
++
++string getLine(const string& filename, const word& address)
++{
++    string line = pOpen(
++        "echo 'image lookup -va "
++      + address
++      + "'"
++      + " | xcrun lldb "
++      + "-O 'target create --no-dependents -a x86_64 "
++      + filename
++      + "' -o '"
++      + "target module load -f "
++      + filename
++      + " __TEXT 0x0' 2> /dev/null"
++      + " | grep LineEntry");
++
++    List<string> groups;
++    regExp re(".+LineEntry: .+: (.+):([0-9]+):[0-9]+");
++    if (!re.match(line, groups))
++    {
++        line = "??:0";
++    }
++    else
++    {
++        line = groups[0] + ":" + groups[1];
++    }
++
++    return line;
++}
 diff --git a/applications/utilities/postProcessing/graphics/PVReaders/Allwmake b/applications/utilities/postProcessing/graphics/PVReaders/Allwmake
 index 12b467924..17f3fd8b0 100755
 --- a/applications/utilities/postProcessing/graphics/PVReaders/Allwmake
@@ -294,7 +577,7 @@ index 2fcf6d77e..52e1a345e 100755
  while [ "$#" -gt 0 ]
  do
 diff --git a/bin/tools/RunFunctions b/bin/tools/RunFunctions
-index 0c1193b2e..51cf4f6f4 100644
+index 924a2b108..e38d2c989 100644
 --- a/bin/tools/RunFunctions
 +++ b/bin/tools/RunFunctions
 @@ -28,6 +28,17 @@
@@ -867,7 +1150,7 @@ index 64d675d6d..11399438f 100644
 +
  #------------------------------------------------------------------------------
 diff --git a/src/Allwmake b/src/Allwmake
-index 3f7a0f8d6..2f9d88355 100755
+index 06ad2cf7a..d11836bec 100755
 --- a/src/Allwmake
 +++ b/src/Allwmake
 @@ -12,11 +12,13 @@ wmakeCheckPwd "$WM_PROJECT_DIR/src" || {
@@ -885,7 +1168,7 @@ index 3f7a0f8d6..2f9d88355 100755
  # Update OpenFOAM version strings if required
  wmakePrintBuild -check || wrmo OpenFOAM/global/global.o 2>/dev/null
 diff --git a/src/OSspecific/POSIX/POSIX.C b/src/OSspecific/POSIX/POSIX.C
-index d276c4cd4..dab38a63d 100644
+index b96715cf4..f47d93a7c 100644
 --- a/src/OSspecific/POSIX/POSIX.C
 +++ b/src/OSspecific/POSIX/POSIX.C
 @@ -55,7 +55,11 @@ Description
@@ -995,82 +1278,56 @@ index 9139a3469..944b971f1 100644
  // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
  
 diff --git a/src/OSspecific/POSIX/printStack.C b/src/OSspecific/POSIX/printStack.C
-index 660f82dae..d64c7b177 100644
+index 660f82dae..dc6c24eab 100644
 --- a/src/OSspecific/POSIX/printStack.C
 +++ b/src/OSspecific/POSIX/printStack.C
-@@ -100,6 +100,7 @@ void printSourceFileAndLine
-     uintptr_t address = uintptr_t(addr);
-     word myAddress = addressToWord(address);
+@@ -89,6 +89,13 @@ inline word addressToWord(const uintptr_t addr)
+ }
  
-+#if ! defined(darwin64)
-     if (filename.ext() == "so")
-     {
-         // Convert address into offset into dynamic library
-@@ -107,18 +108,63 @@ void printSourceFileAndLine
-         intptr_t relativeAddress = address - offset;
+ 
++inline string shorten(const string& s)
++{
++    string tmp(s);
++    return tmp.replaceAll(cwd() + '/', "").replaceAll(home(), '~');
++}
++
++
+ void printSourceFileAndLine
+ (
+     Ostream& os,
+@@ -108,6 +115,14 @@ void printSourceFileAndLine
          myAddress = addressToWord(relativeAddress);
      }
-+#endif
  
++#if defined(darwin64)
++    // On macOS relative address is used both for executables and dynamic
++    // libraries
++    uintptr_t offset = uintptr_t(info->dli_fbase);
++    intptr_t relativeAddress = address - offset;
++    myAddress = addressToWord(relativeAddress);
++#endif
++
      if (filename[0] == '/')
      {
          string line = pOpen
-         (
-+#if defined(darwin64)
-+            "echo 'image lookup -a "
-+          + myAddress
-+          + " "
-+          + filename
-+          + "'"
-+          + " | xcrun lldb "
-+          + "-O 'target create --no-dependents -a x86_64 "
-+          + filename
-+          + "' -o '"
-+          + "target modules load -f "
-+          + filename
-+          + " __TEXT "
-+          + addressToWord(reinterpret_cast<const uintptr_t>(info->dli_fbase))
-+          + "' 2> /dev/null"
-+          + " | tail -1"
-+#else
-             "addr2line -f --demangle=auto --exe "
-           + filename
-           + " "
-           + myAddress,
-             1
-+#endif
-         );
- 
-+#if defined(darwin64)
-+        {
-+            const char *buf = line.c_str();
-+            regex_t re;
-+            regmatch_t mt[3];
-+            int st;
-+
-+            regcomp(&re, ".\\+at \\(.\\+\\):\\(\\d\\+\\)", REG_ENHANCED);
-+            st = regexec(&re, buf, 3, mt, 0);
-+
-+            if (st == REG_NOMATCH)
-+            {
-+                line = "??:0";
-+            }
-+            else
-+            {
-+                size_t len = mt[1].rm_eo - mt[1].rm_so;
-+                string fname(buf + mt[1].rm_so, len);
-+                len = mt[2].rm_eo - mt[2].rm_so;
-+                string lnum(buf + mt[2].rm_so, len);
-+                line = fname + ":" + lnum;
-+            }
-+            regfree(&re);
-+        }
-+#endif
-+
-         if (line == "")
+@@ -125,14 +140,11 @@ void printSourceFileAndLine
+         }
+         else if (line == "??:0")
          {
-             os  << " addr2line failed";
-@@ -156,9 +202,9 @@ fileName absolutePath(const char* fn)
+-            os  << " in " << filename;
++            os  << " in " << shorten(filename).c_str();
+         }
+         else
+         {
+-            string cwdLine(line.replaceAll(cwd() + '/', ""));
+-            string homeLine(cwdLine.replaceAll(home(), '~'));
+-
+-            os  << " at " << homeLine.c_str();
++            os  << " at " << shorten(line).c_str();
+         }
+     }
+ }
+@@ -156,9 +168,9 @@ fileName absolutePath(const char* fn)
  }
  
  
@@ -1082,7 +1339,7 @@ index 660f82dae..d64c7b177 100644
      int st;
      char* cxx_sname = abi::__cxa_demangle
      (
-@@ -170,12 +216,12 @@ word demangleSymbol(const char* sn)
+@@ -170,12 +182,12 @@ word demangleSymbol(const char* sn)
  
      if (st == 0 && cxx_sname)
      {
@@ -1277,7 +1534,7 @@ index 14dbcaeb8..bf981e677 100644
          static void sigHandler(int);
          #endif
 diff --git a/src/OpenFOAM/Make/files b/src/OpenFOAM/Make/files
-index a3b1f2640..c9d895ac2 100644
+index d73a5734a..b7e195f2e 100644
 --- a/src/OpenFOAM/Make/files
 +++ b/src/OpenFOAM/Make/files
 @@ -43,6 +43,16 @@ $(ints)/label/label.C
@@ -1313,7 +1570,7 @@ index 438133dcd..15ffbc7cc 100644
  // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
  // Global predefined streams for standard input, output
 diff --git a/src/OpenFOAM/db/dynamicLibrary/dynamicCode/dynamicCode.C b/src/OpenFOAM/db/dynamicLibrary/dynamicCode/dynamicCode.C
-index 1537c8c4c..e978428ac 100644
+index 4fe3abf98..eff7fa98a 100644
 --- a/src/OpenFOAM/db/dynamicLibrary/dynamicCode/dynamicCode.C
 +++ b/src/OpenFOAM/db/dynamicLibrary/dynamicCode/dynamicCode.C
 @@ -317,7 +317,11 @@ Foam::fileName Foam::dynamicCode::codeRelPath() const
@@ -2675,6 +2932,32 @@ index 000000000..a255b1736
 +
 +
 +// ************************************************************************* //
+diff --git a/src/OpenFOAM/primitives/quaternion/quaternion.C b/src/OpenFOAM/primitives/quaternion/quaternion.C
+index fa509113e..6a5b4c895 100644
+--- a/src/OpenFOAM/primitives/quaternion/quaternion.C
++++ b/src/OpenFOAM/primitives/quaternion/quaternion.C
+@@ -126,7 +126,7 @@ Foam::quaternion Foam::pow(const quaternion& q, const label power)
+         powq *= power*acos(q.w()/magQ);
+     }
+ 
+-    return pow(magQ, power)*exp(powq);
++    return ::pow(magQ, power)*exp(powq);
+ }
+ 
+ 
+diff --git a/src/functionObjects/forces/forces/forces.C b/src/functionObjects/forces/forces/forces.C
+index 5b4b4f7f0..93f7e1aba 100644
+--- a/src/functionObjects/forces/forces/forces.C
++++ b/src/functionObjects/forces/forces/forces.C
+@@ -397,7 +397,7 @@ void Foam::functionObjects::forces::applyBins
+ 
+         forAll(dd, i)
+         {
+-            label bini = min(max(floor(dd[i]/binDx_), 0), force_[0].size() - 1);
++            label bini = min(max(floor(dd[i]/binDx_), 0), force_[0].size() - 1.0);
+ 
+             force_[0][bini] += fN[i];
+             force_[1][bini] += fT[i];
 diff --git a/src/fvAgglomerationMethods/Allwmake b/src/fvAgglomerationMethods/Allwmake
 index dcef4328c..48abdf020 100755
 --- a/src/fvAgglomerationMethods/Allwmake
@@ -2721,8 +3004,91 @@ index a58b65fb7..a28a58e03 100644
 +EXE_INC += -I$(ParMGridGen)/MGridGen/Lib/lnInclude
 +EXE_INC += -I$(ParMGridGen)/MGridGen/IMlib/lnInclude
 +endif
+diff --git a/src/lagrangian/intermediate/clouds/Templates/KinematicCloud/KinematicCloudI.H b/src/lagrangian/intermediate/clouds/Templates/KinematicCloud/KinematicCloudI.H
+index 83a55b5bd..d28844709 100644
+--- a/src/lagrangian/intermediate/clouds/Templates/KinematicCloud/KinematicCloudI.H
++++ b/src/lagrangian/intermediate/clouds/Templates/KinematicCloud/KinematicCloudI.H
+@@ -327,8 +327,8 @@ inline Foam::scalar Foam::KinematicCloud<CloudType>::Dij
+     forAllConstIter(typename KinematicCloud<CloudType>, *this, iter)
+     {
+         const parcelType& p = iter();
+-        si += p.nParticle()*pow(p.d(), i);
+-        sj += p.nParticle()*pow(p.d(), j);
++        si += p.nParticle()*::pow(p.d(), i);
++        sj += p.nParticle()*::pow(p.d(), j);
+     }
+ 
+     reduce(si, sumOp<scalar>());
+diff --git a/src/mesh/blockMesh/blockEdges/lineDivide/lineDivide.C b/src/mesh/blockMesh/blockEdges/lineDivide/lineDivide.C
+index 5c09c0834..730cf5d48 100644
+--- a/src/mesh/blockMesh/blockEdges/lineDivide/lineDivide.C
++++ b/src/mesh/blockMesh/blockEdges/lineDivide/lineDivide.C
+@@ -112,8 +112,8 @@ Foam::lineDivide::lineDivide
+                 {
+                     divisions_[i] =
+                         secStart
+-                      + blockFrac*(1.0 - pow(expFact, i - secnStart + 1))
+-                    /(1.0 - pow(expFact, secnDiv));
++                      + blockFrac*(1.0 - ::pow(expFact, i - secnStart + 1))
++                    /(1.0 - ::pow(expFact, secnDiv));
+                 }
+             }
+ 
+diff --git a/src/mesh/extrudeModel/extrudeModel/extrudeModel.C b/src/mesh/extrudeModel/extrudeModel/extrudeModel.C
+index 785a5e83e..7313b13ae 100644
+--- a/src/mesh/extrudeModel/extrudeModel/extrudeModel.C
++++ b/src/mesh/extrudeModel/extrudeModel/extrudeModel.C
+@@ -79,8 +79,8 @@ Foam::scalar Foam::extrudeModel::sumThickness(const label layer) const
+     else
+     {
+         return
+-            (1.0-pow(expansionRatio_, layer))
+-          / (1.0-pow(expansionRatio_, nLayers_));
++            (1.0 - ::pow(expansionRatio_, layer))
++           /(1.0 - ::pow(expansionRatio_, nLayers_));
+     }
+ }
+ 
+diff --git a/src/mesh/snappyHexMesh/snappyHexMeshDriver/layerParameters/layerParameters.C b/src/mesh/snappyHexMesh/snappyHexMeshDriver/layerParameters/layerParameters.C
+index 5c59d7bce..067411904 100644
+--- a/src/mesh/snappyHexMesh/snappyHexMeshDriver/layerParameters/layerParameters.C
++++ b/src/mesh/snappyHexMesh/snappyHexMeshDriver/layerParameters/layerParameters.C
+@@ -64,11 +64,11 @@ Foam::scalar Foam::layerParameters::layerExpansionRatio
+     if (totalOverFirst < n)
+     {
+         minR = 0;
+-        maxR = pow(totalOverFirst/n, 1/(n-1));
++        maxR = pow(totalOverFirst/n, 1.0/(n - 1));
+     }
+     else
+     {
+-        minR = pow(totalOverFirst/n, 1/(n-1));
++        minR = pow(totalOverFirst/n, 1.0/(n - 1));
+         maxR = totalOverFirst/(n - 1);
+     }
+ 
+@@ -78,8 +78,8 @@ Foam::scalar Foam::layerParameters::layerExpansionRatio
+     for (label i = 0; i < maxIters; ++i)
+     {
+         const scalar prevr = r;
+-        const scalar fx = pow(r, n) - totalOverFirst*r - (1 - totalOverFirst);
+-        const scalar dfx = n*pow(r, n - 1) - totalOverFirst;
++        const scalar fx = ::pow(r, n) - totalOverFirst*r - (1 - totalOverFirst);
++        const scalar dfx = n*::pow(r, n - 1) - totalOverFirst;
+ 
+         r -= fx/dfx;
+ 
+@@ -501,7 +501,7 @@ Foam::scalar Foam::layerParameters::firstLayerThickness
+ 
+         case FINAL_AND_EXPANSION:
+         {
+-            return finalLayerThickess*pow(1.0/expansionRatio, nLayers-1);
++            return finalLayerThickess*::pow(1.0/expansionRatio, nLayers-1);
+         }
+         break;
+ 
 diff --git a/src/parallel/decompose/Allwmake b/src/parallel/decompose/Allwmake
-index 20a3d4dfc..484230a28 100755
+index 8f769c388..31f2c28a0 100755
 --- a/src/parallel/decompose/Allwmake
 +++ b/src/parallel/decompose/Allwmake
 @@ -6,7 +6,9 @@ cd ${0%/*} || exit 1    # Run from this directory
@@ -2788,6 +3154,139 @@ index 8acd678fd..d4dfa96ba 100644
 -    /* -DFULLDEBUG -g -O0 */ \
      -I$(METIS_ARCH_PATH)/include \
      -I../decompositionMethods/lnInclude
+ 
+diff --git a/src/parallel/decompose/metisDecomp/metisDecomp.C b/src/parallel/decompose/metisDecomp/metisDecomp.C
+index 701832149..d18a29764 100644
+--- a/src/parallel/decompose/metisDecomp/metisDecomp.C
++++ b/src/parallel/decompose/metisDecomp/metisDecomp.C
+@@ -54,15 +54,31 @@ Foam::label Foam::metisDecomp::decompose
+     List<label>& finalDecomp
+ )
+ {
++    List<idx_t> m_adjncy(adjncy.size());
++    List<idx_t> m_xadj(xadj.size());
++    List<idx_t> m_finalDecomp;
++#if WM_LABEL_SIZE == IDXTYPEWIDTH
++    m_adjncy = adjncy;
++    m_xadj = xadj;
++#else
++    forAll(adjncy, i)
++    {
++        m_adjncy[i] = static_cast<idx_t>(adjncy[i]);
++    }
++    forAll(xadj, i)
++    {
++        m_xadj[i] = static_cast<idx_t>(xadj[i]);
++    }
++#endif
+     // Method of decomposition
+     // recursive: multi-level recursive bisection (default)
+     // k-way: multi-level k-way
+     word method("recursive");
+ 
+-    label numCells = xadj.size()-1;
++    idx_t numCells = static_cast<idx_t>(xadj.size() - 1);
+ 
+     // Decomposition options
+-    List<label> options(METIS_NOPTIONS);
++    List<idx_t> options(METIS_NOPTIONS);
+     METIS_SetDefaultOptions(options.begin());
+ 
+     // Processor weights initialised with no size, only used if specified in
+@@ -70,10 +86,10 @@ Foam::label Foam::metisDecomp::decompose
+     Field<real_t> processorWeights;
+ 
+     // Cell weights (so on the vertices of the dual)
+-    List<label> cellWeights;
++    List<idx_t> cellWeights;
+ 
+     // Face weights (so on the edges of the dual)
+-    List<label> faceWeights;
++    List<idx_t> faceWeights;
+ 
+ 
+     // Check for externally provided cellweights and if so initialise weights
+@@ -157,14 +173,15 @@ Foam::label Foam::metisDecomp::decompose
+         }
+     }
+ 
+-    label ncon = 1;
+-    label nProcs = nProcessors_;
++    idx_t ncon = 1;
++    idx_t nProcs = static_cast<idx_t>(nProcessors_);
+ 
+     // Output: cell -> processor addressing
+-    finalDecomp.setSize(numCells);
++    finalDecomp.setSize(static_cast<label>(numCells));
++    m_finalDecomp.setSize(static_cast<label>(numCells));
+ 
+     // Output: number of cut edges
+-    label edgeCut = 0;
++    idx_t edgeCut = 0;
+ 
+     if (method == "recursive")
+     {
+@@ -172,8 +189,8 @@ Foam::label Foam::metisDecomp::decompose
+         (
+             &numCells,          // num vertices in graph
+             &ncon,              // num balancing constraints
+-            const_cast<List<label>&>(xadj).begin(),   // indexing into adjncy
+-            const_cast<List<label>&>(adjncy).begin(), // neighbour info
++            m_xadj.begin(),   // indexing into adjncy
++            m_adjncy.begin(), // neighbour info
+             cellWeights.begin(),// vertexweights
+             nullptr,               // vsize: total communication vol
+             faceWeights.begin(),// edgeweights
+@@ -182,7 +199,7 @@ Foam::label Foam::metisDecomp::decompose
+             nullptr,               // ubvec: processor imbalance (default)
+             options.begin(),
+             &edgeCut,
+-            finalDecomp.begin()
++            m_finalDecomp.begin()
+         );
+     }
+     else
+@@ -191,8 +208,8 @@ Foam::label Foam::metisDecomp::decompose
+         (
+             &numCells,          // num vertices in graph
+             &ncon,              // num balancing constraints
+-            const_cast<List<label>&>(xadj).begin(),   // indexing into adjncy
+-            const_cast<List<label>&>(adjncy).begin(), // neighbour info
++            m_xadj.begin(),   // indexing into adjncy
++            m_adjncy.begin(), // neighbour info
+             cellWeights.begin(),// vertexweights
+             nullptr,               // vsize: total communication vol
+             faceWeights.begin(),// edgeweights
+@@ -201,10 +218,29 @@ Foam::label Foam::metisDecomp::decompose
+             nullptr,               // ubvec: processor imbalance (default)
+             options.begin(),
+             &edgeCut,
+-            finalDecomp.begin()
++            m_finalDecomp.begin()
+         );
+     }
+ 
++#if WM_LABEL_SIZE == IDXTYPEWIDTH
++    const_cast<List<label>&>(adjncy) = m_adjncy;
++    const_cast<List<label>&>(xadj) = m_xadj;
++    finalDecomp = m_finalDecomp;
++#else
++    forAll(adjncy, i)
++    {
++        const_cast<List<label>&>(adjncy)[i] = static_cast<label>(m_adjncy[i]);
++    }
++    forAll(xadj, i)
++    {
++        const_cast<List<label>&>(xadj)[i] = static_cast<label>(m_xadj[i]);
++    }
++    forAll(finalDecomp, i)
++    {
++        finalDecomp[i] = static_cast<label>(m_finalDecomp[i]);
++    }
++#endif
++
+     return edgeCut;
+ }
  
 diff --git a/src/parallel/decompose/ptscotchDecomp/Make/options b/src/parallel/decompose/ptscotchDecomp/Make/options
 index 5e3069ba8..b10452776 100644
@@ -2864,6 +3363,19 @@ index cf6e54861..e3b7efff8 100644
 +else
 +LIB_LIBS += -lboost_system
 +endif
+diff --git a/src/thermophysicalModels/specie/reaction/reactionRate/powerSeries/powerSeriesReactionRateI.H b/src/thermophysicalModels/specie/reaction/reactionRate/powerSeries/powerSeriesReactionRateI.H
+index f727c8866..875457cbc 100644
+--- a/src/thermophysicalModels/specie/reaction/reactionRate/powerSeries/powerSeriesReactionRateI.H
++++ b/src/thermophysicalModels/specie/reaction/reactionRate/powerSeries/powerSeriesReactionRateI.H
+@@ -73,7 +73,7 @@ inline Foam::scalar Foam::powerSeriesReactionRate::operator()
+ 
+     forAll(coeffs_, n)
+     {
+-        expArg += coeffs_[n]/pow(T, n + 1);
++        expArg += coeffs_[n]/::pow(T, n + 1);
+     }
+ 
+     lta *= exp(expArg);
 diff --git a/wmake/makefiles/files b/wmake/makefiles/files
 index 21b43c719..19b592823 100644
 --- a/wmake/makefiles/files
@@ -2883,7 +3395,7 @@ index 21b43c719..19b592823 100644
  $(VARS): $(SFILES)
  
 diff --git a/wmake/makefiles/general b/wmake/makefiles/general
-index c4085123a..bfba265eb 100644
+index 56d299547..489c53089 100644
 --- a/wmake/makefiles/general
 +++ b/wmake/makefiles/general
 @@ -80,7 +80,11 @@ LIB_LIBS        =
@@ -3144,20 +3656,19 @@ index 9ced8251c..255794caa 100644
  #------------------------------------------------------------------------------
  # Targets
 diff --git a/wmake/src/wmkdep.l b/wmake/src/wmkdep.l
-index 7b3e405c4..d3557fe0b 100644
+index 82d6ae4b1..3c463f408 100644
 --- a/wmake/src/wmkdep.l
 +++ b/wmake/src/wmkdep.l
-@@ -145,7 +145,7 @@ const char* bufferPaths[FILE_STACK_SIZE];
- int main(int argc, char* argv[])
- {
-     char *basePos, *dotPos;
--    int i, silent;
-+    int i;
- 
-     if (argc == 1)
-     {
+@@ -461,6 +461,7 @@ char* substitutePath(char* pathName)
+         int i;
+         for (i = 0; i < nReplacements; i++)
+         {
++            if (!strcmp(replacements[i].search, "/")) continue;
+             pathName = strRep(pathName, &replacements[i]);
+         }
+     }
 diff --git a/wmake/wmake b/wmake/wmake
-index b43e22653..edcded331 100755
+index 33c9de99b..8979a9c01 100755
 --- a/wmake/wmake
 +++ b/wmake/wmake
 @@ -122,6 +122,11 @@ useAllCores()

@@ -15,10 +15,21 @@ OPENFOAM(R)  and OpenCFD(R)  trade marks.
 OPENFOAM(R)  is a registered trade mark of OpenCFD Limited, producer and
 distributor of the OpenFOAM software via www.openfoam.com.
 
+## May 23, 2018
+
+Updated dev patch.
+
+dev branch `wmkdep` now makes certain substitutions in dep files (-R command
+line switches). It fails to do it properly if `-R /` is passed to the command.
+
+There were two possibilities: either to modify `wmake/rules/General/transform`
+by removing line `-R '$(WM_THIRD_PARTY_DIR)/' '$$(WM_THIRD_PARTY_DIR)/' \`, or
+add check for `/` search pattern in `wmkdep.l`. Opted for latter.
+
 ## May 22, 2018
 
 - Updated 5.x patch.
-- In dev branch some fancy modifications to wmkdep were made, so I have decided
+- In dev branch some fancy modifications to `wmkdep` were made, so I have decided
   to postpone patch update for this version.
 
 ## Apr. 14, 2018
