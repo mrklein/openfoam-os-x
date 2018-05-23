@@ -1,13 +1,14 @@
 class Metis64 < Formula
+  desc "Serial Graph Partitioning and Fill-reducing Matrix Ordering"
   homepage "http://glaros.dtc.umn.edu/gkhome/views/metis"
   url "http://glaros.dtc.umn.edu/gkhome/fetch/sw/metis/metis-5.1.0.tar.gz"
   sha256 "76faebe03f6c963127dbb73c13eab58c9a3faeae48779f049066a21c087c5db2"
 
+  keg_only "Conflicts with metis formula"
+
   depends_on "cmake" => :build
 
   patch :DATA
-
-  keg_only "Conflicts with metis formula"
 
   def install
     make_args = ["shared=1", "prefix=#{prefix}"]

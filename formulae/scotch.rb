@@ -1,11 +1,9 @@
-class Scotch64 < Formula
-  desc "Package for graph and mesh partitioning. 64-bit indexing type."
+class Scotch < Formula
+  desc "Package for graph and mesh partitioning"
   homepage "https://gforge.inria.fr/projects/scotch"
   url "https://gforge.inria.fr/frs/download.php/file/34618/scotch_6.0.4.tar.gz"
   sha256 "f53f4d71a8345ba15e2dd4e102a35fd83915abf50ea73e1bf6efe1bc2b4220c7"
   revision 1
-
-  keg_only "Conflicts with scotch formula"
 
   option "without-check", "skip build-time tests (not recommended)"
 
@@ -18,7 +16,6 @@ class Scotch64 < Formula
       # MPI implementation is not threadsafe, do not use DSCOTCH_PTHREAD
 
       cflags   = %w[-O3 -fPIC -Drestrict=__restrict -DCOMMON_PTHREAD_BARRIER
-                    -DIDXSIZE64 -DINTSIZE64
                     -DCOMMON_PTHREAD
                     -DSCOTCH_CHECK_AUTO -DCOMMON_RANDOM_FIXED_SEED
                     -DCOMMON_TIMING_OLD -DSCOTCH_RENAME
