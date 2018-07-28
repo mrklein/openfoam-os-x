@@ -23,7 +23,7 @@
  src/OSspecific/POSIX/POSIX.C                       |  33 +++++
  src/OSspecific/POSIX/clockTime/clockTime.H         |   3 +
  src/OSspecific/POSIX/fileStat.C                    |   2 +
- src/OSspecific/POSIX/printStack.C                  |  58 ++++++++-
+ src/OSspecific/POSIX/printStack.C                  |  43 ++++++-
  src/OSspecific/POSIX/signals/sigFpe.C              |  79 +++++++++++-
  src/OSspecific/POSIX/signals/sigFpe.H              |  12 +-
  src/OpenFOAM/Make/files                            |   2 +
@@ -69,7 +69,7 @@
  wmake/src/Makefile                                 |   2 +
  wmake/src/wmkdep.l                                 |   1 +
  wmake/wmake                                        |   5 +
- 71 files changed, 1167 insertions(+), 65 deletions(-)
+ 71 files changed, 1151 insertions(+), 66 deletions(-)
 
 diff --git a/Allwmake b/Allwmake
 index 3f6a7523d..00810aff6 100755
@@ -1003,7 +1003,7 @@ index 7f40e0637..e80096e97 100644
  // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
  
 diff --git a/src/OSspecific/POSIX/printStack.C b/src/OSspecific/POSIX/printStack.C
-index 84003866d..de59727ea 100644
+index 84003866d..487c17a2b 100644
 --- a/src/OSspecific/POSIX/printStack.C
 +++ b/src/OSspecific/POSIX/printStack.C
 @@ -84,7 +84,11 @@ string pOpen(const string &cmd, label line=0)
@@ -1011,47 +1011,40 @@ index 84003866d..de59727ea 100644
  {
      OStringStream nStream;
 +    #if defined(darwin64)
-+    nStream << "0x" << uint64_t(hex) << addr;
++    nStream << "0x" << hex << uint64_t(addr);
 +    #else
      nStream << "0x" << hex << addr;
 +    #endif
      return nStream.str();
  }
  
-@@ -100,6 +104,7 @@ void printSourceFileAndLine
+@@ -100,9 +104,11 @@ void printSourceFileAndLine
      uintptr_t address = uintptr_t(addr);
      word myAddress = addressToWord(address);
  
 +#if ! defined(darwin64)
      if (filename.ext() == "so")
++#endif
      {
-         // Convert address into offset into dynamic library
-@@ -107,18 +112,63 @@ void printSourceFileAndLine
+-        // Convert address into offset into dynamic library
++        // Convert address into offset
+         uintptr_t offset = uintptr_t(info->dli_fbase);
          intptr_t relativeAddress = address - offset;
          myAddress = addressToWord(relativeAddress);
-     }
-+#endif
- 
-     if (filename[0] == '/')
+@@ -112,13 +118,40 @@ void printSourceFileAndLine
      {
          string line = pOpen
          (
 +#if defined(darwin64)
-+            "echo 'image lookup -a "
-+          + myAddress
-+          + " "
-+          + filename
-+          + "'"
++            "echo 'image lookup -va " + myAddress + "'"
 +          + " | xcrun lldb "
 +          + "-O 'target create --no-dependents -a x86_64 "
 +          + filename
 +          + "' -o '"
 +          + "target modules load -f "
 +          + filename
-+          + " __TEXT "
-+          + addressToWord(reinterpret_cast<const uintptr_t>(info->dli_fbase))
-+          + "' 2> /dev/null"
-+          + " | tail -1"
++          + " __TEXT 0x0' 2> /dev/null"
++          + " | grep LineEntry"
 +#else
              "addr2line -f --demangle=auto --exe "
            + filename
@@ -1063,34 +1056,23 @@ index 84003866d..de59727ea 100644
  
 +#if defined(darwin64)
 +        {
-+            const char *buf = line.c_str();
-+            regex_t re;
-+            regmatch_t mt[3];
-+            int st;
-+
-+            regcomp(&re, ".\\+at \\(.\\+\\):\\(\\d\\+\\)", REG_ENHANCED);
-+            st = regexec(&re, buf, 3, mt, 0);
-+
-+            if (st == REG_NOMATCH)
++            regExp re(".+LineEntry: .+: (.+):([0-9]+):[0-9]+");
++            List<std::string> groups;
++            if (!re.match(line, groups))
 +            {
 +                line = "??:0";
 +            }
 +            else
 +            {
-+                size_t len = mt[1].rm_eo - mt[1].rm_so;
-+                string fname(buf + mt[1].rm_so, len);
-+                len = mt[2].rm_eo - mt[2].rm_so;
-+                string lnum(buf + mt[2].rm_so, len);
-+                line = fname + ":" + lnum;
++                line = groups[0] + ":" + groups[1];
 +            }
-+            regfree(&re);
 +        }
 +#endif
 +
          if (line == "")
          {
              os  << " addr2line failed";
-@@ -156,9 +206,9 @@ fileName absolutePath(const char* fn)
+@@ -156,9 +189,9 @@ fileName absolutePath(const char* fn)
  }
  
  
@@ -1102,7 +1084,7 @@ index 84003866d..de59727ea 100644
      int st;
      char* cxx_sname = abi::__cxa_demangle
      (
-@@ -170,12 +220,12 @@ word demangleSymbol(const char* sn)
+@@ -170,12 +203,12 @@ word demangleSymbol(const char* sn)
  
      if (st == 0 && cxx_sname)
      {
