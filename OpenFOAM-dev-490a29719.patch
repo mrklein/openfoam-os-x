@@ -1,61 +1,78 @@
  Allwmake                                           |   5 +-
  applications/Allwmake                              |   2 +
+ .../sizeDistribution/sizeDistribution.C            |   4 +-
  .../foamyMesh/conformalVoronoiMesh/Make/options    |   1 +
+ .../conformalVoronoiMeshTemplates.C                |   2 +-
  .../generation/foamyMesh/foamyHexMesh/Make/options |   1 +
  .../foamyMesh/foamyQuadMesh/Make/options           |   1 +
- .../foamyQuadMesh/insertSurfaceNearestPointPairs.C |   2 +-
  .../mesh/generation/snappyHexMesh/Make/options     |   1 -
  .../mesh/manipulation/renumberMesh/Allwmake        |   9 +-
  .../mesh/manipulation/renumberMesh/Make/options    |   1 -
+ .../utilities/miscellaneous/Darwin/Allwmake        |  10 ++
+ .../miscellaneous/Darwin/addr2line/Make/files      |   3 +
+ .../miscellaneous/Darwin/addr2line/Make/options    |   3 +
+ .../miscellaneous/Darwin/addr2line/addr2line.C     | 165 +++++++++++++++++++++
  .../postProcessing/graphics/PVReaders/Allwmake     |   6 +
- bin/foamMonitor                                    |  13 +-
+ bin/foamMonitor                                    |  12 +-
  bin/paraFoam                                       |   6 +
  bin/tools/RunFunctions                             |  11 ++
- etc/bashrc                                         |  74 +++++++++---
- etc/config.sh/mac/CGAL                             |  69 +++++++++++
- etc/config.sh/mac/functions                        | 133 +++++++++++++++++++++
- etc/config.sh/mac/metis                            |  44 +++++++
+ etc/bashrc                                         |  74 +++++++--
+ etc/config.sh/mac/CGAL                             |  69 +++++++++
+ etc/config.sh/mac/functions                        | 136 +++++++++++++++++
+ etc/config.sh/mac/metis                            |  44 ++++++
  etc/config.sh/mac/paraview                         |  18 +++
- etc/config.sh/mac/scotch                           |  47 ++++++++
+ etc/config.sh/mac/scotch                           |  47 ++++++
  etc/config.sh/mpi                                  |   2 +-
  etc/config.sh/settings                             |  18 ++-
  src/Allwmake                                       |   2 +
- src/OSspecific/POSIX/POSIX.C                       |  33 +++++
+ src/OSspecific/POSIX/POSIX.C                       |  31 ++++
  src/OSspecific/POSIX/clockTime/clockTime.H         |   3 +
  src/OSspecific/POSIX/fileStat.C                    |   2 +
- src/OSspecific/POSIX/printStack.C                  |  43 ++++++-
- src/OSspecific/POSIX/signals/sigFpe.C              |  79 +++++++++++-
+ src/OSspecific/POSIX/printStack.C                  |  30 ++--
+ src/OSspecific/POSIX/signals/sigFpe.C              |  79 +++++++++-
  src/OSspecific/POSIX/signals/sigFpe.H              |  12 +-
- src/OpenFOAM/Make/files                            |   2 +
+ src/OpenFOAM/Make/files                            |  10 ++
+ src/OpenFOAM/db/IOstreams/IOstreams.H              |   4 +
  .../db/dynamicLibrary/dynamicCode/dynamicCode.C    |   4 +
  .../db/dynamicLibrary/dynamicCode/dynamicCode.H    |   4 +
- src/OpenFOAM/primitives/Scalar/doubleFloat.H       |  40 +++++++
+ src/OpenFOAM/primitives/Scalar/doubleFloat.H       |   9 ++
+ .../Scalar/longDoubleScalar/longDoubleScalar.H     |   4 +-
  src/OpenFOAM/primitives/hashes/Hasher/Hasher.C     |   2 +-
- src/OpenFOAM/primitives/ints/int16/int16.C         |  48 ++++++++
- src/OpenFOAM/primitives/ints/int16/int16.H         |  73 +++++++++++
- src/OpenFOAM/primitives/ints/int64/int64.H         |   6 +
- src/OpenFOAM/primitives/ints/int64/int64IO.C       |  12 ++
- src/OpenFOAM/primitives/ints/uint/uint.H           |   1 +
- src/OpenFOAM/primitives/ints/uint16/uint16.C       |  48 ++++++++
- src/OpenFOAM/primitives/ints/uint16/uint16.H       |  73 +++++++++++
- src/OpenFOAM/primitives/ints/uint64/uint64.H       |   4 +
- src/OpenFOAM/primitives/ints/uint64/uint64IO.C     |   8 ++
- src/OpenFOAM/primitives/strings/word/wordIOList.C  |   2 +-
+ src/OpenFOAM/primitives/ints/int/int.H             |  13 ++
+ src/OpenFOAM/primitives/ints/long/long.C           |  50 +++++++
+ src/OpenFOAM/primitives/ints/long/long.H           | 138 +++++++++++++++++
+ src/OpenFOAM/primitives/ints/long/longIO.C         | 104 +++++++++++++
+ src/OpenFOAM/primitives/ints/short/short.C         |  50 +++++++
+ src/OpenFOAM/primitives/ints/short/short.H         | 138 +++++++++++++++++
+ src/OpenFOAM/primitives/ints/short/shortIO.C       | 104 +++++++++++++
+ src/OpenFOAM/primitives/ints/ulong/ulong.C         |  52 +++++++
+ src/OpenFOAM/primitives/ints/ulong/ulong.H         | 138 +++++++++++++++++
+ src/OpenFOAM/primitives/ints/ulong/ulongIO.C       | 101 +++++++++++++
+ src/OpenFOAM/primitives/ints/ushort/ushort.C       |  52 +++++++
+ src/OpenFOAM/primitives/ints/ushort/ushort.H       | 138 +++++++++++++++++
+ src/OpenFOAM/primitives/ints/ushort/ushortIO.C     | 101 +++++++++++++
+ src/OpenFOAM/primitives/quaternion/quaternion.C    |   2 +-
+ src/functionObjects/forces/forces/forces.C         |   2 +-
  src/fvAgglomerationMethods/Allwmake                |  10 +-
- .../MGridGenGamgAgglomeration/Make/options         |  14 ++-
+ .../MGridGenGamgAgglomeration/Make/options         |  14 +-
+ .../Templates/KinematicCloud/KinematicCloudI.H     |   4 +-
+ .../blockMesh/blockEdges/lineDivide/lineDivide.C   |   4 +-
+ src/mesh/extrudeModel/extrudeModel/extrudeModel.C  |   4 +-
+ .../layerParameters/layerParameters.C              |  10 +-
  src/parallel/decompose/Allwmake                    |   5 +-
- src/parallel/decompose/metisDecomp/Allwmake        |  14 ++-
+ src/parallel/decompose/metisDecomp/Allwmake        |  14 +-
  src/parallel/decompose/metisDecomp/Make/options    |   1 -
- src/parallel/decompose/ptscotchDecomp/Make/options |  16 +--
+ src/parallel/decompose/metisDecomp/metisDecomp.C   |  64 ++++++--
+ src/parallel/decompose/ptscotchDecomp/Make/options |  19 ++-
  src/parallel/decompose/scotchDecomp/Make/options   |  10 +-
- src/renumber/SloanRenumber/Make/options            |  14 ++-
- .../basic/basicThermo/basicThermo.C                |   2 +-
+ src/renumber/SloanRenumber/Make/options            |  14 +-
+ .../powerSeries/powerSeriesReactionRateI.H         |   2 +-
  wmake/makefiles/files                              |   6 +-
  wmake/makefiles/general                            |   4 +
  wmake/rules/darwin64Clang/CGAL                     |  13 ++
  wmake/rules/darwin64Clang/bison                    |  13 ++
- wmake/rules/darwin64Clang/c                        |  23 ++++
- wmake/rules/darwin64Clang/c++                      |  35 ++++++
+ wmake/rules/darwin64Clang/c                        |  23 +++
+ wmake/rules/darwin64Clang/c++                      |  35 +++++
  wmake/rules/darwin64Clang/c++Debug                 |   4 +
  wmake/rules/darwin64Clang/c++Opt                   |   5 +
  wmake/rules/darwin64Clang/c++Prof                  |   4 +
@@ -64,12 +81,12 @@
  wmake/rules/darwin64Clang/cProf                    |   4 +
  wmake/rules/darwin64Clang/flex                     |   5 +
  wmake/rules/darwin64Clang/flex++                   |   5 +
- wmake/rules/darwin64Clang/general                  |  16 +++
+ wmake/rules/darwin64Clang/general                  |  16 ++
  wmake/rules/darwin64Clang/yacc                     |  13 ++
  wmake/src/Makefile                                 |   2 +
  wmake/src/wmkdep.l                                 |   1 +
  wmake/wmake                                        |   5 +
- 71 files changed, 1151 insertions(+), 66 deletions(-)
+ 88 files changed, 2272 insertions(+), 99 deletions(-)
 
 diff --git a/Allwmake b/Allwmake
 index 3f6a7523d..00810aff6 100755
@@ -117,6 +134,27 @@ index 2b725832b..8f96f6ec1 100755
  
  wmake -all $targetType solvers
  wmake -all $targetType utilities
+diff --git a/applications/solvers/multiphase/reactingEulerFoam/functionObjects/sizeDistribution/sizeDistribution.C b/applications/solvers/multiphase/reactingEulerFoam/functionObjects/sizeDistribution/sizeDistribution.C
+index 2966f1c31..50ef4e6c3 100644
+--- a/applications/solvers/multiphase/reactingEulerFoam/functionObjects/sizeDistribution/sizeDistribution.C
++++ b/applications/solvers/multiphase/reactingEulerFoam/functionObjects/sizeDistribution/sizeDistribution.C
+@@ -469,14 +469,14 @@ bool Foam::functionObjects::sizeDistribution::write()
+                         {
+                             case atVolume:
+                             {
+-                                result += pow(fi.x().value(), m)*N_[i];
++                                result += ::pow(fi.x().value(), m)*N_[i];
+ 
+                                 break;
+                             }
+ 
+                             case atDiameter:
+                             {
+-                                result += pow(fi.d().value(), m)*N_[i];
++                                result += ::pow(fi.d().value(), m)*N_[i];
+ 
+                                 break;
+                             }
 diff --git a/applications/utilities/mesh/generation/foamyMesh/conformalVoronoiMesh/Make/options b/applications/utilities/mesh/generation/foamyMesh/conformalVoronoiMesh/Make/options
 index 627614817..fc45a114e 100644
 --- a/applications/utilities/mesh/generation/foamyMesh/conformalVoronoiMesh/Make/options
@@ -129,6 +167,19 @@ index 627614817..fc45a114e 100644
  
  EXE_INC = \
      ${ROUNDING_MATH} \
+diff --git a/applications/utilities/mesh/generation/foamyMesh/conformalVoronoiMesh/conformalVoronoiMesh/conformalVoronoiMeshTemplates.C b/applications/utilities/mesh/generation/foamyMesh/conformalVoronoiMesh/conformalVoronoiMesh/conformalVoronoiMeshTemplates.C
+index 96dff5a02..7fc789141 100644
+--- a/applications/utilities/mesh/generation/foamyMesh/conformalVoronoiMesh/conformalVoronoiMesh/conformalVoronoiMeshTemplates.C
++++ b/applications/utilities/mesh/generation/foamyMesh/conformalVoronoiMesh/conformalVoronoiMesh/conformalVoronoiMeshTemplates.C
+@@ -124,7 +124,7 @@ bool Foam::conformalVoronoiMesh::distributeBackground(const Triangulation& mesh)
+             // Give a small but finite weight for empty cells.  Some
+             // decomposition methods have difficulty with integer overflows in
+             // the sum of the normalised weight field.
+-            cwi[cI] = max(cellVertices[cI], 1e-2);
++            cwi[cI] = max(scalar(cellVertices[cI]), 1e-2);
+         }
+ 
+         autoPtr<mapDistributePolyMesh> mapDist = decomposition_().distribute
 diff --git a/applications/utilities/mesh/generation/foamyMesh/foamyHexMesh/Make/options b/applications/utilities/mesh/generation/foamyMesh/foamyHexMesh/Make/options
 index ecf9cc2b3..5e067a79c 100644
 --- a/applications/utilities/mesh/generation/foamyMesh/foamyHexMesh/Make/options
@@ -153,19 +204,6 @@ index 37dda1856..28ecb42c8 100644
  
  EXE_INC = \
      ${ROUNDING_MATH} \
-diff --git a/applications/utilities/mesh/generation/foamyMesh/foamyQuadMesh/insertSurfaceNearestPointPairs.C b/applications/utilities/mesh/generation/foamyMesh/foamyQuadMesh/insertSurfaceNearestPointPairs.C
-index e8a73cea4..3bb60560a 100644
---- a/applications/utilities/mesh/generation/foamyMesh/foamyQuadMesh/insertSurfaceNearestPointPairs.C
-+++ b/applications/utilities/mesh/generation/foamyMesh/foamyQuadMesh/insertSurfaceNearestPointPairs.C
-@@ -142,7 +142,7 @@ void Foam::CV2D::insertSurfaceNearestPointPairs()
-     Info<< "insertSurfaceNearestPointPairs: ";
- 
-     label nSurfacePointsEst =
--        min
-+        std::min
-         (
-             number_of_vertices(),
-             size_t(10*sqrt(scalar(number_of_vertices())))
 diff --git a/applications/utilities/mesh/generation/snappyHexMesh/Make/options b/applications/utilities/mesh/generation/snappyHexMesh/Make/options
 index b50c6396e..0fa291c8e 100644
 --- a/applications/utilities/mesh/generation/snappyHexMesh/Make/options
@@ -221,6 +259,211 @@ index ef0651050..720011d74 100644
      ${COMPILE_FLAGS} \
      -I$(LIB_SRC)/meshTools/lnInclude \
      -I$(LIB_SRC)/dynamicMesh/lnInclude \
+diff --git a/applications/utilities/miscellaneous/Darwin/Allwmake b/applications/utilities/miscellaneous/Darwin/Allwmake
+new file mode 100755
+index 000000000..62ed1197d
+--- /dev/null
++++ b/applications/utilities/miscellaneous/Darwin/Allwmake
+@@ -0,0 +1,10 @@
++#!/bin/sh
++cd ${0%/*} || exit 1    # Run from this directory
++
++# Parse arguments for compilation (at least for error catching)
++. $WM_PROJECT_DIR/wmake/scripts/AllwmakeParseArguments
++
++# Build addr2line utility only on macOS
++[ "$(uname -s)" = "Darwin" ] && wmake $targetType addr2line
++
++#------------------------------------------------------------------------------
+diff --git a/applications/utilities/miscellaneous/Darwin/addr2line/Make/files b/applications/utilities/miscellaneous/Darwin/addr2line/Make/files
+new file mode 100644
+index 000000000..a3dc48dff
+--- /dev/null
++++ b/applications/utilities/miscellaneous/Darwin/addr2line/Make/files
+@@ -0,0 +1,3 @@
++addr2line.C
++
++EXE = $(FOAM_APPBIN)/addr2line
+diff --git a/applications/utilities/miscellaneous/Darwin/addr2line/Make/options b/applications/utilities/miscellaneous/Darwin/addr2line/Make/options
+new file mode 100644
+index 000000000..4c3dd783c
+--- /dev/null
++++ b/applications/utilities/miscellaneous/Darwin/addr2line/Make/options
+@@ -0,0 +1,3 @@
++EXE_INC =
++
++EXE_LIBS =
+diff --git a/applications/utilities/miscellaneous/Darwin/addr2line/addr2line.C b/applications/utilities/miscellaneous/Darwin/addr2line/addr2line.C
+new file mode 100644
+index 000000000..51c673bb5
+--- /dev/null
++++ b/applications/utilities/miscellaneous/Darwin/addr2line/addr2line.C
+@@ -0,0 +1,165 @@
++// Emulation of addr2line utility for macOS.
++
++#include <getopt.h>
++#include <cstdlib>
++
++#include "IOstreams.H"
++
++using Foam::string;
++using Foam::Info;
++using Foam::endl;
++using Foam::word;
++using Foam::label;
++using Foam::List;
++using Foam::nl;
++using Foam::regExp;
++
++static void usage();
++static void version();
++static string getLine(const string&, const word&);
++static string pOpen(const string&, label=0);
++
++int main(int argc, char *argv[])
++{
++    int functionsf = 0;
++    int versionf = 0;
++    int helpf = 0;
++    int ch;
++    string filename = "a.out";
++    List<word> addresses;
++
++    static struct option opts[] =
++    {
++        {"target", required_argument, NULL, 'b'},
++        {"demangle", required_argument, NULL, 'C'},
++        {"exe", required_argument, NULL, 'e'},
++        {"functions", no_argument, &functionsf, 1},
++        {"version", no_argument, &versionf, 1},
++        {"basename", no_argument, NULL, 's'},
++        {"inlines", no_argument, NULL, 'i'},
++        {"section", required_argument, NULL, 'j'},
++        {"help", no_argument, &helpf, 1},
++        {NULL, 0, NULL, 0}
++    };
++
++    while ((ch = getopt_long(argc, argv, "b:C:e:fVsij:H", opts, NULL)) != -1)
++    {
++        switch (ch)
++        {
++            case 'e':
++                filename = Foam::string(optarg);
++                break;
++            case 'C':
++                // Ignoring this flag for now
++                break;
++            case 'f':
++                // Functions are demangled in printStack
++                break;
++            case 0:
++                if (helpf) usage();
++                if (versionf) version();
++                break;
++            default:
++                usage();
++        }
++    }
++
++    argc -= optind;
++    argv += optind;
++
++    if (argc <= 0)
++    {
++        usage();
++    }
++
++    while (argc > 0)
++    {
++        addresses.append(word(*argv));
++        argv++;
++        argc--;
++    }
++
++    forAll(addresses, i)
++    {
++        const word& addr = addresses[i];
++        string line = getLine(filename, addr);
++        Info << nl << line.c_str() << endl;
++    }
++
++    return 0;
++}
++
++void usage()
++{
++    Info << "usage: addr2line [-e filename|--exe=filename]"
++        " address [address...]" << endl;
++    exit(EXIT_FAILURE);
++}
++
++void version()
++{
++    Info << "OpenFOAM addr2line emulator v0.0.1" << endl;
++    exit(EXIT_SUCCESS);
++}
++
++string pOpen(const string& cmd, label line)
++{
++    string res = "\n";
++
++    FILE* cmdPipe = popen(cmd.c_str(), "r");
++
++    if (!cmdPipe) return "";
++
++    char* buf = nullptr;
++
++    // Read line number of lines
++    for (Foam::label cnt = 0; cnt <= line; cnt++)
++    {
++        size_t linecap = 0;
++        ssize_t linelen;
++        linelen = getline(&buf, &linecap, cmdPipe);
++
++        if (linelen < 0) break;
++
++        if (cnt == line)
++        {
++            res = Foam::string(buf);
++            break;
++        }
++    }
++
++    if (buf != nullptr) free(buf);
++
++    pclose(cmdPipe);
++
++    return res.substr(0, res.size() - 1);
++}
++
++string getLine(const string& filename, const word& address)
++{
++    string line = pOpen(
++        "echo 'image lookup -va "
++      + address
++      + "'"
++      + " | xcrun lldb "
++      + "-O 'target create --no-dependents -a x86_64 "
++      + filename
++      + "' -o '"
++      + "target module load -f "
++      + filename
++      + " __TEXT 0x0' 2> /dev/null"
++      + " | grep LineEntry");
++
++    List<string> groups;
++    regExp re(".+LineEntry: .+: (.+):([0-9]+):[0-9]+");
++    if (!re.match(line, groups))
++    {
++        line = "??:0";
++    }
++    else
++    {
++        line = groups[0] + ":" + groups[1];
++    }
++
++    return line;
++}
 diff --git a/applications/utilities/postProcessing/graphics/PVReaders/Allwmake b/applications/utilities/postProcessing/graphics/PVReaders/Allwmake
 index 12b467924..17f3fd8b0 100755
 --- a/applications/utilities/postProcessing/graphics/PVReaders/Allwmake
@@ -239,25 +482,24 @@ index 12b467924..17f3fd8b0 100755
  4* | 5*)
      if [ -d "$ParaView_DIR" -a -r "$ParaView_DIR" ]
 diff --git a/bin/foamMonitor b/bin/foamMonitor
-index 9840ddf20..78ae09edf 100755
+index 9840ddf20..caa3b29c5 100755
 --- a/bin/foamMonitor
 +++ b/bin/foamMonitor
-@@ -62,8 +62,13 @@ error() {
+@@ -62,8 +62,12 @@ error() {
  
  plotFileHeader() {
      cat<<EOF
 -set term x11 1 font "helvetica,17" linewidth 1.5 persist noraise
 +selected_terminal = 'x11'
-+for [t in "wxt qt"] if (strstrt(GPVAL_TERMINALS, t)) selected_terminal = t
-+set term selected_terminal 1 font "sans,16" linewidth 1.5 persist noraise
-+set size ratio 0.62111801242236
-+set grid
++if (strstrt(GPVAL_TERMINALS, 'wxt')) selected_terminal = 'wxt'
++if (strstrt(GPVAL_TERMINALS, 'qt')) selected_terminal = 'qt'
++set term selected_terminal 1 font "sans,16" linewidth 1.5 persist noraise enhanced
  $logscale
 +$explabels
  $yrange
  set title "$title"
  set xlabel "$xlabel"
-@@ -89,9 +94,12 @@ isInteger() {
+@@ -89,9 +93,12 @@ isInteger() {
  idle=60
  refresh=10
  logscale=""
@@ -270,7 +512,7 @@ index 9840ddf20..78ae09edf 100755
  
  # parse options
  while [ "$#" -gt 0 ]
-@@ -107,6 +115,7 @@ do
+@@ -107,6 +114,7 @@ do
          ;;
      -l | -logscale)
          logscale="set logscale y"
@@ -278,7 +520,7 @@ index 9840ddf20..78ae09edf 100755
          shift 1
          ;;
      -t | -title)
-@@ -185,7 +194,7 @@ pid=$!
+@@ -185,7 +193,7 @@ pid=$!
  
  while true
  do
@@ -327,14 +569,14 @@ index 02c1b174c..10409b58a 100644
  {
      for i in "$@"; do
 diff --git a/etc/bashrc b/etc/bashrc
-index bd7df4cb2..d587581e3 100644
+index ae19940a4..050245db4 100644
 --- a/etc/bashrc
 +++ b/etc/bashrc
 @@ -52,6 +52,16 @@ export FOAM_INST_DIR=$HOME/$WM_PROJECT
  # END OF (NORMAL) USER EDITABLE PART
  ################################################################################
  
-+_foam_on_macos()
++_foamOnMacos()
 +{
 +    if [ "$(uname -s)" = "Darwin" ]
 +    then
@@ -361,7 +603,7 @@ index bd7df4cb2..d587581e3 100644
  # Location of third-party software
  # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 -export WM_THIRD_PARTY_DIR=$WM_PROJECT_INST_DIR/ThirdParty-$WM_PROJECT_VERSION
-+_foam_on_macos \
++_foamOnMacos \
 +    || export WM_THIRD_PARTY_DIR=$WM_PROJECT_INST_DIR/ThirdParty-$WM_PROJECT_VERSION
  
  # Location of site-specific templates etc
@@ -370,7 +612,7 @@ index bd7df4cb2..d587581e3 100644
  # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  . $WM_PROJECT_DIR/etc/config.sh/functions
  
-+_foam_on_macos && . $WM_PROJECT_DIR/etc/config.sh/mac/functions
++_foamOnMacos && . $WM_PROJECT_DIR/etc/config.sh/mac/functions
 +
  # Add in preset user or site preferences:
 -_foamSource `$WM_PROJECT_DIR/bin/foamEtcFile prefs.sh`
@@ -388,7 +630,7 @@ index bd7df4cb2..d587581e3 100644
 -#- Clean LD_LIBRARY_PATH
 -cleaned=`$foamClean "$LD_LIBRARY_PATH" "$foamOldDirs"` \
 -    && LD_LIBRARY_PATH="$cleaned"
-+if _foam_on_macos
++if _foamOnMacos
 +then
 +    #- Clean DYLD_LIBRARY_PATH on macOS
 +    cleaned=$($foamClean "$DYLD_LIBRARY_PATH" "$foamOldDirs") \
@@ -417,7 +659,7 @@ index bd7df4cb2..d587581e3 100644
 -_foamSource `$WM_PROJECT_DIR/bin/foamEtcFile config.sh/paraview`
 -_foamSource `$WM_PROJECT_DIR/bin/foamEtcFile config.sh/ensight`
 -_foamSource `$WM_PROJECT_DIR/bin/foamEtcFile config.sh/gperftools`
-+if _foam_on_macos
++if _foamOnMacos
 +then
 +    _foamSource `$WM_PROJECT_DIR/bin/foamEtcFile config.sh/mac/paraview`
 +else
@@ -429,7 +671,7 @@ index bd7df4cb2..d587581e3 100644
  if [ ! -z "$FOAMY_HEX_MESH" ]
  then
 -    _foamSource `$WM_PROJECT_DIR/bin/foamEtcFile config.sh/CGAL`
-+    if _foam_on_macos
++    if _foamOnMacos
 +    then
 +        _foamSource `$WM_PROJECT_DIR/bin/foamEtcFile config.sh/mac/CGAL`
 +    else
@@ -444,7 +686,7 @@ index bd7df4cb2..d587581e3 100644
  
 -#- Clean LD_LIBRARY_PATH
 -cleaned=`$foamClean "$LD_LIBRARY_PATH"` && LD_LIBRARY_PATH="$cleaned"
-+if _foam_on_macos
++if _foamOnMacos
 +then
 +    #- Clean DYLD_LIBRARY_PATH
 +    cleaned=`$foamClean "$DYLD_LIBRARY_PATH"` && DYLD_LIBRARY_PATH="$cleaned"
@@ -467,7 +709,7 @@ index bd7df4cb2..d587581e3 100644
  # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  . $WM_PROJECT_DIR/etc/config.sh/functions
  
-+_foam_on_macos && . $WM_PROJECT_DIR/etc/config.sh/mac/functions
++_foamOnMacos && . $WM_PROJECT_DIR/etc/config.sh/mac/functions
 +
  # Source the bash completion file:
  # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -549,11 +791,14 @@ index 000000000..3e5304369
 +# vim: set ft=sh:
 diff --git a/etc/config.sh/mac/functions b/etc/config.sh/mac/functions
 new file mode 100644
-index 000000000..68c723a63
+index 000000000..1f6a542ee
 --- /dev/null
 +++ b/etc/config.sh/mac/functions
-@@ -0,0 +1,133 @@
+@@ -0,0 +1,136 @@
 +# Additional functions for OS X
++
++# Macports portion of _foamGetPackageVersion function is provided
++# by Jonathan Stickel (https://github.com/jjstickel)
 +
 +if [ -z "$WM_BASH_FUNCTIONS_MAC" ]
 +then
@@ -623,7 +868,7 @@ index 000000000..68c723a63
 +            fi
 +        elif [ "x$(_foamPort)" = "xY" ]
 +        then
-+            version="0.0.x"
++            version="$(port installed $pkg | grep '(active)' | awk -F '[@|_]' '{print $2}')"
 +        else
 +            ret=1
 +        fi
@@ -633,7 +878,7 @@ index 000000000..68c723a63
 +
 +    _foamGetPackageArchPath ()
 +    {
-+        local arch_path="/usr/local"
++        local arch_path=""
 +        local ret=0
 +        local pkg="$1"
 +        if [ "x$(_foamBrew)" = "xY" ]
@@ -658,7 +903,7 @@ index 000000000..68c723a63
 +        return $ret
 +    }
 +
-+    _foam_increase_max_open_files ()
++    _foamIncreaseMaxOpenFiles ()
 +    {
 +        # Default value
 +        local lim=4096
@@ -682,7 +927,7 @@ index 000000000..68c723a63
 +    unset WM_BASH_FUNCTIONS_MAC
 +    unset _foamAddLib _foamBrew _foamPort _foamPortPrefix _foamBrewPrefix \
 +        _foamGetPackageVersion _foamGetPackageArchPath \
-+        _foam_increase_max_open_files
++        _foamIncreaseMaxOpenFiles
 +fi
 +
 +# vim: set ft=sh:
@@ -814,7 +1059,7 @@ index 000000000..e62931c9b
 +
 +#------------------------------------------------------------------------------
 diff --git a/etc/config.sh/mpi b/etc/config.sh/mpi
-index 9688cb1dd..5f4d10641 100644
+index 59e35d1a7..211bf660e 100644
 --- a/etc/config.sh/mpi
 +++ b/etc/config.sh/mpi
 @@ -47,7 +47,7 @@ SYSTEMOPENMPI)
@@ -822,12 +1067,12 @@ index 9688cb1dd..5f4d10641 100644
      # Bit of a hack: strip off 'lib' and hope this is the path to openmpi
      # include files and libraries.
 -    export MPI_ARCH_PATH="${libDir%/*}"
-+    _foam_on_macos || export MPI_ARCH_PATH="${libDir%/*}"
++    _foamOnMacos || export MPI_ARCH_PATH="${libDir%/*}"
  
      _foamAddLib     $libDir
      unset libDir
 diff --git a/etc/config.sh/settings b/etc/config.sh/settings
-index 79639b92f..8fb2d51cd 100644
+index 17558f385..a4e52839b 100644
 --- a/etc/config.sh/settings
 +++ b/etc/config.sh/settings
 @@ -126,7 +126,12 @@ SunOS)
@@ -849,7 +1094,7 @@ index 79639b92f..8fb2d51cd 100644
  
  # External (ThirdParty) libraries
 -export FOAM_EXT_LIBBIN=$WM_THIRD_PARTY_DIR/platforms/$WM_ARCH$WM_COMPILER$WM_PRECISION_OPTION$WM_LABEL_OPTION/lib
-+_foam_on_macos || export FOAM_EXT_LIBBIN=$WM_THIRD_PARTY_DIR/platforms/$WM_ARCH$WM_COMPILER$WM_PRECISION_OPTION$WM_LABEL_OPTION/lib
++_foamOnMacos || export FOAM_EXT_LIBBIN=$WM_THIRD_PARTY_DIR/platforms/$WM_ARCH$WM_COMPILER$WM_PRECISION_OPTION$WM_LABEL_OPTION/lib
  
  # Site-specific directory
  siteDir="${WM_PROJECT_SITE:-$WM_PROJECT_INST_DIR/site}"
@@ -871,7 +1116,7 @@ index 79639b92f..8fb2d51cd 100644
      ;;
  esac
  
-+_foam_on_macos && _foam_increase_max_open_files 4096
++_foamOnMacos && _foamIncreaseMaxOpenFiles 4096
 +
  #------------------------------------------------------------------------------
 diff --git a/src/Allwmake b/src/Allwmake
@@ -893,7 +1138,7 @@ index 06ad2cf7a..d11836bec 100755
  # Update OpenFOAM version strings if required
  wmakePrintBuild -check || wrmo OpenFOAM/global/global.o 2>/dev/null
 diff --git a/src/OSspecific/POSIX/POSIX.C b/src/OSspecific/POSIX/POSIX.C
-index 2046a9139..64a7819f8 100644
+index b31ba5d50..f4897dc25 100644
 --- a/src/OSspecific/POSIX/POSIX.C
 +++ b/src/OSspecific/POSIX/POSIX.C
 @@ -55,7 +55,11 @@ Description
@@ -908,23 +1153,19 @@ index 2046a9139..64a7819f8 100644
  
  #include <netinet/in.h>
  
-@@ -620,9 +624,15 @@ double Foam::highResLastModified(const fileName& name, const bool followLink)
-     fileStat fileStatus(name, followLink);
-     if (fileStatus.isValid())
+@@ -648,7 +652,11 @@ double Foam::highResLastModified
      {
-+#if defined(darwin64)
-+        return
-+            fileStatus.status().st_mtime
-+          + 1e-9*fileStatus.status().st_atimespec.tv_nsec;
-+#else
          return
              fileStatus.status().st_mtime
++#if defined(darwin64)
++          + 1e-9*fileStatus.status().st_atimespec.tv_nsec;
++#else
            + 1e-9*fileStatus.status().st_atim.tv_nsec;
 +#endif
      }
      else
      {
-@@ -1228,6 +1238,20 @@ void* Foam::dlOpen(const fileName& lib, const bool check)
+@@ -1262,6 +1270,20 @@ void* Foam::dlOpen(const fileName& lib, const bool check)
              << " : dlopen of " << lib << std::endl;
      }
      void* handle = ::dlopen(lib.c_str(), RTLD_LAZY|RTLD_GLOBAL);
@@ -945,7 +1186,7 @@ index 2046a9139..64a7819f8 100644
  
      if (!handle && check)
      {
-@@ -1315,6 +1339,7 @@ bool Foam::dlSymFound(void* handle, const std::string& symbol)
+@@ -1349,6 +1371,7 @@ bool Foam::dlSymFound(void* handle, const std::string& symbol)
  }
  
  
@@ -953,7 +1194,7 @@ index 2046a9139..64a7819f8 100644
  static int collectLibsCallback
  (
      struct dl_phdr_info *info,
-@@ -1327,12 +1352,20 @@ static int collectLibsCallback
+@@ -1361,12 +1384,20 @@ static int collectLibsCallback
      ptr->append(info->dlpi_name);
      return 0;
  }
@@ -989,7 +1230,7 @@ index 5bb541f9b..2014aab73 100644
  // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
  
 diff --git a/src/OSspecific/POSIX/fileStat.C b/src/OSspecific/POSIX/fileStat.C
-index 7f40e0637..e80096e97 100644
+index ffb26041c..3cf965064 100644
 --- a/src/OSspecific/POSIX/fileStat.C
 +++ b/src/OSspecific/POSIX/fileStat.C
 @@ -29,7 +29,9 @@ License
@@ -1000,79 +1241,59 @@ index 7f40e0637..e80096e97 100644
  #include <sys/sysmacros.h>
 +#endif
  
- // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
+ // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
  
 diff --git a/src/OSspecific/POSIX/printStack.C b/src/OSspecific/POSIX/printStack.C
-index 84003866d..487c17a2b 100644
+index 84003866d..982cac854 100644
 --- a/src/OSspecific/POSIX/printStack.C
 +++ b/src/OSspecific/POSIX/printStack.C
-@@ -84,7 +84,11 @@ string pOpen(const string &cmd, label line=0)
- inline word addressToWord(const uintptr_t addr)
- {
-     OStringStream nStream;
-+    #if defined(darwin64)
-+    nStream << "0x" << hex << uint64_t(addr);
-+    #else
-     nStream << "0x" << hex << addr;
-+    #endif
-     return nStream.str();
+@@ -89,6 +89,13 @@ inline word addressToWord(const uintptr_t addr)
  }
  
-@@ -100,9 +104,11 @@ void printSourceFileAndLine
-     uintptr_t address = uintptr_t(addr);
-     word myAddress = addressToWord(address);
  
-+#if ! defined(darwin64)
-     if (filename.ext() == "so")
-+#endif
-     {
--        // Convert address into offset into dynamic library
-+        // Convert address into offset
-         uintptr_t offset = uintptr_t(info->dli_fbase);
-         intptr_t relativeAddress = address - offset;
++inline string shorten(const string& s)
++{
++    string tmp(s);
++    return tmp.replaceAll(cwd() + '/', "").replaceAll(home(), '~');
++}
++
++
+ void printSourceFileAndLine
+ (
+     Ostream& os,
+@@ -108,6 +115,14 @@ void printSourceFileAndLine
          myAddress = addressToWord(relativeAddress);
-@@ -112,13 +118,40 @@ void printSourceFileAndLine
-     {
-         string line = pOpen
-         (
-+#if defined(darwin64)
-+            "echo 'image lookup -va " + myAddress + "'"
-+          + " | xcrun lldb "
-+          + "-O 'target create --no-dependents -a x86_64 "
-+          + filename
-+          + "' -o '"
-+          + "target modules load -f "
-+          + filename
-+          + " __TEXT 0x0' 2> /dev/null"
-+          + " | grep LineEntry"
-+#else
-             "addr2line -f --demangle=auto --exe "
-           + filename
-           + " "
-           + myAddress,
-             1
-+#endif
-         );
+     }
  
 +#if defined(darwin64)
-+        {
-+            regExp re(".+LineEntry: .+: (.+):([0-9]+):[0-9]+");
-+            List<std::string> groups;
-+            if (!re.match(line, groups))
-+            {
-+                line = "??:0";
-+            }
-+            else
-+            {
-+                line = groups[0] + ":" + groups[1];
-+            }
-+        }
++    // On macOS relative address is used both for executables and dynamic
++    // libraries
++    uintptr_t offset = uintptr_t(info->dli_fbase);
++    intptr_t relativeAddress = address - offset;
++    myAddress = addressToWord(relativeAddress);
 +#endif
 +
-         if (line == "")
+     if (filename[0] == '/')
+     {
+         string line = pOpen
+@@ -125,14 +140,11 @@ void printSourceFileAndLine
+         }
+         else if (line == "??:0")
          {
-             os  << " addr2line failed";
-@@ -156,9 +189,9 @@ fileName absolutePath(const char* fn)
+-            os  << " in " << filename;
++            os  << " in " << shorten(filename).c_str();
+         }
+         else
+         {
+-            string cwdLine(line.replaceAll(cwd() + '/', ""));
+-            string homeLine(cwdLine.replaceAll(home(), '~'));
+-
+-            os  << " at " << homeLine.c_str();
++            os  << " at " << shorten(line).c_str();
+         }
+     }
+ }
+@@ -156,9 +168,9 @@ fileName absolutePath(const char* fn)
  }
  
  
@@ -1084,7 +1305,7 @@ index 84003866d..487c17a2b 100644
      int st;
      char* cxx_sname = abi::__cxa_demangle
      (
-@@ -170,12 +203,12 @@ word demangleSymbol(const char* sn)
+@@ -170,12 +182,12 @@ word demangleSymbol(const char* sn)
  
      if (st == 0 && cxx_sname)
      {
@@ -1279,25 +1500,43 @@ index f3f00a548..958d9801e 100644
          static void sigHandler(int);
          #endif
 diff --git a/src/OpenFOAM/Make/files b/src/OpenFOAM/Make/files
-index 1b3d7fe97..ce18d5551 100644
+index 4e52cd2b5..4d9f009de 100644
 --- a/src/OpenFOAM/Make/files
 +++ b/src/OpenFOAM/Make/files
-@@ -29,11 +29,13 @@ $(chars)/wchar/wcharIO.C
- primitives/direction/directionIO.C
+@@ -43,6 +43,16 @@ $(ints)/label/label.C
+ $(ints)/uLabel/uLabel.C
+ $(ints)/lists/labelIOList.C
+ $(ints)/lists/labelListIOList.C
++#if defined(darwin64)
++$(ints)/long/long.C
++$(ints)/long/longIO.C
++$(ints)/ulong/ulong.C
++$(ints)/ulong/ulongIO.C
++$(ints)/short/short.C
++$(ints)/short/shortIO.C
++$(ints)/ushort/ushort.C
++$(ints)/ushort/ushortIO.C
++#endif
  
- ints = primitives/ints
-+$(ints)/uint16/uint16.C
- $(ints)/uint32/uint32.C
- $(ints)/uint32/uint32IO.C
- $(ints)/uint64/uint64.C
- $(ints)/uint64/uint64IO.C
- $(ints)/uint/uintIO.C
-+$(ints)/int16/int16.C
- $(ints)/int32/int32.C
- $(ints)/int32/int32IO.C
- $(ints)/int64/int64.C
+ primitives/Scalar/longDoubleScalar/longDoubleScalar.C
+ primitives/Scalar/doubleScalar/doubleScalar.C
+diff --git a/src/OpenFOAM/db/IOstreams/IOstreams.H b/src/OpenFOAM/db/IOstreams/IOstreams.H
+index 44529b1c7..10abe3896 100644
+--- a/src/OpenFOAM/db/IOstreams/IOstreams.H
++++ b/src/OpenFOAM/db/IOstreams/IOstreams.H
+@@ -41,6 +41,10 @@ Description
+ #include "char.H"
+ #include "int.H"
+ #include "uint.H"
++#if defined(darwin64)
++#include "long.H"
++#include "ulong.H"
++#endif
+ 
+ // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+ // Global predefined streams for standard input, output
 diff --git a/src/OpenFOAM/db/dynamicLibrary/dynamicCode/dynamicCode.C b/src/OpenFOAM/db/dynamicLibrary/dynamicCode/dynamicCode.C
-index 160806327..5ac0b6764 100644
+index 87e7fd07f..6656e3f6c 100644
 --- a/src/OpenFOAM/db/dynamicLibrary/dynamicCode/dynamicCode.C
 +++ b/src/OpenFOAM/db/dynamicLibrary/dynamicCode/dynamicCode.C
 @@ -317,7 +317,11 @@ Foam::fileName Foam::dynamicCode::codeRelPath() const
@@ -1329,10 +1568,10 @@ index 6a6f5a97f..10f958b95 100644
  
          //- Path for specified code name relative to \$FOAM_CASE
 diff --git a/src/OpenFOAM/primitives/Scalar/doubleFloat.H b/src/OpenFOAM/primitives/Scalar/doubleFloat.H
-index 8c783b4ce..366eb21e9 100644
+index 8c783b4ce..9cc72ca47 100644
 --- a/src/OpenFOAM/primitives/Scalar/doubleFloat.H
 +++ b/src/OpenFOAM/primitives/Scalar/doubleFloat.H
-@@ -31,6 +31,46 @@ License
+@@ -31,6 +31,15 @@ License
  
  #include <cmath>
  
@@ -1343,42 +1582,40 @@ index 8c783b4ce..366eb21e9 100644
 +inline float y1f(float x) { return float(y1(double(x)));}
 +inline float jnf(const int n, const float s) { return float(jn(n, double(s))); }
 +inline float ynf(const int n, const float s) { return float(yn(n, double(s))); }
-+
-+inline long double j0l(long double x)
-+{
-+    return static_cast<long double>(j0(static_cast<double>(x)));
-+}
-+
-+inline long double j1l(long double x)
-+{
-+    return static_cast<long double>(j1(static_cast<double>(x)));
-+}
-+
-+inline long double y0l(long double x)
-+{
-+    return static_cast<long double>(y0(static_cast<double>(x)));
-+}
-+
-+inline long double y1l(float x)
-+{
-+    return static_cast<long double>(y1(static_cast<double>(x)));
-+}
-+
-+inline long double jnl(const int n, const long double s)
-+{
-+    return static_cast<long double>(jn(n, static_cast<double>(s)));
-+}
-+
-+inline long double ynl(const int n, const long double s)
-+{
-+    return static_cast<long double>(yn(n, static_cast<double>(s)));
-+}
-+
 +#endif
 +
  // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
  
  namespace Foam
+diff --git a/src/OpenFOAM/primitives/Scalar/longDoubleScalar/longDoubleScalar.H b/src/OpenFOAM/primitives/Scalar/longDoubleScalar/longDoubleScalar.H
+index d2a5ff849..f09bf1593 100644
+--- a/src/OpenFOAM/primitives/Scalar/longDoubleScalar/longDoubleScalar.H
++++ b/src/OpenFOAM/primitives/Scalar/longDoubleScalar/longDoubleScalar.H
+@@ -25,7 +25,7 @@ Typedef
+     Foam::longDoubleScalar
+ 
+ Description
+-    Lang double precision floating point scalar type.
++    Long double precision floating point scalar type.
+ 
+ SourceFiles
+     longDoubleScalar.C
+@@ -145,6 +145,7 @@ inline Scalar atan2(const Scalar y, const Scalar x)
+     return ::atan2l(y, x);
+ }
+ 
++#if ! defined(darwin64)
+ inline Scalar jn(const int n, const Scalar s)
+ {
+     return ::jnl(n, s);
+@@ -154,6 +155,7 @@ inline Scalar yn(const int n, const Scalar s)
+ {
+     return ::ynl(n, s);
+ }
++#endif
+ 
+ #undef Scalar
+ #undef ScalarVGreat
 diff --git a/src/OpenFOAM/primitives/hashes/Hasher/Hasher.C b/src/OpenFOAM/primitives/hashes/Hasher/Hasher.C
 index 459ee8503..add61f99e 100644
 --- a/src/OpenFOAM/primitives/hashes/Hasher/Hasher.C
@@ -1392,201 +1629,48 @@ index 459ee8503..add61f99e 100644
                  break;
              case 0 : return c;
          }
-diff --git a/src/OpenFOAM/primitives/ints/int16/int16.C b/src/OpenFOAM/primitives/ints/int16/int16.C
-new file mode 100644
-index 000000000..240b8f63b
---- /dev/null
-+++ b/src/OpenFOAM/primitives/ints/int16/int16.C
-@@ -0,0 +1,48 @@
-+/*---------------------------------------------------------------------------*\
-+  =========                 |
-+  \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
-+   \\    /   O peration     |
-+    \\  /    A nd           | Copyright (C) 2018 OpenCFD Ltd.
-+     \\/     M anipulation  |
-+-------------------------------------------------------------------------------
-+License
-+    This file is part of OpenFOAM.
-+
-+    OpenFOAM is free software: you can redistribute it and/or modify it
-+    under the terms of the GNU General Public License as published by
-+    the Free Software Foundation, either version 3 of the License, or
-+    (at your option) any later version.
-+
-+    OpenFOAM is distributed in the hope that it will be useful, but WITHOUT
-+    ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-+    FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
-+    for more details.
-+
-+    You should have received a copy of the GNU General Public License
-+    along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
-+
-+\*---------------------------------------------------------------------------*/
-+
-+#include "int16.H"
-+#include "int32.H"
-+#include "IOstreams.H"
-+
-+// * * * * * * * * * * * * * * * IOstream Operators  * * * * * * * * * * * * //
-+
-+Foam::Istream& Foam::operator>>(Istream& is, int16_t& val)
-+{
-+    int32_t parsed;
-+    is >> parsed;
-+
-+    val = int16_t(parsed); // narrow
-+    return is;
-+}
-+
-+
-+Foam::Ostream& Foam::operator<<(Ostream& os, const int16_t val)
-+{
-+    return (os << int32_t(val)); // widen
-+}
-+
-+
-+// ************************************************************************* //
-diff --git a/src/OpenFOAM/primitives/ints/int16/int16.H b/src/OpenFOAM/primitives/ints/int16/int16.H
-new file mode 100644
-index 000000000..b4f92c01c
---- /dev/null
-+++ b/src/OpenFOAM/primitives/ints/int16/int16.H
-@@ -0,0 +1,73 @@
-+/*---------------------------------------------------------------------------*\
-+  =========                 |
-+  \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
-+   \\    /   O peration     |
-+    \\  /    A nd           | Copyright (C) 2018 OpenCFD Ltd.
-+     \\/     M anipulation  |
-+-------------------------------------------------------------------------------
-+License
-+    This file is part of OpenFOAM.
-+
-+    OpenFOAM is free software: you can redistribute it and/or modify it
-+    under the terms of the GNU General Public License as published by
-+    the Free Software Foundation, either version 3 of the License, or
-+    (at your option) any later version.
-+
-+    OpenFOAM is distributed in the hope that it will be useful, but WITHOUT
-+    ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-+    FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
-+    for more details.
-+
-+    You should have received a copy of the GNU General Public License
-+    along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
-+
-+Primitive
-+    int16_t
-+
-+Description
-+    16bit signed integer. I/O is done via an int32.
-+
-+SourceFiles
-+    int16.C
-+
-+\*---------------------------------------------------------------------------*/
-+
-+#ifndef int16_H
-+#define int16_H
-+
-+#include <cstdint>
-+#include "word.H"
-+
-+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-+
-+namespace Foam
-+{
-+
-+class Istream;
-+class Ostream;
-+
-+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-+
-+//- Return a word representation of an int16
-+inline word name(const int16_t val)
-+{
-+    // No stripping required
-+    return word(std::to_string(int(val)), false);
-+}
-+
-+
-+// * * * * * * * * * * * * * * * IOstream Operators  * * * * * * * * * * * * //
-+
-+Istream& operator>>(Istream& is, int16_t& val);
-+Ostream& operator<<(Ostream& os, const int16_t val);
-+
-+
-+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-+
-+} // End namespace Foam
-+
-+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-+
+diff --git a/src/OpenFOAM/primitives/ints/int/int.H b/src/OpenFOAM/primitives/ints/int/int.H
+index 6b0d74c25..cf545b78a 100644
+--- a/src/OpenFOAM/primitives/ints/int/int.H
++++ b/src/OpenFOAM/primitives/ints/int/int.H
+@@ -37,6 +37,12 @@ SourceFiles
+ 
+ #include "int32.H"
+ #include "int64.H"
++#if defined(darwin64)
++#include "long.H"
++#include "ulong.H"
++#include "short.H"
++#include "ushort.H"
 +#endif
-+
-+// ************************************************************************* //
-diff --git a/src/OpenFOAM/primitives/ints/int64/int64.H b/src/OpenFOAM/primitives/ints/int64/int64.H
-index 5f0da4363..9063ce7ed 100644
---- a/src/OpenFOAM/primitives/ints/int64/int64.H
-+++ b/src/OpenFOAM/primitives/ints/int64/int64.H
-@@ -68,6 +68,12 @@ bool read(const char*, int64_t&);
- Istream& operator>>(Istream&, int64_t&);
- Ostream& operator<<(Ostream&, const int64_t);
+ 
+ // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+ 
+@@ -64,6 +70,13 @@ MAXMIN(int64_t, int64_t, int32_t)
+ MAXMIN(int64_t, int32_t, int64_t)
+ MAXMIN(int64_t, int64_t, int64_t)
  
 +#if defined(darwin64)
-+Istream& operator>>(Istream& is, long& val);
-+Ostream& operator<<(Ostream& os, const long val);
-+#endif
-+
-+
- //- Template specialization for pTraits<int64_t>
- template<>
- class pTraits<int64_t>
-diff --git a/src/OpenFOAM/primitives/ints/int64/int64IO.C b/src/OpenFOAM/primitives/ints/int64/int64IO.C
-index 1b197b5c2..d49b8208b 100644
---- a/src/OpenFOAM/primitives/ints/int64/int64IO.C
-+++ b/src/OpenFOAM/primitives/ints/int64/int64IO.C
-@@ -99,5 +99,17 @@ Foam::Ostream& Foam::operator<<(Ostream& os, const int64_t i)
-     return os;
- }
- 
-+#if defined(darwin64)
-+Foam::Istream& Foam::operator>>(Istream& is, long& val)
-+{
-+    return operator>>(is, reinterpret_cast<int64_t&>(val));
-+}
-+
-+Foam::Ostream& Foam::operator<<(Ostream& os, const long val)
-+{
-+    return (os << int64_t(val));
-+}
++MAXMIN(long, long, long)
++MAXMIN(unsigned long, unsigned long, unsigned long)
++// MAXMIN(short, short, short)
++// MAXMIN(unsigned short, unsigned short, unsigned short)
 +#endif
 +
  
- // ************************************************************************* //
-diff --git a/src/OpenFOAM/primitives/ints/uint/uint.H b/src/OpenFOAM/primitives/ints/uint/uint.H
-index 0698df700..fe3828e06 100644
---- a/src/OpenFOAM/primitives/ints/uint/uint.H
-+++ b/src/OpenFOAM/primitives/ints/uint/uint.H
-@@ -35,6 +35,7 @@ SourceFiles
- #ifndef uint_H
- #define uint_H
+ // * * * * * * * * * * * * * * * IOstream Operators  * * * * * * * * * * * * //
  
-+#include "uint16.H"
- #include "uint32.H"
- #include "uint64.H"
- 
-diff --git a/src/OpenFOAM/primitives/ints/uint16/uint16.C b/src/OpenFOAM/primitives/ints/uint16/uint16.C
+diff --git a/src/OpenFOAM/primitives/ints/long/long.C b/src/OpenFOAM/primitives/ints/long/long.C
 new file mode 100644
-index 000000000..b98b7b1fe
+index 000000000..e7b78c3d1
 --- /dev/null
-+++ b/src/OpenFOAM/primitives/ints/uint16/uint16.C
-@@ -0,0 +1,48 @@
++++ b/src/OpenFOAM/primitives/ints/long/long.C
+@@ -0,0 +1,50 @@
 +/*---------------------------------------------------------------------------*\
 +  =========                 |
 +  \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
 +   \\    /   O peration     |
-+    \\  /    A nd           | Copyright (C) 2018 OpenCFD Ltd.
++    \\  /    A nd           | Copyright (C) 2014 OpenFOAM Foundation
 +     \\/     M anipulation  |
 +-------------------------------------------------------------------------------
 +License
@@ -1607,40 +1691,42 @@ index 000000000..b98b7b1fe
 +
 +\*---------------------------------------------------------------------------*/
 +
-+#include "uint16.H"
-+#include "int32.H"
-+#include "IOstreams.H"
++#include "long.H"
 +
-+// * * * * * * * * * * * * * * * IOstream Operators  * * * * * * * * * * * * //
++// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 +
-+Foam::Istream& Foam::operator>>(Istream& is, uint16_t& val)
++const long Foam::pTraits<long>::zero = 0;
++const long Foam::pTraits<long>::one = 1;
++const long Foam::pTraits<long>::min = LONG_MIN;
++const long Foam::pTraits<long>::max = LONG_MAX;
++const long Foam::pTraits<long>::rootMin = pTraits<long>::min;
++const long Foam::pTraits<long>::rootMax = pTraits<long>::max;
++
++const char* Foam::pTraits<long>::componentNames[] = { "x" };
++
++Foam::pTraits<long>::pTraits(const long& p)
++:
++    p_(p)
++{}
++
++Foam::pTraits<long>::pTraits(Istream& is)
 +{
-+    int32_t parsed;
-+    is >> parsed;
-+
-+    val = uint16_t(parsed); // narrow
-+    return is;
-+}
-+
-+
-+Foam::Ostream& Foam::operator<<(Ostream& os, const uint16_t val)
-+{
-+    return (os << int32_t(val)); // widen (fits as int32 without sign problem)
++    is >> p_;
 +}
 +
 +
 +// ************************************************************************* //
-diff --git a/src/OpenFOAM/primitives/ints/uint16/uint16.H b/src/OpenFOAM/primitives/ints/uint16/uint16.H
+diff --git a/src/OpenFOAM/primitives/ints/long/long.H b/src/OpenFOAM/primitives/ints/long/long.H
 new file mode 100644
-index 000000000..9b23ce566
+index 000000000..f8a3146b9
 --- /dev/null
-+++ b/src/OpenFOAM/primitives/ints/uint16/uint16.H
-@@ -0,0 +1,73 @@
++++ b/src/OpenFOAM/primitives/ints/long/long.H
+@@ -0,0 +1,138 @@
 +/*---------------------------------------------------------------------------*\
 +  =========                 |
 +  \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
 +   \\    /   O peration     |
-+    \\  /    A nd           | Copyright (C) 2018 OpenCFD Ltd.
++    \\  /    A nd           | Copyright (C) 2014-2015 OpenFOAM Foundation
 +     \\/     M anipulation  |
 +-------------------------------------------------------------------------------
 +License
@@ -1660,21 +1746,32 @@ index 000000000..9b23ce566
 +    along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 +
 +Primitive
-+    uint16_t
++    long
 +
 +Description
-+    16bit unsigned integer. I/O is done via an int32.
++    long integer
 +
 +SourceFiles
-+    uint16.C
++    long.C
++    longIO.C
 +
 +\*---------------------------------------------------------------------------*/
 +
-+#ifndef uint16_H
-+#define uint16_H
++#ifndef long_H
++#define long_H
 +
-+#include <cstdint>
++#define __STDC_LIMIT_MACROS
++#include <stdint.h>
++#include <climits>
++#include <cstdlib>
++
 +#include "word.H"
++#include "pTraits.H"
++#include "direction.H"
++
++#ifndef LONG_MIN
++#define LONG_MIN 0
++#endif
 +
 +// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 +
@@ -1686,18 +1783,72 @@ index 000000000..9b23ce566
 +
 +// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 +
-+//- Return a word representation of a uint16
-+inline word name(const uint16_t val)
-+{
-+    // No stripping required
-+    return word(std::to_string(int(val)), false);
-+}
-+
++//- Return a word representation of an long
++word name(const long);
 +
 +// * * * * * * * * * * * * * * * IOstream Operators  * * * * * * * * * * * * //
 +
-+Istream& operator>>(Istream& is, uint16_t& val);
-+Ostream& operator<<(Ostream& os, const uint16_t val);
++long readLong(Istream&);
++bool read(const char*, long&);
++Istream& operator>>(Istream&, long&);
++Ostream& operator<<(Ostream&, const long);
++
++//- Template specialization for pTraits<long>
++template<>
++class pTraits<long>
++{
++    long p_;
++
++public:
++
++    //- Component type
++    typedef long cmptType;
++
++    // Member constants
++
++        enum
++        {
++            dim = 3,         //!< Dimensionality of space
++            rank = 0,        //!< Rank of int64_t is 0
++            nComponents = 1  //!< Number of components in int64_t is 1
++        };
++
++
++    // Static data members
++
++        static const char* const typeName;
++        static const char* componentNames[];
++        static const long zero;
++        static const long one;
++        static const long min;
++        static const long max;
++        static const long rootMax;
++        static const long rootMin;
++
++
++    // Constructors
++
++        //- Construct from primitive
++        explicit pTraits(const long&);
++
++        //- Construct from Istream
++        pTraits(Istream&);
++
++
++    // Member Functions
++
++        //- Access to the long value
++        operator long() const
++        {
++            return p_;
++        }
++
++        //- Access to the long value
++        operator long&()
++        {
++            return p_;
++        }
++};
 +
 +
 +// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
@@ -1709,52 +1860,1070 @@ index 000000000..9b23ce566
 +#endif
 +
 +// ************************************************************************* //
-diff --git a/src/OpenFOAM/primitives/ints/uint64/uint64.H b/src/OpenFOAM/primitives/ints/uint64/uint64.H
-index f056125ab..1df8b9bd2 100644
---- a/src/OpenFOAM/primitives/ints/uint64/uint64.H
-+++ b/src/OpenFOAM/primitives/ints/uint64/uint64.H
-@@ -68,6 +68,10 @@ bool read(const char*, uint64_t&);
- Istream& operator>>(Istream&, uint64_t&);
- Ostream& operator<<(Ostream&, const uint64_t);
- 
-+#if defined(darwin64)
-+Ostream& operator<<(Ostream& os, const unsigned long val);
-+#endif
+diff --git a/src/OpenFOAM/primitives/ints/long/longIO.C b/src/OpenFOAM/primitives/ints/long/longIO.C
+new file mode 100644
+index 000000000..9ee12352d
+--- /dev/null
++++ b/src/OpenFOAM/primitives/ints/long/longIO.C
+@@ -0,0 +1,104 @@
++/*---------------------------------------------------------------------------*\
++  =========                 |
++  \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
++   \\    /   O peration     |
++    \\  /    A nd           | Copyright (C) 2014-2015 OpenFOAM Foundation
++     \\/     M anipulation  |
++-------------------------------------------------------------------------------
++License
++    This file is part of OpenFOAM.
 +
- //- Template specialization for pTraits<uint64_t>
- template<>
- class pTraits<uint64_t>
-diff --git a/src/OpenFOAM/primitives/ints/uint64/uint64IO.C b/src/OpenFOAM/primitives/ints/uint64/uint64IO.C
-index 7c6c07708..a2d01e160 100644
---- a/src/OpenFOAM/primitives/ints/uint64/uint64IO.C
-+++ b/src/OpenFOAM/primitives/ints/uint64/uint64IO.C
-@@ -96,5 +96,13 @@ Foam::Ostream& Foam::operator<<(Ostream& os, const uint64_t i)
-     return os;
- }
- 
-+#if defined(darwin64)
-+Foam::Ostream& Foam::operator<<(Ostream& os, const unsigned long val)
++    OpenFOAM is free software: you can redistribute it and/or modify it
++    under the terms of the GNU General Public License as published by
++    the Free Software Foundation, either version 3 of the License, or
++    (at your option) any later version.
++
++    OpenFOAM is distributed in the hope that it will be useful, but WITHOUT
++    ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
++    FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
++    for more details.
++
++    You should have received a copy of the GNU General Public License
++    along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
++
++\*---------------------------------------------------------------------------*/
++
++#include "error.H"
++
++#include "long.H"
++#include "IOstreams.H"
++
++#include <inttypes.h>
++#include <sstream>
++#include <cerrno>
++
++// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
++
++Foam::word Foam::name(const long val)
 +{
-+    os << uint64_t(val);
++    std::ostringstream buf;
++    buf << val;
++    return buf.str();
++}
++
++
++// * * * * * * * * * * * * * * * IOstream Operators  * * * * * * * * * * * * //
++
++Foam::Istream& Foam::operator>>(Istream& is, long& i)
++{
++    token t(is);
++
++    if (!t.good())
++    {
++        is.setBad();
++        return is;
++    }
++
++    if (t.isLabel())
++    {
++        i = long(t.labelToken());
++    }
++    else
++    {
++        is.setBad();
++        FatalIOErrorIn("operator>>(Istream&, long&)", is)
++            << "wrong token type - expected long, found " << t.info()
++            << exit(FatalIOError);
++
++        return is;
++    }
++
++    // Check state of Istream
++    is.check("Istream& operator>>(Istream&, long&)");
++
++    return is;
++}
++
++
++long Foam::readLong(Istream& is)
++{
++    long val;
++    is >> val;
++
++    return val;
++}
++
++
++bool Foam::read(const char* buf, long& s)
++{
++    char *endptr = NULL;
++    errno = 0;
++    s = strtol(buf, &endptr, 10);
++    return (*endptr == 0) && (errno == 0);
++}
++
++
++Foam::Ostream& Foam::operator<<(Ostream& os, const long i)
++{
++    os.write(label(i));
++    os.check("Ostream& operator<<(Ostream&, const long)");
 +    return os;
 +}
++
++
++// ************************************************************************* //
+diff --git a/src/OpenFOAM/primitives/ints/short/short.C b/src/OpenFOAM/primitives/ints/short/short.C
+new file mode 100644
+index 000000000..d0eb2d69c
+--- /dev/null
++++ b/src/OpenFOAM/primitives/ints/short/short.C
+@@ -0,0 +1,50 @@
++/*---------------------------------------------------------------------------*\
++  =========                 |
++  \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
++   \\    /   O peration     |
++    \\  /    A nd           | Copyright (C) 2018 OpenFOAM Foundation
++     \\/     M anipulation  |
++-------------------------------------------------------------------------------
++License
++    This file is part of OpenFOAM.
++
++    OpenFOAM is free software: you can redistribute it and/or modify it
++    under the terms of the GNU General Public License as published by
++    the Free Software Foundation, either version 3 of the License, or
++    (at your option) any later version.
++
++    OpenFOAM is distributed in the hope that it will be useful, but WITHOUT
++    ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
++    FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
++    for more details.
++
++    You should have received a copy of the GNU General Public License
++    along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
++
++\*---------------------------------------------------------------------------*/
++
++#include "short.H"
++
++// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
++
++const short Foam::pTraits<short>::zero = 0;
++const short Foam::pTraits<short>::one = 1;
++const short Foam::pTraits<short>::min = SHRT_MIN;
++const short Foam::pTraits<short>::max = SHRT_MAX;
++const short Foam::pTraits<short>::rootMin = Foam::pTraits<short>::min;
++const short Foam::pTraits<short>::rootMax = Foam::pTraits<short>::max;
++
++const char* Foam::pTraits<short>::componentNames[] = { "x" };
++
++Foam::pTraits<short>::pTraits(const short& p)
++:
++    p_(p)
++{}
++
++Foam::pTraits<short>::pTraits(Istream& is)
++{
++    is >> p_;
++}
++
++
++// ************************************************************************* //
+diff --git a/src/OpenFOAM/primitives/ints/short/short.H b/src/OpenFOAM/primitives/ints/short/short.H
+new file mode 100644
+index 000000000..ec56de159
+--- /dev/null
++++ b/src/OpenFOAM/primitives/ints/short/short.H
+@@ -0,0 +1,138 @@
++/*---------------------------------------------------------------------------*\
++  =========                 |
++  \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
++   \\    /   O peration     |
++    \\  /    A nd           | Copyright (C) 2014-2018 OpenFOAM Foundation
++     \\/     M anipulation  |
++-------------------------------------------------------------------------------
++License
++    This file is part of OpenFOAM.
++
++    OpenFOAM is free software: you can redistribute it and/or modify it
++    under the terms of the GNU General Public License as published by
++    the Free Software Foundation, either version 3 of the License, or
++    (at your option) any later version.
++
++    OpenFOAM is distributed in the hope that it will be useful, but WITHOUT
++    ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
++    FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
++    for more details.
++
++    You should have received a copy of the GNU General Public License
++    along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
++
++Primitive
++    short
++
++Description
++    short integer
++
++SourceFiles
++    short.C
++    shortIO.C
++
++\*---------------------------------------------------------------------------*/
++
++#ifndef short_H
++#define short_H
++
++#define __STDC_LIMIT_MACROS
++#include <stdint.h>
++#include <climits>
++#include <cstdlib>
++
++#include "word.H"
++#include "pTraits.H"
++#include "direction.H"
++
++#ifndef SHRT_MIN
++#define SHRT_MIN 0
 +#endif
 +
- 
- // ************************************************************************* //
-diff --git a/src/OpenFOAM/primitives/strings/word/wordIOList.C b/src/OpenFOAM/primitives/strings/word/wordIOList.C
-index b5fee5be9..60b3c4a32 100644
---- a/src/OpenFOAM/primitives/strings/word/wordIOList.C
-+++ b/src/OpenFOAM/primitives/strings/word/wordIOList.C
-@@ -53,7 +53,7 @@ void Foam::printTable
-     {
-         forAll(wll, i)
-         {
--            columnWidth[j] = max(columnWidth[j], wll[i][j].size());
-+            columnWidth[j] = std::max(columnWidth[j], wll[i][j].size());
-         }
++// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
++
++namespace Foam
++{
++
++class Istream;
++class Ostream;
++
++// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
++
++//- Return a word representation of an short
++word name(const short);
++
++// * * * * * * * * * * * * * * * IOstream Operators  * * * * * * * * * * * * //
++
++long readShort(Istream&);
++bool read(const char*, short&);
++Istream& operator>>(Istream&, short&);
++Ostream& operator<<(Ostream&, const short);
++
++//- Template specialization for pTraits<short>
++template<>
++class pTraits<short>
++{
++    short p_;
++
++public:
++
++    //- Component type
++    typedef short cmptType;
++
++    // Member constants
++
++        enum
++        {
++            dim = 3,         //!< Dimensionality of space
++            rank = 0,        //!< Rank of short is 0
++            nComponents = 1  //!< Number of components in short is 1
++        };
++
++
++    // Static data members
++
++        static const char* const typeName;
++        static const char* componentNames[];
++        static const short zero;
++        static const short one;
++        static const short min;
++        static const short max;
++        static const short rootMax;
++        static const short rootMin;
++
++
++    // Constructors
++
++        //- Construct from primitive
++        explicit pTraits(const short&);
++
++        //- Construct from Istream
++        pTraits(Istream&);
++
++
++    // Member Functions
++
++        //- Access to the short value
++        operator short() const
++        {
++            return p_;
++        }
++
++        //- Access to the short value
++        operator short&()
++        {
++            return p_;
++        }
++};
++
++
++// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
++
++} // End namespace Foam
++
++// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
++
++#endif
++
++// ************************************************************************* //
+diff --git a/src/OpenFOAM/primitives/ints/short/shortIO.C b/src/OpenFOAM/primitives/ints/short/shortIO.C
+new file mode 100644
+index 000000000..9f328126d
+--- /dev/null
++++ b/src/OpenFOAM/primitives/ints/short/shortIO.C
+@@ -0,0 +1,104 @@
++/*---------------------------------------------------------------------------*\
++  =========                 |
++  \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
++   \\    /   O peration     |
++    \\  /    A nd           | Copyright (C) 2018 OpenFOAM Foundation
++     \\/     M anipulation  |
++-------------------------------------------------------------------------------
++License
++    This file is part of OpenFOAM.
++
++    OpenFOAM is free software: you can redistribute it and/or modify it
++    under the terms of the GNU General Public License as published by
++    the Free Software Foundation, either version 3 of the License, or
++    (at your option) any later version.
++
++    OpenFOAM is distributed in the hope that it will be useful, but WITHOUT
++    ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
++    FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
++    for more details.
++
++    You should have received a copy of the GNU General Public License
++    along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
++
++\*---------------------------------------------------------------------------*/
++
++#include "error.H"
++
++#include "short.H"
++#include "IOstreams.H"
++
++#include <inttypes.h>
++#include <sstream>
++#include <cerrno>
++
++// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
++
++Foam::word Foam::name(const short val)
++{
++    std::ostringstream buf;
++    buf << val;
++    return buf.str();
++}
++
++
++// * * * * * * * * * * * * * * * IOstream Operators  * * * * * * * * * * * * //
++
++Foam::Istream& Foam::operator>>(Istream& is, short& i)
++{
++    token t(is);
++
++    if (!t.good())
++    {
++        is.setBad();
++        return is;
++    }
++
++    if (t.isLabel())
++    {
++        i = short(t.labelToken());
++    }
++    else
++    {
++        is.setBad();
++        FatalIOErrorIn("operator>>(Istream&, short&)", is)
++            << "wrong token type - expected short, found " << t.info()
++            << exit(FatalIOError);
++
++        return is;
++    }
++
++    // Check state of Istream
++    is.check("Istream& operator>>(Istream&, short&)");
++
++    return is;
++}
++
++
++long Foam::readShort(Istream& is)
++{
++    short val;
++    is >> val;
++
++    return val;
++}
++
++
++bool Foam::read(const char* buf, short& s)
++{
++    char *endptr = NULL;
++    errno = 0;
++    s = static_cast<short>(strtol(buf, &endptr, 10));
++    return (*endptr == 0) && (errno == 0);
++}
++
++
++Foam::Ostream& Foam::operator<<(Ostream& os, const short i)
++{
++    os.write(label(i));
++    os.check("Ostream& operator<<(Ostream&, const short)");
++    return os;
++}
++
++
++// ************************************************************************* //
+diff --git a/src/OpenFOAM/primitives/ints/ulong/ulong.C b/src/OpenFOAM/primitives/ints/ulong/ulong.C
+new file mode 100644
+index 000000000..c60530e53
+--- /dev/null
++++ b/src/OpenFOAM/primitives/ints/ulong/ulong.C
+@@ -0,0 +1,52 @@
++/*---------------------------------------------------------------------------*\
++  =========                 |
++  \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
++   \\    /   O peration     |
++    \\  /    A nd           | Copyright (C) 2014 OpenFOAM Foundation
++     \\/     M anipulation  |
++-------------------------------------------------------------------------------
++License
++    This file is part of OpenFOAM.
++
++    OpenFOAM is free software: you can redistribute it and/or modify it
++    under the terms of the GNU General Public License as published by
++    the Free Software Foundation, either version 3 of the License, or
++    (at your option) any later version.
++
++    OpenFOAM is distributed in the hope that it will be useful, but WITHOUT
++    ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
++    FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
++    for more details.
++
++    You should have received a copy of the GNU General Public License
++    along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
++
++\*---------------------------------------------------------------------------*/
++
++#include "ulong.H"
++
++// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
++
++const unsigned long Foam::pTraits<unsigned long>::zero = 0;
++const unsigned long Foam::pTraits<unsigned long>::one = 1;
++const unsigned long Foam::pTraits<unsigned long>::min = 0;
++const unsigned long Foam::pTraits<unsigned long>::max = ULONG_MAX;
++const unsigned long Foam::pTraits<unsigned long>::rootMin =
++    Foam::pTraits<unsigned long>::min;
++const unsigned long Foam::pTraits<unsigned long>::rootMax =
++    Foam::pTraits<unsigned long>::max;
++
++const char* Foam::pTraits<unsigned long>::componentNames[] = { "x" };
++
++Foam::pTraits<unsigned long>::pTraits(const unsigned long& p)
++:
++    p_(p)
++{}
++
++Foam::pTraits<unsigned long>::pTraits(Istream& is)
++{
++    is >> p_;
++}
++
++
++// ************************************************************************* //
+diff --git a/src/OpenFOAM/primitives/ints/ulong/ulong.H b/src/OpenFOAM/primitives/ints/ulong/ulong.H
+new file mode 100644
+index 000000000..95b21b2bf
+--- /dev/null
++++ b/src/OpenFOAM/primitives/ints/ulong/ulong.H
+@@ -0,0 +1,138 @@
++/*---------------------------------------------------------------------------*\
++  =========                 |
++  \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
++   \\    /   O peration     |
++    \\  /    A nd           | Copyright (C) 2014-2015 OpenFOAM Foundation
++     \\/     M anipulation  |
++-------------------------------------------------------------------------------
++License
++    This file is part of OpenFOAM.
++
++    OpenFOAM is free software: you can redistribute it and/or modify it
++    under the terms of the GNU General Public License as published by
++    the Free Software Foundation, either version 3 of the License, or
++    (at your option) any later version.
++
++    OpenFOAM is distributed in the hope that it will be useful, but WITHOUT
++    ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
++    FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
++    for more details.
++
++    You should have received a copy of the GNU General Public License
++    along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
++
++Primitive
++    unisgned long
++
++Description
++    unsigned long integer
++
++SourceFiles
++    ulong.C
++    ulongIO.C
++
++\*---------------------------------------------------------------------------*/
++
++#ifndef ulong_H
++#define ulong_H
++
++#define __STDC_LIMIT_MACROS
++#include <stdint.h>
++#include <climits>
++#include <cstdlib>
++
++#include "word.H"
++#include "pTraits.H"
++#include "direction.H"
++
++#ifndef ULONG_MIN
++#define ULONG_MIN 0
++#endif
++
++// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
++
++namespace Foam
++{
++
++class Istream;
++class Ostream;
++
++// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
++
++//- Return a word representation of an unsigned long
++word name(const unsigned long);
++
++// * * * * * * * * * * * * * * * IOstream Operators  * * * * * * * * * * * * //
++
++unsigned long readUlong(Istream&);
++bool read(const char*, unsigned long&);
++Istream& operator>>(Istream&, unsigned long&);
++Ostream& operator<<(Ostream&, const unsigned long);
++
++//- Template specialization for pTraits<unsigned long>
++template<>
++class pTraits<unsigned long>
++{
++    unsigned long p_;
++
++public:
++
++    //- Component type
++    typedef unsigned long cmptType;
++
++    // Member constants
++
++        enum
++        {
++            dim = 3,         //!< Dimensionality of space
++            rank = 0,        //!< Rank of uint64_t is 0
++            nComponents = 1  //!< Number of components in uint64_t is 1
++        };
++
++
++    // Static data members
++
++        static const char* const typeName;
++        static const char* componentNames[];
++        static const unsigned long zero;
++        static const unsigned long one;
++        static const unsigned long min;
++        static const unsigned long max;
++        static const unsigned long rootMax;
++        static const unsigned long rootMin;
++
++
++    // Constructors
++
++        //- Construct from primitive
++        explicit pTraits(const unsigned long&);
++
++        //- Construct from Istream
++        pTraits(Istream&);
++
++
++    // Member Functions
++
++        //- Access to the uint64_t value
++        operator unsigned long() const
++        {
++            return p_;
++        }
++
++        //- Access to the uint value
++        operator unsigned long&()
++        {
++            return p_;
++        }
++};
++
++
++// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
++
++} // End namespace Foam
++
++// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
++
++#endif
++
++// ************************************************************************* //
+diff --git a/src/OpenFOAM/primitives/ints/ulong/ulongIO.C b/src/OpenFOAM/primitives/ints/ulong/ulongIO.C
+new file mode 100644
+index 000000000..aa62c6110
+--- /dev/null
++++ b/src/OpenFOAM/primitives/ints/ulong/ulongIO.C
+@@ -0,0 +1,101 @@
++/*---------------------------------------------------------------------------*\
++  =========                 |
++  \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
++   \\    /   O peration     |
++    \\  /    A nd           | Copyright (C) 2014 OpenFOAM Foundation
++     \\/     M anipulation  |
++-------------------------------------------------------------------------------
++License
++    This file is part of OpenFOAM.
++
++    OpenFOAM is free software: you can redistribute it and/or modify it
++    under the terms of the GNU General Public License as published by
++    the Free Software Foundation, either version 3 of the License, or
++    (at your option) any later version.
++
++    OpenFOAM is distributed in the hope that it will be useful, but WITHOUT
++    ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
++    FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
++    for more details.
++
++    You should have received a copy of the GNU General Public License
++    along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
++
++\*---------------------------------------------------------------------------*/
++
++#include "error.H"
++
++#include "ulong.H"
++#include "IOstreams.H"
++
++#include <sstream>
++
++// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
++
++Foam::word Foam::name(const unsigned long val)
++{
++    std::ostringstream buf;
++    buf << val;
++    return buf.str();
++}
++
++
++// * * * * * * * * * * * * * * * IOstream Operators  * * * * * * * * * * * * //
++
++Foam::Istream& Foam::operator>>(Istream& is, unsigned long& i)
++{
++    token t(is);
++
++    if (!t.good())
++    {
++        is.setBad();
++        return is;
++    }
++
++    if (t.isLabel())
++    {
++        i = static_cast<unsigned long>(t.labelToken());
++    }
++    else
++    {
++        is.setBad();
++        FatalIOErrorIn("operator>>(Istream&, unsigned long&)", is)
++            << "wrong token type - expected unsigned long, found " << t.info()
++            << exit(FatalIOError);
++
++        return is;
++    }
++
++    // Check state of Istream
++    is.check("Istream& operator>>(Istream&, unsigned long&)");
++
++    return is;
++}
++
++
++unsigned long Foam::readUlong(Istream& is)
++{
++    unsigned long val;
++    is >> val;
++
++    return val;
++}
++
++
++bool Foam::read(const char* buf, unsigned long& s)
++{
++    char *endptr = NULL;
++    s = strtoul(buf, &endptr, 10);
++    return (*endptr == 0);
++}
++
++
++Foam::Ostream& Foam::operator<<(Ostream& os, const unsigned long i)
++{
++    os.write(label(i));
++    os.check("Ostream& operator<<(Ostream&, const unsigned long)");
++    return os;
++}
++
++
++// ************************************************************************* //
+diff --git a/src/OpenFOAM/primitives/ints/ushort/ushort.C b/src/OpenFOAM/primitives/ints/ushort/ushort.C
+new file mode 100644
+index 000000000..2622eecdc
+--- /dev/null
++++ b/src/OpenFOAM/primitives/ints/ushort/ushort.C
+@@ -0,0 +1,52 @@
++/*---------------------------------------------------------------------------*\
++  =========                 |
++  \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
++   \\    /   O peration     |
++    \\  /    A nd           | Copyright (C) 2018 OpenFOAM Foundation
++     \\/     M anipulation  |
++-------------------------------------------------------------------------------
++License
++    This file is part of OpenFOAM.
++
++    OpenFOAM is free software: you can redistribute it and/or modify it
++    under the terms of the GNU General Public License as published by
++    the Free Software Foundation, either version 3 of the License, or
++    (at your option) any later version.
++
++    OpenFOAM is distributed in the hope that it will be useful, but WITHOUT
++    ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
++    FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
++    for more details.
++
++    You should have received a copy of the GNU General Public License
++    along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
++
++\*---------------------------------------------------------------------------*/
++
++#include "ushort.H"
++
++// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
++
++const unsigned short Foam::pTraits<unsigned short>::zero = 0;
++const unsigned short Foam::pTraits<unsigned short>::one = 1;
++const unsigned short Foam::pTraits<unsigned short>::min = USHRT_MIN;
++const unsigned short Foam::pTraits<unsigned short>::max = USHRT_MAX;
++const unsigned short Foam::pTraits<unsigned short>::rootMin =
++    Foam::pTraits<unsigned short>::min;
++const unsigned short Foam::pTraits<unsigned short>::rootMax =
++    Foam::pTraits<unsigned short>::max;
++
++const char* Foam::pTraits<unsigned short>::componentNames[] = { "x" };
++
++Foam::pTraits<unsigned short>::pTraits(const unsigned short& p)
++:
++    p_(p)
++{}
++
++Foam::pTraits<unsigned short>::pTraits(Istream& is)
++{
++    is >> p_;
++}
++
++
++// ************************************************************************* //
+diff --git a/src/OpenFOAM/primitives/ints/ushort/ushort.H b/src/OpenFOAM/primitives/ints/ushort/ushort.H
+new file mode 100644
+index 000000000..0174d1944
+--- /dev/null
++++ b/src/OpenFOAM/primitives/ints/ushort/ushort.H
+@@ -0,0 +1,138 @@
++/*---------------------------------------------------------------------------*\
++  =========                 |
++  \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
++   \\    /   O peration     |
++    \\  /    A nd           | Copyright (C) 2018 OpenFOAM Foundation
++     \\/     M anipulation  |
++-------------------------------------------------------------------------------
++License
++    This file is part of OpenFOAM.
++
++    OpenFOAM is free software: you can redistribute it and/or modify it
++    under the terms of the GNU General Public License as published by
++    the Free Software Foundation, either version 3 of the License, or
++    (at your option) any later version.
++
++    OpenFOAM is distributed in the hope that it will be useful, but WITHOUT
++    ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
++    FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
++    for more details.
++
++    You should have received a copy of the GNU General Public License
++    along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
++
++Primitive
++    unisgned short
++
++Description
++    unsigned short integer
++
++SourceFiles
++    ushort.C
++    ushortIO.C
++
++\*---------------------------------------------------------------------------*/
++
++#ifndef ushort_H
++#define ushort_H
++
++#define __STDC_LIMIT_MACROS
++#include <stdint.h>
++#include <climits>
++#include <cstdlib>
++
++#include "word.H"
++#include "pTraits.H"
++#include "direction.H"
++
++#ifndef USHRT_MIN
++#define USHRT_MIN 0
++#endif
++
++// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
++
++namespace Foam
++{
++
++class Istream;
++class Ostream;
++
++// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
++
++//- Return a word representation of an unsigned short
++word name(const unsigned short);
++
++// * * * * * * * * * * * * * * * IOstream Operators  * * * * * * * * * * * * //
++
++unsigned short readUshort(Istream&);
++bool read(const char*, unsigned short&);
++Istream& operator>>(Istream&, unsigned short&);
++Ostream& operator<<(Ostream&, const unsigned short);
++
++//- Template specialization for pTraits<unsigned short>
++template<>
++class pTraits<unsigned short>
++{
++    unsigned short p_;
++
++public:
++
++    //- Component type
++    typedef unsigned short cmptType;
++
++    // Member constants
++
++        enum
++        {
++            dim = 3,         //!< Dimensionality of space
++            rank = 0,        //!< Rank of unsigned short is 0
++            nComponents = 1  //!< Number of components in unsigned short is 1
++        };
++
++
++    // Static data members
++
++        static const char* const typeName;
++        static const char* componentNames[];
++        static const unsigned short zero;
++        static const unsigned short one;
++        static const unsigned short min;
++        static const unsigned short max;
++        static const unsigned short rootMax;
++        static const unsigned short rootMin;
++
++
++    // Constructors
++
++        //- Construct from primitive
++        explicit pTraits(const unsigned short&);
++
++        //- Construct from Istream
++        pTraits(Istream&);
++
++
++    // Member Functions
++
++        //- Access to the ushort value
++        operator unsigned short() const
++        {
++            return p_;
++        }
++
++        //- Access to the uint value
++        operator unsigned short&()
++        {
++            return p_;
++        }
++};
++
++
++// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
++
++} // End namespace Foam
++
++// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
++
++#endif
++
++// ************************************************************************* //
+diff --git a/src/OpenFOAM/primitives/ints/ushort/ushortIO.C b/src/OpenFOAM/primitives/ints/ushort/ushortIO.C
+new file mode 100644
+index 000000000..a255b1736
+--- /dev/null
++++ b/src/OpenFOAM/primitives/ints/ushort/ushortIO.C
+@@ -0,0 +1,101 @@
++/*---------------------------------------------------------------------------*\
++  =========                 |
++  \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
++   \\    /   O peration     |
++    \\  /    A nd           | Copyright (C) 2014 OpenFOAM Foundation
++     \\/     M anipulation  |
++-------------------------------------------------------------------------------
++License
++    This file is part of OpenFOAM.
++
++    OpenFOAM is free software: you can redistribute it and/or modify it
++    under the terms of the GNU General Public License as published by
++    the Free Software Foundation, either version 3 of the License, or
++    (at your option) any later version.
++
++    OpenFOAM is distributed in the hope that it will be useful, but WITHOUT
++    ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
++    FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
++    for more details.
++
++    You should have received a copy of the GNU General Public License
++    along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
++
++\*---------------------------------------------------------------------------*/
++
++#include "error.H"
++
++#include "ushort.H"
++#include "IOstreams.H"
++
++#include <sstream>
++
++// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
++
++Foam::word Foam::name(const unsigned short val)
++{
++    std::ostringstream buf;
++    buf << val;
++    return buf.str();
++}
++
++
++// * * * * * * * * * * * * * * * IOstream Operators  * * * * * * * * * * * * //
++
++Foam::Istream& Foam::operator>>(Istream& is, unsigned short& i)
++{
++    token t(is);
++
++    if (!t.good())
++    {
++        is.setBad();
++        return is;
++    }
++
++    if (t.isLabel())
++    {
++        i = static_cast<unsigned short>(t.labelToken());
++    }
++    else
++    {
++        is.setBad();
++        FatalIOErrorIn("operator>>(Istream&, unsigned short&)", is)
++            << "wrong token type - expected unsigned short, found " << t.info()
++            << exit(FatalIOError);
++
++        return is;
++    }
++
++    // Check state of Istream
++    is.check("Istream& operator>>(Istream&, unsigned short&)");
++
++    return is;
++}
++
++
++unsigned short Foam::readUshort(Istream& is)
++{
++    unsigned short val;
++    is >> val;
++
++    return val;
++}
++
++
++bool Foam::read(const char* buf, unsigned short& s)
++{
++    char *endptr = NULL;
++    s = static_cast<unsigned short>(strtoul(buf, &endptr, 10));
++    return (*endptr == 0);
++}
++
++
++Foam::Ostream& Foam::operator<<(Ostream& os, const unsigned short i)
++{
++    os.write(label(i));
++    os.check("Ostream& operator<<(Ostream&, const unsigned short)");
++    return os;
++}
++
++
++// ************************************************************************* //
+diff --git a/src/OpenFOAM/primitives/quaternion/quaternion.C b/src/OpenFOAM/primitives/quaternion/quaternion.C
+index 26b8f4272..725b38209 100644
+--- a/src/OpenFOAM/primitives/quaternion/quaternion.C
++++ b/src/OpenFOAM/primitives/quaternion/quaternion.C
+@@ -126,7 +126,7 @@ Foam::quaternion Foam::pow(const quaternion& q, const label power)
+         powq *= power*acos(q.w()/magQ);
      }
  
+-    return pow(magQ, power)*exp(powq);
++    return ::pow(magQ, power)*exp(powq);
+ }
+ 
+ 
+diff --git a/src/functionObjects/forces/forces/forces.C b/src/functionObjects/forces/forces/forces.C
+index 910e0a269..b277b9fba 100644
+--- a/src/functionObjects/forces/forces/forces.C
++++ b/src/functionObjects/forces/forces/forces.C
+@@ -397,7 +397,7 @@ void Foam::functionObjects::forces::applyBins
+ 
+         forAll(dd, i)
+         {
+-            label bini = min(max(floor(dd[i]/binDx_), 0), force_[0].size() - 1);
++            label bini = min(max(floor(dd[i]/binDx_), 0), force_[0].size() - 1.0);
+ 
+             force_[0][bini] += fN[i];
+             force_[1][bini] += fT[i];
 diff --git a/src/fvAgglomerationMethods/Allwmake b/src/fvAgglomerationMethods/Allwmake
 index dcef4328c..48abdf020 100755
 --- a/src/fvAgglomerationMethods/Allwmake
@@ -1801,8 +2970,91 @@ index a58b65fb7..a28a58e03 100644
 +EXE_INC += -I$(ParMGridGen)/MGridGen/Lib/lnInclude
 +EXE_INC += -I$(ParMGridGen)/MGridGen/IMlib/lnInclude
 +endif
+diff --git a/src/lagrangian/intermediate/clouds/Templates/KinematicCloud/KinematicCloudI.H b/src/lagrangian/intermediate/clouds/Templates/KinematicCloud/KinematicCloudI.H
+index 53016ff50..564e91f2a 100644
+--- a/src/lagrangian/intermediate/clouds/Templates/KinematicCloud/KinematicCloudI.H
++++ b/src/lagrangian/intermediate/clouds/Templates/KinematicCloud/KinematicCloudI.H
+@@ -327,8 +327,8 @@ inline Foam::scalar Foam::KinematicCloud<CloudType>::Dij
+     forAllConstIter(typename KinematicCloud<CloudType>, *this, iter)
+     {
+         const parcelType& p = iter();
+-        si += p.nParticle()*pow(p.d(), i);
+-        sj += p.nParticle()*pow(p.d(), j);
++        si += p.nParticle()*::pow(p.d(), i);
++        sj += p.nParticle()*::pow(p.d(), j);
+     }
+ 
+     reduce(si, sumOp<scalar>());
+diff --git a/src/mesh/blockMesh/blockEdges/lineDivide/lineDivide.C b/src/mesh/blockMesh/blockEdges/lineDivide/lineDivide.C
+index 1c746efa3..842f27b36 100644
+--- a/src/mesh/blockMesh/blockEdges/lineDivide/lineDivide.C
++++ b/src/mesh/blockMesh/blockEdges/lineDivide/lineDivide.C
+@@ -112,8 +112,8 @@ Foam::lineDivide::lineDivide
+                 {
+                     divisions_[i] =
+                         secStart
+-                      + blockFrac*(1.0 - pow(expFact, i - secnStart + 1))
+-                    /(1.0 - pow(expFact, secnDiv));
++                      + blockFrac*(1.0 - ::pow(expFact, i - secnStart + 1))
++                    /(1.0 - ::pow(expFact, secnDiv));
+                 }
+             }
+ 
+diff --git a/src/mesh/extrudeModel/extrudeModel/extrudeModel.C b/src/mesh/extrudeModel/extrudeModel/extrudeModel.C
+index 59703fc2f..72dd12d01 100644
+--- a/src/mesh/extrudeModel/extrudeModel/extrudeModel.C
++++ b/src/mesh/extrudeModel/extrudeModel/extrudeModel.C
+@@ -79,8 +79,8 @@ Foam::scalar Foam::extrudeModel::sumThickness(const label layer) const
+     else
+     {
+         return
+-            (1.0-pow(expansionRatio_, layer))
+-          / (1.0-pow(expansionRatio_, nLayers_));
++            (1.0 - ::pow(expansionRatio_, layer))
++           /(1.0 - ::pow(expansionRatio_, nLayers_));
+     }
+ }
+ 
+diff --git a/src/mesh/snappyHexMesh/snappyHexMeshDriver/layerParameters/layerParameters.C b/src/mesh/snappyHexMesh/snappyHexMeshDriver/layerParameters/layerParameters.C
+index 604235306..4cbf14211 100644
+--- a/src/mesh/snappyHexMesh/snappyHexMeshDriver/layerParameters/layerParameters.C
++++ b/src/mesh/snappyHexMesh/snappyHexMeshDriver/layerParameters/layerParameters.C
+@@ -64,11 +64,11 @@ Foam::scalar Foam::layerParameters::layerExpansionRatio
+     if (totalOverFirst < n)
+     {
+         minR = 0;
+-        maxR = pow(totalOverFirst/n, 1/(n-1));
++        maxR = pow(totalOverFirst/n, 1.0/(n - 1));
+     }
+     else
+     {
+-        minR = pow(totalOverFirst/n, 1/(n-1));
++        minR = pow(totalOverFirst/n, 1.0/(n - 1));
+         maxR = totalOverFirst/(n - 1);
+     }
+ 
+@@ -78,8 +78,8 @@ Foam::scalar Foam::layerParameters::layerExpansionRatio
+     for (label i = 0; i < maxIters; ++i)
+     {
+         const scalar prevr = r;
+-        const scalar fx = pow(r, n) - totalOverFirst*r - (1 - totalOverFirst);
+-        const scalar dfx = n*pow(r, n - 1) - totalOverFirst;
++        const scalar fx = ::pow(r, n) - totalOverFirst*r - (1 - totalOverFirst);
++        const scalar dfx = n*::pow(r, n - 1) - totalOverFirst;
+ 
+         r -= fx/dfx;
+ 
+@@ -501,7 +501,7 @@ Foam::scalar Foam::layerParameters::firstLayerThickness
+ 
+         case FINAL_AND_EXPANSION:
+         {
+-            return finalLayerThickess*pow(1.0/expansionRatio, nLayers-1);
++            return finalLayerThickess*::pow(1.0/expansionRatio, nLayers-1);
+         }
+         break;
+ 
 diff --git a/src/parallel/decompose/Allwmake b/src/parallel/decompose/Allwmake
-index 8f769c388..31f2c28a0 100755
+index ea8550c8c..430392f5e 100755
 --- a/src/parallel/decompose/Allwmake
 +++ b/src/parallel/decompose/Allwmake
 @@ -6,7 +6,9 @@ cd ${0%/*} || exit 1    # Run from this directory
@@ -1869,11 +3121,144 @@ index 8acd678fd..d4dfa96ba 100644
      -I$(METIS_ARCH_PATH)/include \
      -I../decompositionMethods/lnInclude
  
+diff --git a/src/parallel/decompose/metisDecomp/metisDecomp.C b/src/parallel/decompose/metisDecomp/metisDecomp.C
+index ecffa5c83..149dafe0d 100644
+--- a/src/parallel/decompose/metisDecomp/metisDecomp.C
++++ b/src/parallel/decompose/metisDecomp/metisDecomp.C
+@@ -54,15 +54,31 @@ Foam::label Foam::metisDecomp::decompose
+     List<label>& finalDecomp
+ )
+ {
++    List<idx_t> m_adjncy(adjncy.size());
++    List<idx_t> m_xadj(xadj.size());
++    List<idx_t> m_finalDecomp;
++#if WM_LABEL_SIZE == IDXTYPEWIDTH
++    m_adjncy = adjncy;
++    m_xadj = xadj;
++#else
++    forAll(adjncy, i)
++    {
++        m_adjncy[i] = static_cast<idx_t>(adjncy[i]);
++    }
++    forAll(xadj, i)
++    {
++        m_xadj[i] = static_cast<idx_t>(xadj[i]);
++    }
++#endif
+     // Method of decomposition
+     // recursive: multi-level recursive bisection (default)
+     // k-way: multi-level k-way
+     word method("recursive");
+ 
+-    label numCells = xadj.size()-1;
++    idx_t numCells = static_cast<idx_t>(xadj.size() - 1);
+ 
+     // Decomposition options
+-    List<label> options(METIS_NOPTIONS);
++    List<idx_t> options(METIS_NOPTIONS);
+     METIS_SetDefaultOptions(options.begin());
+ 
+     // Processor weights initialised with no size, only used if specified in
+@@ -70,10 +86,10 @@ Foam::label Foam::metisDecomp::decompose
+     Field<real_t> processorWeights;
+ 
+     // Cell weights (so on the vertices of the dual)
+-    List<label> cellWeights;
++    List<idx_t> cellWeights;
+ 
+     // Face weights (so on the edges of the dual)
+-    List<label> faceWeights;
++    List<idx_t> faceWeights;
+ 
+ 
+     // Check for externally provided cellweights and if so initialise weights
+@@ -157,14 +173,15 @@ Foam::label Foam::metisDecomp::decompose
+         }
+     }
+ 
+-    label ncon = 1;
+-    label nProcs = nProcessors_;
++    idx_t ncon = 1;
++    idx_t nProcs = static_cast<idx_t>(nProcessors_);
+ 
+     // Output: cell -> processor addressing
+-    finalDecomp.setSize(numCells);
++    finalDecomp.setSize(static_cast<label>(numCells));
++    m_finalDecomp.setSize(static_cast<label>(numCells));
+ 
+     // Output: number of cut edges
+-    label edgeCut = 0;
++    idx_t edgeCut = 0;
+ 
+     if (method == "recursive")
+     {
+@@ -172,8 +189,8 @@ Foam::label Foam::metisDecomp::decompose
+         (
+             &numCells,          // num vertices in graph
+             &ncon,              // num balancing constraints
+-            const_cast<List<label>&>(xadj).begin(),   // indexing into adjncy
+-            const_cast<List<label>&>(adjncy).begin(), // neighbour info
++            m_xadj.begin(),   // indexing into adjncy
++            m_adjncy.begin(), // neighbour info
+             cellWeights.begin(),// vertexweights
+             nullptr,               // vsize: total communication vol
+             faceWeights.begin(),// edgeweights
+@@ -182,7 +199,7 @@ Foam::label Foam::metisDecomp::decompose
+             nullptr,               // ubvec: processor imbalance (default)
+             options.begin(),
+             &edgeCut,
+-            finalDecomp.begin()
++            m_finalDecomp.begin()
+         );
+     }
+     else
+@@ -191,8 +208,8 @@ Foam::label Foam::metisDecomp::decompose
+         (
+             &numCells,          // num vertices in graph
+             &ncon,              // num balancing constraints
+-            const_cast<List<label>&>(xadj).begin(),   // indexing into adjncy
+-            const_cast<List<label>&>(adjncy).begin(), // neighbour info
++            m_xadj.begin(),   // indexing into adjncy
++            m_adjncy.begin(), // neighbour info
+             cellWeights.begin(),// vertexweights
+             nullptr,               // vsize: total communication vol
+             faceWeights.begin(),// edgeweights
+@@ -201,10 +218,29 @@ Foam::label Foam::metisDecomp::decompose
+             nullptr,               // ubvec: processor imbalance (default)
+             options.begin(),
+             &edgeCut,
+-            finalDecomp.begin()
++            m_finalDecomp.begin()
+         );
+     }
+ 
++#if WM_LABEL_SIZE == IDXTYPEWIDTH
++    const_cast<List<label>&>(adjncy) = m_adjncy;
++    const_cast<List<label>&>(xadj) = m_xadj;
++    finalDecomp = m_finalDecomp;
++#else
++    forAll(adjncy, i)
++    {
++        const_cast<List<label>&>(adjncy)[i] = static_cast<label>(m_adjncy[i]);
++    }
++    forAll(xadj, i)
++    {
++        const_cast<List<label>&>(xadj)[i] = static_cast<label>(m_xadj[i]);
++    }
++    forAll(finalDecomp, i)
++    {
++        finalDecomp[i] = static_cast<label>(m_finalDecomp[i]);
++    }
++#endif
++
+     return edgeCut;
+ }
+ 
 diff --git a/src/parallel/decompose/ptscotchDecomp/Make/options b/src/parallel/decompose/ptscotchDecomp/Make/options
-index 5e3069ba8..b0a73131c 100644
+index 2af0fddac..ae0c96a32 100644
 --- a/src/parallel/decompose/ptscotchDecomp/Make/options
 +++ b/src/parallel/decompose/ptscotchDecomp/Make/options
-@@ -4,15 +4,17 @@ sinclude $(RULES)/mplib$(WM_MPLIB)
+@@ -3,15 +3,20 @@
  EXE_INC = \
      $(PFLAGS) $(PINC) \
      -I$(FOAM_SRC)/Pstream/mpi/lnInclude \
@@ -1891,18 +3276,21 @@ index 5e3069ba8..b0a73131c 100644
 -    -lrt
 +    -lscotch
 +
-+ifneq ("$(SO)","dylib")
-+EXE_INC += -I$(SCOTCH_ARCH_PATH)/include/$(FOAM_MPI) -I/usr/include/scotch
-+LIB_LIBS += -L$(FOAM_EXT_LIBBIN)/$(FOAM_MPI) -lrt
-+else
-+EXE_INC += -I$(SCOTCH_ARCH_PATH)/include
++ifneq ($(SCOTCH_ARCH_PATH),)
++EXE_INC += -I$(SCOTCH_ARCH_PATH)/include/$(FOAM_MPI) \
++	   -I$(SCOTCH_ARCH_PATH)/include
 +LIB_LIBS += -L$(SCOTCH_ARCH_PATH)/lib
 +endif
++
++ifneq ($(SO),dylib)
++EXE_INC += -I/usr/include/scotch
++LIB_LIBS += -L$(FOAM_EXT_LIBBIN)/$(FOAM_MPI) -lrt
++endif
 diff --git a/src/parallel/decompose/scotchDecomp/Make/options b/src/parallel/decompose/scotchDecomp/Make/options
-index d2cc77069..799e3316b 100644
+index df47c9071..a205e1c4f 100644
 --- a/src/parallel/decompose/scotchDecomp/Make/options
 +++ b/src/parallel/decompose/scotchDecomp/Make/options
-@@ -8,12 +8,14 @@ sinclude $(RULES)/mplib$(WM_MPLIB)
+@@ -7,12 +7,14 @@
  EXE_INC = \
      $(PFLAGS) $(PINC) \
      -I$(SCOTCH_ARCH_PATH)/include \
@@ -1946,19 +3334,19 @@ index cf6e54861..e3b7efff8 100644
 +else
 +LIB_LIBS += -lboost_system
 +endif
-diff --git a/src/thermophysicalModels/basic/basicThermo/basicThermo.C b/src/thermophysicalModels/basic/basicThermo/basicThermo.C
-index c45c91493..b326e369c 100644
---- a/src/thermophysicalModels/basic/basicThermo/basicThermo.C
-+++ b/src/thermophysicalModels/basic/basicThermo/basicThermo.C
-@@ -445,7 +445,7 @@ Foam::wordList Foam::basicThermo::splitThermoName
-         }
-         else if ((endc = thermoName.find(',', beg)) != string::npos)
-         {
--            end = min(endb, endc);
-+            end = std::min(endb, endc);
-         }
-         else
-         {
+diff --git a/src/thermophysicalModels/specie/reaction/reactionRate/powerSeries/powerSeriesReactionRateI.H b/src/thermophysicalModels/specie/reaction/reactionRate/powerSeries/powerSeriesReactionRateI.H
+index 6d38b8194..e173044e0 100644
+--- a/src/thermophysicalModels/specie/reaction/reactionRate/powerSeries/powerSeriesReactionRateI.H
++++ b/src/thermophysicalModels/specie/reaction/reactionRate/powerSeries/powerSeriesReactionRateI.H
+@@ -73,7 +73,7 @@ inline Foam::scalar Foam::powerSeriesReactionRate::operator()
+ 
+     forAll(coeffs_, n)
+     {
+-        expArg += coeffs_[n]/pow(T, n + 1);
++        expArg += coeffs_[n]/::pow(T, n + 1);
+     }
+ 
+     lta *= exp(expArg);
 diff --git a/wmake/makefiles/files b/wmake/makefiles/files
 index fd7c6472c..16789e5df 100644
 --- a/wmake/makefiles/files
@@ -2033,7 +3421,7 @@ index 000000000..3d11bf122
 +    $(CC) $(c++FLAGS) -c  $(@D)/$(<F).C -o $@
 diff --git a/wmake/rules/darwin64Clang/c b/wmake/rules/darwin64Clang/c
 new file mode 100644
-index 000000000..3ce40f206
+index 000000000..5aeb7e525
 --- /dev/null
 +++ b/wmake/rules/darwin64Clang/c
 @@ -0,0 +1,23 @@
@@ -2055,14 +3443,14 @@ index 000000000..3ce40f206
 +
 +LINK_LIBS   = $(cDBUG)
 +
-+LINKLIBSO   = $(cc) -Wl,-dylib,-undefined,dynamic_lookup,-w
++LINKLIBSO   = $(cc) -Wl,-dylib,-undefined,dynamic_lookup
 +
-+LINKEXE     = $(cc) -Wl,-execute,-undefined,dynamic_lookup,-w
++LINKEXE     = $(cc) -Wl,-execute,-undefined,dynamic_lookup
 +
 +#----------------------------- vi: set ft=make: -------------------------------
 diff --git a/wmake/rules/darwin64Clang/c++ b/wmake/rules/darwin64Clang/c++
 new file mode 100644
-index 000000000..debe78f55
+index 000000000..c2d8f7971
 --- /dev/null
 +++ b/wmake/rules/darwin64Clang/c++
 @@ -0,0 +1,35 @@
@@ -2096,9 +3484,9 @@ index 000000000..debe78f55
 +
 +LINK_LIBS   = $(c++DBUG)
 +
-+LINKLIBSO   = $(CC) $(c++FLAGS) -Wl,-dylib,-undefined,dynamic_lookup,-w
++LINKLIBSO   = $(CC) $(c++FLAGS) -Wl,-dylib,-undefined,dynamic_lookup
 +
-+LINKEXE     = $(CC) $(c++FLAGS) -Wl,-execute,-undefined,dynamic_lookup,-w
++LINKEXE     = $(CC) $(c++FLAGS) -Wl,-execute,-undefined,dynamic_lookup
 +
 +#----------------------------- vi: set ft=make: -------------------------------
 diff --git a/wmake/rules/darwin64Clang/c++Debug b/wmake/rules/darwin64Clang/c++Debug
@@ -2239,14 +3627,14 @@ index 46f4c607f..9a67b1f62 100644
  #------------------------------------------------------------------------------
  # Targets
 diff --git a/wmake/src/wmkdep.l b/wmake/src/wmkdep.l
-index f44b6c9ff..28b25bc89 100644
+index f44b6c9ff..80c8c3f02 100644
 --- a/wmake/src/wmkdep.l
 +++ b/wmake/src/wmkdep.l
 @@ -461,6 +461,7 @@ char* substitutePath(char* pathName)
          int i;
          for (i = 0; i < nReplacements; i++)
          {
-+	    if (replacements[i].searchLen == 1) continue;
++            if (!strcmp(replacements[i].search, "/")) continue;
              pathName = strRep(pathName, &replacements[i]);
          }
      }
