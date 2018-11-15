@@ -3,7 +3,7 @@ class Parmgridgen < Formula
   url "https://github.com/mrklein/ParMGridGen/archive/v0.0.2.tar.gz"
   sha256 "b3875d877def79c5fe37df0c9b1a43a47b3a99e8714f654a44d2010ce338ea93"
 
-  depends_on :mpi => :cc
+  depends_on "open-mpi"
 
   def install
     ENV.deparallelize
