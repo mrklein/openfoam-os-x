@@ -1,12 +1,13 @@
 class Scotch64 < Formula
-  desc "Package for graph and mesh partitioning"
+  desc "Package for graph and mesh partitioning. 64-bit indexing type."
   homepage "https://gforge.inria.fr/projects/scotch"
   url "https://gforge.inria.fr/frs/download.php/file/34618/scotch_6.0.4.tar.gz"
   sha256 "f53f4d71a8345ba15e2dd4e102a35fd83915abf50ea73e1bf6efe1bc2b4220c7"
   revision 1
 
-  option "without-test", "skip build-time tests (not recommended)"
-  deprecated_option "without-check" => "without-test"
+  keg_only "Conflicts with scotch formula"
+
+  option "without-check", "skip build-time tests (not recommended)"
 
   depends_on "open-mpi"
   depends_on "xz" => :optional # Provides lzma compression.
@@ -36,13 +37,8 @@ class Scotch64 < Formula
 
       if OS.mac?
         make_args << "LIB=.dylib"
-        if MacOS.version >= :mojave
-          make_args << "AR=#{ENV["CC"]}"
-          make_args << "ARFLAGS=-dynamiclib -Wl,-single_module -install_name #{lib}/$(notdir $@) -undefined dynamic_lookup -o "
-        else
-          make_args << "AR=libtool"
-          make_args << "ARFLAGS=-dynamiclib -Wl,-single_module -install_name #{lib}/$(notdir $@) -undefined dynamic_lookup -o "
-        end
+        make_args << "AR=#{ENV["CC"]}"
+        make_args << "ARFLAGS=-dynamiclib -Wl,-single_module -install_name #{lib}/$(notdir $@) -undefined dynamic_lookup -o "
       else
        make_args << "LIB=.so"
        make_args << "ARCH=ar"
@@ -52,7 +48,7 @@ class Scotch64 < Formula
       system "make", "scotch", "VERBOSE=ON", *make_args
       system "make", "ptscotch", "VERBOSE=ON", *make_args
       system "make", "install", "prefix=#{prefix}", *make_args
-      system "make", "check", "ptcheck", "EXECP=mpirun -np 2", *make_args unless build.without? "test"
+      system "make", "check", "ptcheck", "EXECP=mpirun -np 2", *make_args if build.with? "check"
     end
 
     # Install documentation + sample graphs and grids.

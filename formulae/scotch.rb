@@ -5,7 +5,8 @@ class Scotch < Formula
   sha256 "f53f4d71a8345ba15e2dd4e102a35fd83915abf50ea73e1bf6efe1bc2b4220c7"
   revision 1
 
-  option "without-check", "skip build-time tests (not recommended)"
+  option "without-test", "skip build-time tests (not recommended)"
+  deprecated_option "without-check" => "without-test"
 
   depends_on "open-mpi"
   depends_on "xz" => :optional # Provides lzma compression.
@@ -34,8 +35,13 @@ class Scotch < Formula
 
       if OS.mac?
         make_args << "LIB=.dylib"
-        make_args << "AR=libtool"
-        make_args << "ARFLAGS=-dynamic -install_name #{lib}/$(notdir $@) -undefined dynamic_lookup -o "
+        if MacOS.version >= :mojave
+          make_args << "AR=#{ENV["CC"]}"
+          make_args << "ARFLAGS=-dynamiclib -Wl,-single_module -install_name #{lib}/$(notdir $@) -undefined dynamic_lookup -o "
+        else
+          make_args << "AR=libtool"
+          make_args << "ARFLAGS=-dynamiclib -Wl,-single_module -install_name #{lib}/$(notdir $@) -undefined dynamic_lookup -o "
+        end
       else
        make_args << "LIB=.so"
        make_args << "ARCH=ar"
@@ -45,7 +51,7 @@ class Scotch < Formula
       system "make", "scotch", "VERBOSE=ON", *make_args
       system "make", "ptscotch", "VERBOSE=ON", *make_args
       system "make", "install", "prefix=#{prefix}", *make_args
-      system "make", "check", "ptcheck", "EXECP=mpirun -np 2", *make_args if build.with? "check"
+      system "make", "check", "ptcheck", "EXECP=mpirun -np 2", *make_args unless build.without? "test"
     end
 
     # Install documentation + sample graphs and grids.
