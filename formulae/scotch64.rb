@@ -36,12 +36,11 @@ class Scotch64 < Formula
 
       if OS.mac?
         make_args << "LIB=.dylib"
+        make_args << "ARFLAGS=-dynamiclib -Wl,-single_module -install_name #{lib}/$(notdir $@) -undefined dynamic_lookup -o "
         if MacOS.version >= :mojave
           make_args << "AR=#{ENV["CC"]}"
-          make_args << "ARFLAGS=-dynamiclib -Wl,-single_module -install_name #{lib}/$(notdir $@) -undefined dynamic_lookup -o "
         else
           make_args << "AR=libtool"
-          make_args << "ARFLAGS=-dynamiclib -Wl,-single_module -install_name #{lib}/$(notdir $@) -undefined dynamic_lookup -o "
         end
       else
        make_args << "LIB=.so"
