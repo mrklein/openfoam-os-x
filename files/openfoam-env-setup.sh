@@ -7,137 +7,72 @@
 # $ cat 'N.X.Y' > .OpenFOAM/OpenFOAM-release
 # If you'd like to switch environment between versions use ofNxy commands.
 #
-# Currently N could be 2, 3, or 4.
+# Currently N is 2, 3, 4, 5, 6, or 7.
 
 readonly FOAM_MOUNT_POINT="${FOAM_MOUNT_POINT:-"$HOME/OpenFOAM"}"
 readonly FOAM_RELEASE_FILE="${FOAM_RELEASE_FILE:-"$HOME/.OpenFOAM/OpenFOAM-release"}"
 readonly FOAM_DISK_IMAGE="${FOAM_DISK_IMAGE:-"$HOME/OpenFOAM.sparsebundle"}"
 
 mount_disk_image () {
-	local oldpwd="$(pwd)"
-	cd "$HOME"
-	# Attempt to mount image
-	hdiutil attach -quiet -mountpoint "$FOAM_MOUNT_POINT" "$FOAM_DISK_IMAGE"
-	cd "$oldpwd"
-	return 0
+    local oldpwd="$(pwd)"
+    cd "$HOME"
+    # Attempt to mount image
+    hdiutil attach -quiet -mountpoint "$FOAM_MOUNT_POINT" "$FOAM_DISK_IMAGE"
+    cd "$oldpwd"
+    return 0
 }
 
 main () {
-	[ -f "$FOAM_RELEASE_FILE" ] || return 1
+    [ -f "$FOAM_RELEASE_FILE" ] || return 1
 
-	local release="$(cat "$FOAM_RELEASE_FILE")"
-	local bashrc="$FOAM_MOUNT_POINT/OpenFOAM-$release/etc/bashrc"
+    local release="$(cat "$FOAM_RELEASE_FILE")"
+    local bashrc="$FOAM_MOUNT_POINT/OpenFOAM-$release/etc/bashrc"
 
-	[ -f "$bashrc" ] || mount_disk_image
+    [ -f "$bashrc" ] || mount_disk_image
 
-	if [ -f "$bashrc" ]
+    if [ -f "$bashrc" ]
     then
-		source "$bashrc" WM_NCOMPPROCS="$(sysctl -n hw.ncpu)"
-	else
-		echo "OpenFOAM $release doesn't seem to be installed."
-	fi
+        source "$bashrc" WM_NCOMPPROCS="$(sysctl -n hw.ncpu)"
+    else
+        echo "OpenFOAM $release doesn't seem to be installed."
+    fi
 }
 
 # Reset environment variables for specified version
 ofxxx () {
-	local release="$1"
-	[ -n "$WM_PROJECT_DIR" ] && {
+    local release="$1"
+    [ -n "$WM_PROJECT_DIR" ] && {
         [ -r "$WM_PROJECT_DIR/etc/config/unset.sh" ] \
             && . "$WM_PROJECT_DIR/etc/config/unset.sh"
     }
-	local bashrc="$FOAM_MOUNT_POINT/OpenFOAM-$release/etc/bashrc"
-	if [ -f "$bashrc" ]; then
-		source "$bashrc" WM_NCOMPPROCS="$(sysctl -n hw.ncpu)"
-	else
-		mount_disk_image
-		if [ -f "$bashrc" ]; then
-			source "$bashrc" WM_NCOMPPROCS="$(sysctl -n hw.ncpu)"
-		else
-			echo "OpenFOAM $release doesn't seem to be installed."
-		fi
-	fi
+    local bashrc="$FOAM_MOUNT_POINT/OpenFOAM-$release/etc/bashrc"
+    if [ -f "$bashrc" ]; then
+        source "$bashrc" WM_NCOMPPROCS="$(sysctl -n hw.ncpu)"
+    else
+        mount_disk_image
+        if [ -f "$bashrc" ]; then
+            source "$bashrc" WM_NCOMPPROCS="$(sysctl -n hw.ncpu)"
+        else
+            echo "OpenFOAM $release doesn't seem to be installed."
+        fi
+    fi
 }
-
 export -f ofxxx
-
-of22x () {
-	ofxxx "2.2.x"
-}
-
-export -f of22x
-
-of231 () {
-	ofxxx "2.3.1"
-}
-
-export -f of231
-
-of23x () {
-	ofxxx "2.3.x"
-}
-
-export -f of23x
-
-of240 () {
-	ofxxx "2.4.0"
-}
-
-export -f of240
-
-of24x () {
-	ofxxx "2.4.x"
-}
-
-export -f of24x
-
-of300() {
-	ofxxx "3.0.0"
-}
-
-export -f of300
-
-of301() {
-	ofxxx "3.0.1"
-}
-
-export -f of301
-
-of30x() {
-	ofxxx "3.0.x"
-}
-
-export -f of30x
-
-of40() {
-    ofxxx "4.0"
-}
-
-export -f of40
-
-of41() {
-    ofxxx "4.1"
-}
-
-export -f of41
-
-
-of4x() {
-    ofxxx "4.x"
-}
-
-export -f of4x
-
-of50() {
-    ofxxx "5.0"
-}
-
-export -f of50
 
 of5x() {
     ofxxx "5.x"
 }
-
 export -f of5x
+
+of6() {
+    ofxxx "6"
+}
+export -f of6
+
+of7() {
+    ofxxx "7"
+}
+export -f of7
 
 ofdev() {
     ofxxx "dev"
@@ -146,7 +81,9 @@ ofdev() {
 export -f ofdev
 
 pf () {
-	paraFoam -builtin > /dev/null 2>&1 &
+    paraFoam -builtin > /dev/null 2>&1 &
 }
 
 main
+
+# vi: set ft=sh et sw=4 ts=4 sts=4:

@@ -288,10 +288,10 @@ index 9840ddf20..78ae09edf 100755
      test "$mod_time" -gt "$idle_ago" || break
      sleep "$refresh"
 diff --git a/bin/paraFoam b/bin/paraFoam
-index 833f15d16..180367abf 100755
+index cfd483da9..996464e6b 100755
 --- a/bin/paraFoam
 +++ b/bin/paraFoam
-@@ -75,6 +75,12 @@ extension=OpenFOAM
+@@ -99,6 +99,12 @@ extension=OpenFOAM
  
  requirePV=1
  
@@ -814,7 +814,7 @@ index 000000000..e62931c9b
 +
 +#------------------------------------------------------------------------------
 diff --git a/etc/config.sh/mpi b/etc/config.sh/mpi
-index 743a7f465..057789b93 100644
+index 9688cb1dd..5f4d10641 100644
 --- a/etc/config.sh/mpi
 +++ b/etc/config.sh/mpi
 @@ -47,7 +47,7 @@ SYSTEMOPENMPI)

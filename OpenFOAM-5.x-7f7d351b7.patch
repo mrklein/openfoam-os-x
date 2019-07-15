@@ -65,6 +65,7 @@
  src/parallel/decompose/ptscotchDecomp/Make/options |  11 +-
  src/parallel/decompose/scotchDecomp/Make/options   |  10 +-
  src/renumber/SloanRenumber/Make/options            |  14 +-
+ .../laminar/helmholtzResonance/Allrun              |   4 +-
  wmake/makefiles/files                              |   6 +-
  wmake/makefiles/general                            |   4 +
  wmake/rules/darwin64Clang/CGAL                     |  13 ++
@@ -84,7 +85,7 @@
  wmake/src/Makefile                                 |   2 +
  wmake/src/wmkdep.l                                 |   2 +-
  wmake/wmake                                        |   5 +
- 86 files changed, 2275 insertions(+), 98 deletions(-)
+ 87 files changed, 2277 insertions(+), 100 deletions(-)
 
 diff --git a/Allwmake b/Allwmake
 index 3f6a7523d..00810aff6 100755
@@ -3341,6 +3342,24 @@ index cf6e54861..e3b7efff8 100644
 +else
 +LIB_LIBS += -lboost_system
 +endif
+diff --git a/tutorials/compressible/rhoPimpleFoam/laminar/helmholtzResonance/Allrun b/tutorials/compressible/rhoPimpleFoam/laminar/helmholtzResonance/Allrun
+index 78bf41821..02458d0e8 100755
+--- a/tutorials/compressible/rhoPimpleFoam/laminar/helmholtzResonance/Allrun
++++ b/tutorials/compressible/rhoPimpleFoam/laminar/helmholtzResonance/Allrun
+@@ -1,11 +1,11 @@
+-#!/bin/sh
++#!/bin/bash
+ 
+ cd ${0%/*} || exit 1
+ 
+ . $WM_PROJECT_DIR/bin/tools/RunFunctions
+ 
+ # Run function links the appropriate mesh files and clones the case
+-run()
++function run()
+ {
+     (
+         cd system
 diff --git a/wmake/makefiles/files b/wmake/makefiles/files
 index 21b43c719..19b592823 100644
 --- a/wmake/makefiles/files
