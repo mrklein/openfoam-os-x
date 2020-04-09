@@ -1,0 +1,2165 @@
+ bin/tools/RunFunctions                             |   4 +
+ bin/tools/lib-dir                                  |   8 +-
+ etc/bashrc                                         |   2 +-
+ etc/config.csh/functions                           |  12 ++-
+ etc/config.csh/paraview                            |  23 ++++-
+ etc/config.csh/settings                            |   1 +
+ etc/config.csh/setup                               |  40 ++++++--
+ etc/config.csh/unset                               |  22 ++++-
+ etc/config.sh/CGAL                                 |   4 +-
+ etc/config.sh/FFTW                                 |   2 +-
+ etc/config.sh/adios2                               |   2 +-
+ etc/config.sh/functions                            |   2 +
+ etc/config.sh/kahip                                |   4 +-
+ etc/config.sh/metis                                |   2 +-
+ etc/config.sh/paraview                             |   2 +-
+ etc/config.sh/petsc                                |   2 +-
+ etc/config.sh/scotch                               |   2 +-
+ etc/config.sh/settings                             |   1 +
+ etc/config.sh/setup                                |  39 +++++++-
+ etc/config.sh/unset                                |  24 ++++-
+ etc/config.sh/vtk                                  |  10 +-
+ etc/cshrc                                          |   2 +-
+ src/OSspecific/POSIX/signals/sigFpe.C              |  51 +++++++++-
+ .../containers/HashTables/HashSet/HashSet.C        |  44 +++++----
+ .../containers/HashTables/HashSet/HashSet.H        |  61 ++++++------
+ .../containers/HashTables/HashTable/HashTable.H    | 107 ++++++++++++---------
+ .../HashTables/HashTable/HashTableCore.H           |  39 +++-----
+ .../HashTables/HashTable/HashTableCoreI.H          |  51 +++-------
+ .../HashTables/HashTable/HashTableIterI.H          |  66 +++++--------
+ .../LinkedLists/linkTypes/DLListBase/DLListBase.H  |   6 +-
+ .../LinkedLists/linkTypes/SLListBase/SLListBase.H  |   6 +-
+ src/OpenFOAM/containers/Lists/ListOps/ListOps.H    |   3 +-
+ src/OpenFOAM/db/dictionary/dictionary.H            |  44 ++++-----
+ .../dimensionedType/dimensionedType.H              |   9 +-
+ .../GeometricField/GeometricField.H                |   3 +-
+ src/OpenFOAM/global/argList/argList.H              |  36 +++----
+ src/OpenFOAM/matrices/Matrix/Matrix.H              |  22 +++--
+ src/OpenFOAM/meshes/meshShapes/face/face.H         |   4 +-
+ src/OpenFOAM/meshes/meshShapes/triFace/triFace.H   |   4 +-
+ .../meshes/primitiveShapes/triangle/triangle.H     |   4 +-
+ src/OpenFOAM/primitives/Scalar/doubleFloat.H       |   8 ++
+ src/OpenFOAM/primitives/enums/Enum.H               |   4 +-
+ src/OpenFOAM/primitives/enums/NamedEnum.H          |   4 +-
+ .../primitives/strings/lists/hashedWordList.H      |   4 +-
+ src/fileFormats/ensight/part/ensightPart.H         |   4 +-
+ src/functionObjects/graphics/Allwmake              |   2 +-
+ wmake/rules/General/Clang/c++                      |   2 +-
+ wmake/rules/General/Clang/openmp                   |   4 +-
+ 48 files changed, 465 insertions(+), 337 deletions(-)
+
+diff --git a/bin/tools/RunFunctions b/bin/tools/RunFunctions
+index 8adacd73..32fd5b51 100644
+--- a/bin/tools/RunFunctions
++++ b/bin/tools/RunFunctions
+@@ -26,6 +26,10 @@
+ 
+ #------------------------------------------------------------------------------
+ 
++# Work-around for cleared DYLD_LIBRARY_PATH variable
++[ -z "$DYLD_LIBRARY_PATH" -a -n "$FOAM_DYLD_LIBRARY_PATH" ] \
++    && export DYLD_LIBRARY_PATH="$FOAM_DYLD_LIBRARY_PATH"
++
+ #
+ # Check presence of '-parallel' in the argument list.
+ #
+diff --git a/bin/tools/lib-dir b/bin/tools/lib-dir
+index 5cc17801..daba1550 100755
+--- a/bin/tools/lib-dir
++++ b/bin/tools/lib-dir
+@@ -157,10 +157,10 @@ then
+         printf "%s\n" "-L$resolved"
+         ;;
+     csh-Darwin*)
+-        echo "setenv DYLD_LIBRARY_PATH $resolved:$DYLD_LIBRARY_PATH"
++        echo "setenv FOAM_DYLD_LIBRARY_PATH $resolved:$FOAM_DYLD_LIBRARY_PATH"
+         if [ -n "$verboseOutput" ]
+         then
+-            echo "setenv DYLD_LIBRARY_PATH $resolved:$DYLD_LIBRARY_PATH" 1>&2
++            echo "setenv FOAM_DYLD_LIBRARY_PATH $resolved:$FOAM_DYLD_LIBRARY_PATH" 1>&2
+         fi
+         ;;
+     csh*)
+@@ -171,10 +171,10 @@ then
+         fi
+         ;;
+     sh-Darwin*)
+-        echo "DYLD_LIBRARY_PATH=$resolved:$DYLD_LIBRARY_PATH"
++        echo "FOAM_DYLD_LIBRARY_PATH=$resolved:$FOAM_DYLD_LIBRARY_PATH"
+         if [ -n "$verboseOutput" ]
+         then
+-            echo "DYLD_LIBRARY_PATH=$resolved:$DYLD_LIBRARY_PATH" 1>&2
++            echo "FOAM_DYLD_LIBRARY_PATH=$resolved:$FOAM_DYLD_LIBRARY_PATH" 1>&2
+         fi
+         ;;
+     *)
+diff --git a/etc/bashrc b/etc/bashrc
+index 9743498f..c03edda9 100644
+--- a/etc/bashrc
++++ b/etc/bashrc
+@@ -1,4 +1,4 @@
+-#----------------------------------*-sh-*--------------------------------------
++
+ # =========                 |
+ # \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+ #  \\    /   O peration     |
+diff --git a/etc/config.csh/functions b/etc/config.csh/functions
+index f71dd990..91523b7b 100644
+--- a/etc/config.csh/functions
++++ b/etc/config.csh/functions
+@@ -28,12 +28,20 @@ alias _foamClean 'eval `$WM_PROJECT_DIR/bin/foamCleanPath -csh-env=\!*`'
+ # Prepend PATH, MANPATH, LD_LIBRARY_PATH
+ alias _foamAddPath 'setenv PATH \!*\:${PATH}'
+ alias _foamAddMan  'setenv MANPATH \!*\:${MANPATH}'
+-alias _foamAddLib  'setenv LD_LIBRARY_PATH \!*\:${LD_LIBRARY_PATH}'
++if ( $foamDarwin ) then
++    alias _foamAddLib  'setenv DYLD_LIBRARY_PATH \!*\:${DYLD_LIBRARY_PATH}; setenv FOAM_DYLD_LIBRARY_PATH \!*\:${FOAM_DYLD_LIBRARY_PATH}'
++else
++    alias _foamAddLib  'setenv LD_LIBRARY_PATH \!*\:${LD_LIBRARY_PATH}'
++endif
+ 
+ # Prefix to LD_LIBRARY_PATH with additional checking
+ # $1 = base directory for 'lib' or 'lib64'
+ # $2 = fallback libname ('lib' or 'lib64')
+-alias _foamAddLibAuto 'eval `$WM_PROJECT_DIR/bin/tools/lib-dir -csh \!*`'
++if (`uname -s` == "Darwin") then
++    alias _foamAddLibAuto 'eval `$WM_PROJECT_DIR/bin/tools/lib-dir -csh \!*`; setenv DYLD_LIBRARY_PATH "$FOAM_DYLD_LIBRARY_PATH"'
++else
++    alias _foamAddLibAuto 'eval `$WM_PROJECT_DIR/bin/tools/lib-dir -csh \!*`'
++endif
+ 
+ # Echo values when FOAM_VERBOSE is on, no-op otherwise
+ if ($?FOAM_VERBOSE && $?prompt) then
+diff --git a/etc/config.csh/paraview b/etc/config.csh/paraview
+index bc57ed56..d69dbfcb 100644
+--- a/etc/config.csh/paraview
++++ b/etc/config.csh/paraview
+@@ -65,9 +65,14 @@ if (! $?WM_COMPILER_LIB_ARCH ) setenv WM_COMPILER_LIB_ARCH
+ # Compiler-specific location for ThirdParty installations
+ set archDir="$WM_THIRD_PARTY_DIR/platforms/$WM_ARCH$WM_COMPILER"
+ 
+-# Clean PATH and LD_LIBRARY_PATH
++# Clean PATH and [DY]LD_LIBRARY_PATH
+ eval `$WM_PROJECT_DIR/bin/foamCleanPath -csh-env=PATH "$ParaView_DIR $archDir/ParaView- $archDir/qt- $archDir/cmake-"`
+-eval `$WM_PROJECT_DIR/bin/foamCleanPath -csh-env=LD_LIBRARY_PATH "$ParaView_DIR $archDir/ParaView- $archDir/qt-"`
++if ( $foamDarwin ) then
++    eval `$WM_PROJECT_DIR/bin/foamCleanPath -csh-env=FOAM_DYLD_LIBRARY_PATH "$ParaView_DIR $archDir/ParaView- $archDir/qt-"`
++    setenv DYLD_LIBRARY_PATH $FOAM_DYLD_LIBRARY_PATH
++else
++    eval `$WM_PROJECT_DIR/bin/foamCleanPath -csh-env=LD_LIBRARY_PATH "$ParaView_DIR $archDir/ParaView- $archDir/qt-"`
++endif
+ 
+ # Evaluate command-line parameters for ParaView and cmake
+ while ( $#argv > 0 )
+@@ -165,7 +170,12 @@ default:
+             endsw
+             foreach libDir ("lib$WM_COMPILER_LIB_ARCH" "lib")
+                 if ( -d "${qtDir}/${libDir}" ) then
+-                    setenv LD_LIBRARY_PATH "${qtDir}/${libDir}:${LD_LIBRARY_PATH}"
++                    if ( $foamDarwin ) then
++                        setenv DYLD_LIBRARY_PATH "${qtDir}/${libDir}:${DYLD_LIBRARY_PATH}"
++                        setenv FOAM_DYLD_LIBRARY_PATH "${qtDir}/${libDir}:${FOAM_DYLD_LIBRARY_PATH}"
++                    else
++                        setenv LD_LIBRARY_PATH "${qtDir}/${libDir}:${LD_LIBRARY_PATH}"
++                    endif
+                     break
+                 endif
+             end
+@@ -183,7 +193,12 @@ default:
+                     set libDir="$pvLibDir"   # Needs lib/paraview-X.X (not lib)
+                     breaksw
+                 endsw
+-                setenv LD_LIBRARY_PATH "${ParaView_DIR}/${libDir}:${LD_LIBRARY_PATH}"
++                if ( $foamDarwin ) then
++                    setenv DYLD_LIBRARY_PATH "${ParaView_DIR}/${libDir}:${DYLD_LIBRARY_PATH}"
++                    setenv FOAM_DYLD_LIBRARY_PATH "${ParaView_DIR}/${libDir}:${FOAM_DYLD_LIBRARY_PATH}"
++                else
++                    setenv LD_LIBRARY_PATH "${ParaView_DIR}/${libDir}:${LD_LIBRARY_PATH}"
++                endif
+                 break
+             endif
+             set pvLibDir="unknown"
+diff --git a/etc/config.csh/settings b/etc/config.csh/settings
+index 206846e1..8702115e 100644
+--- a/etc/config.csh/settings
++++ b/etc/config.csh/settings
+@@ -93,6 +93,7 @@ case Linux:
+ 
+ case Darwin:    # Presumably x86_64
+     setenv WM_ARCH darwin64
++    setenv WM_COMPILER Clang
+     echo "Darwin support is clang/llvm only"
+     breaksw
+ 
+diff --git a/etc/config.csh/setup b/etc/config.csh/setup
+index 51a92cd0..1a696f31 100644
+--- a/etc/config.csh/setup
++++ b/etc/config.csh/setup
+@@ -32,6 +32,9 @@ setenv FOAM_API `$WM_PROJECT_DIR/bin/foamEtcFile -show-api`
+ # The installation parent directory
+ set prefixDir="${WM_PROJECT_DIR:h}"
+ 
++# Are we under Darwin
++@ foamDarwin = ( `uname -s` == "Darwin" )
++
+ # Load shell "functions" (actually aliases)
+ source "$WM_PROJECT_DIR/etc/config.csh/functions"
+ 
+@@ -124,13 +127,33 @@ end
+ # Clean standard environment variables (PATH, MANPATH, LD_LIBRARY_PATH)
+ # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ # Prevent local variables from shadowing setenv variables
+-unset PATH MANPATH LD_LIBRARY_PATH
+-if (! $?LD_LIBRARY_PATH ) setenv LD_LIBRARY_PATH
++unset PATH MANPATH
++if ( $foamDarwin ) then
++    unset DYLD_LIBRARY_PATH FOAM_DYLD_LIBRARY_PATH
++else
++    unset LD_LIBRARY_PATH
++endif
++if ( $foamDarwin ) then
++    if (! $?DYLD_LIBRARY_PATH ) setenv DYLD_LIBRARY_PATH
++    if ( $?DYLD_LIBRARY_PATH ) then
++       # Initial value copy
++       setenv FOAM_DYLD_LIBRARY_PATH $DYLD_LIBRARY_PATH
++    else
++       setenv FOAM_DYLD_LIBRARY_PATH
++    endif
++else
++    if (! $?LD_LIBRARY_PATH ) setenv LD_LIBRARY_PATH
++endif
+ if (! $?MANPATH ) setenv MANPATH
+ 
+ _foamClean PATH "$foamOldDirs"
+ _foamClean MANPATH "$foamOldDirs"
+-_foamClean LD_LIBRARY_PATH "$foamOldDirs"
++if ( $foamDarwin ) then
++    _foamClean FOAM_DYLD_LIBRARY_PATH "$foamOldDirs"
++    setenv DYLD_LIBRARY_PATH $FOAM_DYLD_LIBRARY_PATH
++else
++    _foamClean LD_LIBRARY_PATH "$foamOldDirs"
++endif
+ 
+ # Setup for OpenFOAM compilation etc
+ # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+@@ -161,7 +184,12 @@ endif
+ 
+ _foamClean PATH
+ _foamClean MANPATH
+-_foamClean LD_LIBRARY_PATH
++if ( $foamDarwin ) then
++    _foamClean FOAM_DYLD_LIBRARY_PATH
++    setenv DYLD_LIBRARY_PATH $FOAM_DYLD_LIBRARY_PATH
++else
++    _foamClean LD_LIBRARY_PATH
++endif
+ 
+ # Add trailing ':' for system manpages
+ if ( $?MANPATH ) then
+@@ -182,6 +210,6 @@ unalias _foamAddLib
+ unalias _foamAddLibAuto
+ 
+ # Variables (done as final statement for a clean exit code)
+-unset cleaned foamOldDirs foundDir foamDir prefixDir
++unset cleaned foamOldDirs foundDir foamDir prefixDir foamDarwin
+ 
+-#------------------------------------------------------------------------------
++#--------------------- vi: set ft=csh et sw=4 ts=4 sts=4: ---------------------
+diff --git a/etc/config.csh/unset b/etc/config.csh/unset
+index c3405cd6..f8bdf269 100644
+--- a/etc/config.csh/unset
++++ b/etc/config.csh/unset
+@@ -20,6 +20,8 @@
+ #
+ #------------------------------------------------------------------------------
+ 
++@ foamDarwin = ( `uname -s` == "Darwin" )
++
+ # Clean standard environment variables (PATH, LD_LIBRARY_PATH, MANPATH)
+ 
+ unset foamClean
+@@ -75,7 +77,6 @@ unsetenv WM_PROJECT_VERSION
+ unsetenv WM_SCHEDULER
+ unsetenv WM_THIRD_PARTY_DIR
+ 
+-
+ #------------------------------------------------------------------------------
+ # Unset FOAM_* environment variables
+ 
+@@ -102,7 +103,6 @@ unsetenv FOAM_USER_APPBIN
+ unsetenv FOAM_USER_LIBBIN
+ unsetenv FOAM_UTILITIES
+ 
+-
+ #------------------------------------------------------------------------------
+ # Unset MPI-related environment variables
+ 
+@@ -134,6 +134,7 @@ unsetenv CGAL_ARCH_PATH
+ unsetenv FFTW_ARCH_PATH
+ unsetenv GPERFTOOLS_ARCH_PATH
+ unsetenv GMP_ARCH_PATH
++unsetenv LLVM_ARCH_PATH
+ unsetenv MPFR_ARCH_PATH
+ unsetenv MESA_ARCH_PATH
+ unsetenv METIS_ARCH_PATH
+@@ -147,9 +148,17 @@ if ( $?foamClean ) then
+ 
+     eval `$foamClean -csh-env=PATH "$foamOldDirs"`
+ 
+-    if ($?LD_LIBRARY_PATH) then
+-        eval `$foamClean -csh-env=LD_LIBRARY_PATH "$foamOldDirs"`
+-        if ( ${%LD_LIBRARY_PATH} == 0 ) unsetenv LD_LIBRARY_PATH
++    if ( $foamDarwin ) then
++        if ($?DYLD_LIBRARY_PATH) then
++            eval `$foamClean -csh-env=FOAM_DYLD_LIBRARY_PATH "$foamOldDirs"`
++            setenv DYLD_LIBRARY_PATH $FOAM_DYLD_LIBRARY_PATH
++            if ( ${%FOAM_DYLD_LIBRARY_PATH} == 0 ) unsetenv DYLD_LIBRARY_PATH
++        endif
++    else
++        if ($?LD_LIBRARY_PATH) then
++            eval `$foamClean -csh-env=LD_LIBRARY_PATH "$foamOldDirs"`
++            if ( ${%LD_LIBRARY_PATH} == 0 ) unsetenv LD_LIBRARY_PATH
++        endif
+     endif
+ 
+     if ($?MANPATH) then
+@@ -159,6 +168,9 @@ if ( $?foamClean ) then
+ 
+ endif
+ 
++if ( $foamDarwin ) then
++unsetenv FOAM_DYLD_LIBRARY_PATH
++endif
+ 
+ #------------------------------------------------------------------------------
+ # Cleanup aliases
+diff --git a/etc/config.sh/CGAL b/etc/config.sh/CGAL
+index 38014a26..31f1b783 100644
+--- a/etc/config.sh/CGAL
++++ b/etc/config.sh/CGAL
+@@ -44,8 +44,8 @@
+ #------------------------------------------------------------------------------
+ # USER EDITABLE PART: Changes made here may be lost with the next upgrade
+ 
+-boost_version=boost_1_64_0
+-cgal_version=CGAL-4.9.1
++boost_version=boost-system
++cgal_version=CGAL-system
+ 
+ export BOOST_ARCH_PATH=$WM_THIRD_PARTY_DIR/platforms/$WM_ARCH$WM_COMPILER/$boost_version
+ export CGAL_ARCH_PATH=$WM_THIRD_PARTY_DIR/platforms/$WM_ARCH$WM_COMPILER/$cgal_version
+diff --git a/etc/config.sh/FFTW b/etc/config.sh/FFTW
+index 65e16581..1ddd3bc6 100644
+--- a/etc/config.sh/FFTW
++++ b/etc/config.sh/FFTW
+@@ -35,7 +35,7 @@
+ #------------------------------------------------------------------------------
+ # USER EDITABLE PART: Changes made here may be lost with the next upgrade
+ 
+-fftw_version=fftw-3.3.7
++fftw_version=fftw-system
+ export FFTW_ARCH_PATH=$WM_THIRD_PARTY_DIR/platforms/$WM_ARCH$WM_COMPILER/$fftw_version
+ 
+ # END OF (NORMAL) USER EDITABLE PART
+diff --git a/etc/config.sh/adios2 b/etc/config.sh/adios2
+index 3840a1ad..8cb91f2f 100644
+--- a/etc/config.sh/adios2
++++ b/etc/config.sh/adios2
+@@ -22,7 +22,7 @@
+ #------------------------------------------------------------------------------
+ # USER EDITABLE PART: Changes made here may be lost with the next upgrade
+ 
+-adios2_version=ADIOS2-2.4.0
++adios2_version=ADIOS2-system
+ export ADIOS2_ARCH_PATH=$WM_THIRD_PARTY_DIR/platforms/$WM_ARCH$WM_COMPILER/$adios2_version
+ 
+ # END OF (NORMAL) USER EDITABLE PART
+diff --git a/etc/config.sh/functions b/etc/config.sh/functions
+index 6bd5ac74..f9244404 100644
+--- a/etc/config.sh/functions
++++ b/etc/config.sh/functions
+@@ -156,6 +156,7 @@ then
+         _foamAddLib()
+         {
+             [ -n "$1" ] && export DYLD_LIBRARY_PATH="$1:$DYLD_LIBRARY_PATH"
++            [ -n "$1" ] && export FOAM_DYLD_LIBRARY_PATH="$1:$FOAM_DYLD_LIBRARY_PATH"
+         }
+ 
+         # Prepend to DYLD_LIBRARY_PATH with additional checking
+@@ -163,6 +164,7 @@ then
+         _foamAddLibAuto()
+         {
+             eval "$($WM_PROJECT_DIR/bin/tools/lib-dir -sh $@)";
++            export DYLD_LIBRARY_PATH="$FOAM_DYLD_LIBRARY_PATH"
+         }
+     fi
+ 
+diff --git a/etc/config.sh/kahip b/etc/config.sh/kahip
+index 6eb38547..9abec1c2 100644
+--- a/etc/config.sh/kahip
++++ b/etc/config.sh/kahip
+@@ -37,8 +37,8 @@
+ #------------------------------------------------------------------------------
+ # USER EDITABLE PART: Changes made here may be lost with the next upgrade
+ 
+-KAHIP_VERSION=kahip-2.12
+-export KAHIP_ARCH_PATH=$WM_THIRD_PARTY_DIR/platforms/$WM_ARCH$WM_COMPILER/$KAHIP_VERSION
++KAHIP_VERSION=kahip-system
++export KAHIP_ARCH_PATH=/usr/local/opt/kahip
+ 
+ # END OF (NORMAL) USER EDITABLE PART
+ #------------------------------------------------------------------------------
+diff --git a/etc/config.sh/metis b/etc/config.sh/metis
+index ce42f62a..8a481a8f 100644
+--- a/etc/config.sh/metis
++++ b/etc/config.sh/metis
+@@ -34,7 +34,7 @@
+ #------------------------------------------------------------------------------
+ # USER EDITABLE PART: Changes made here may be lost with the next upgrade
+ 
+-METIS_VERSION=metis-5.1.0
++METIS_VERSION=metis-system
+ export METIS_ARCH_PATH=$WM_THIRD_PARTY_DIR/platforms/$WM_ARCH$WM_COMPILER$WM_PRECISION_OPTION$WM_LABEL_OPTION/$METIS_VERSION
+ 
+ # END OF (NORMAL) USER EDITABLE PART
+diff --git a/etc/config.sh/paraview b/etc/config.sh/paraview
+index ab2f12e6..e3f2b6f8 100644
+--- a/etc/config.sh/paraview
++++ b/etc/config.sh/paraview
+@@ -54,7 +54,7 @@
+ #------------------------------------------------------------------------------
+ # USER EDITABLE PART: Changes made here may be lost with the next upgrade
+ 
+-ParaView_VERSION=5.6.3
++ParaView_VERSION=system
+ ParaView_QT=qt-system
+ cmake_version=cmake-system
+ 
+diff --git a/etc/config.sh/petsc b/etc/config.sh/petsc
+index 75492913..e1463d59 100644
+--- a/etc/config.sh/petsc
++++ b/etc/config.sh/petsc
+@@ -28,7 +28,7 @@
+ #------------------------------------------------------------------------------
+ # USER EDITABLE PART: Changes made here may be lost with the next upgrade
+ 
+-petsc_version=petsc-3.9.3
++petsc_version=petsc-system
+ export PETSC_ARCH_PATH=$WM_THIRD_PARTY_DIR/platforms/$WM_ARCH$WM_COMPILER$WM_PRECISION_OPTION$WM_LABEL_OPTION/$petsc_version
+ 
+ # END OF (NORMAL) USER EDITABLE PART
+diff --git a/etc/config.sh/scotch b/etc/config.sh/scotch
+index b7538a7b..ac5261d8 100644
+--- a/etc/config.sh/scotch
++++ b/etc/config.sh/scotch
+@@ -34,7 +34,7 @@
+ #------------------------------------------------------------------------------
+ # USER EDITABLE PART: Changes made here may be lost with the next upgrade
+ 
+-SCOTCH_VERSION=scotch_6.0.9
++SCOTCH_VERSION=scotch-system
+ export SCOTCH_ARCH_PATH=$WM_THIRD_PARTY_DIR/platforms/$WM_ARCH$WM_COMPILER$WM_PRECISION_OPTION$WM_LABEL_OPTION/$SCOTCH_VERSION
+ 
+ # END OF (NORMAL) USER EDITABLE PART
+diff --git a/etc/config.sh/settings b/etc/config.sh/settings
+index 8b3ba124..a0c53cc4 100644
+--- a/etc/config.sh/settings
++++ b/etc/config.sh/settings
+@@ -85,6 +85,7 @@ Linux)
+ 
+ Darwin)     # Presumably x86_64
+     WM_ARCH=darwin64
++    WM_COMPILER=Clang
+     echo "Darwin support is clang/llvm only" 1>&2
+     ;;
+ 
+diff --git a/etc/config.sh/setup b/etc/config.sh/setup
+index d502e835..10e27692 100644
+--- a/etc/config.sh/setup
++++ b/etc/config.sh/setup
+@@ -26,6 +26,10 @@
+ #
+ #------------------------------------------------------------------------------
+ 
++# Are we on Darwin?
++isDarwin=0
++[ "$(uname -s)" = "Darwin" ] && isDarwin=1
++
+ # [FOAM_API] - The API level for the project
+ export FOAM_API="$($WM_PROJECT_DIR/bin/foamEtcFile -show-api)"
+ 
+@@ -107,10 +111,23 @@ fi
+ 
+ # Clean standard environment variables (PATH, MANPATH, LD_LIBRARY_PATH)
+ # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+-export PATH MANPATH LD_LIBRARY_PATH
++export PATH MANPATH
++if [ $isDarwin ]
++then
++   [ -n "$DYLD_LIBRARY_PATH" ] && FOAM_DYLD_LIBRARY_PATH="$DYLD_LIBRARY_PATH"
++   export DYLD_LIBRARY_PATH FOAM_DYLD_LIBRARY_PATH
++else
++   export LD_LIBRARY_PATH
++fi
+ _foamClean PATH "$foamOldDirs"
+ _foamClean MANPATH "$foamOldDirs"
+-_foamClean LD_LIBRARY_PATH "$foamOldDirs"
++if [ $isDarwin ]
++then
++    _foamClean FOAM_DYLD_LIBRARY_PATH "$foamOldDirs"
++    DYLD_LIBRARY_PATH=$FOAM_DYLD_LIBRARY_PATH
++else
++    _foamClean LD_LIBRARY_PATH "$foamOldDirs"
++fi
+ 
+ # Setup for OpenFOAM compilation etc
+ # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+@@ -142,11 +159,23 @@ fi
+ 
+ # Clean environment paths again. Only remove duplicates
+ # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+-export PATH MANPATH LD_LIBRARY_PATH
++export PATH MANPATH
++if [ $isDarwin ]
++then
++    export FOAM_DYLD_LIBRARY_PATH DYLD_LIBRARY_PATH
++else
++    export LD_LIBRARY_PATH
++fi
+ 
+ _foamClean PATH
+ _foamClean MANPATH
+-_foamClean LD_LIBRARY_PATH
++if [ $isDarwin ]
++then
++    _foamClean FOAM_DYLD_LIBRARY_PATH
++    DYLD_LIBRARY_PATH=$FOAM_DYLD_LIBRARY_PATH
++else
++    _foamClean LD_LIBRARY_PATH
++fi
+ 
+ # Add trailing ':' for system manpages
+ if [ -n "$MANPATH" ]
+@@ -162,6 +191,6 @@ fi
+ . "$WM_PROJECT_DIR/etc/config.sh/functions"
+ 
+ # Variables (done as the last statement for a clean exit code)
+-unset cleaned foamOldDirs foundDir prefixDir
++unset cleaned foamOldDirs foundDir prefixDir isDarwin
+ 
+ #------------------------------------------------------------------------------
+diff --git a/etc/config.sh/unset b/etc/config.sh/unset
+index 3676b19c..75cff862 100644
+--- a/etc/config.sh/unset
++++ b/etc/config.sh/unset
+@@ -20,6 +20,9 @@
+ #
+ #------------------------------------------------------------------------------
+ 
++isDarwin=0
++[ "$(uname -s)" = "Darwin" ] && isDarwin=1
++
+ # Clean standard environment variables (PATH, LD_LIBRARY_PATH, MANPATH)
+ foamClean=$WM_PROJECT_DIR/bin/foamCleanPath
+ [ -f "$foamClean" -a -x "$foamClean" ] || unset foamClean
+@@ -66,6 +69,7 @@ unset WM_THIRD_PARTY_DIR
+ 
+ #------------------------------------------------------------------------------
+ # Unset FOAM_* environment variables
++# Note: keep FOAM_DYLD_LIBRARY_PATH for clean-up of DYLD_LIBRARY_PATH
+ 
+ unset FOAM_API
+ unset FOAM_APPBIN
+@@ -139,16 +143,28 @@ unset SCOTCH_ARCH_PATH
+ 
+ #------------------------------------------------------------------------------
+ # Cleanup environment
+-# PATH, LD_LIBRARY_PATH, MANPATH
++# PATH, [FOAM_][DY]LD_LIBRARY_PATH, MANPATH
+ 
+ if [ -n "$foamClean" ]
+ then
+     eval "$($foamClean -sh-env=PATH $foamOldDirs)"
+-    eval "$($foamClean -sh-env=LD_LIBRARY_PATH $foamOldDirs)"
++    if [ $isDarwin ]
++    then
++        eval "$($foamClean -sh-env=FOAM_DYLD_LIBRARY_PATH $foamOldDirs)"
++        DYLD_LIBRARY_PATH="$FOAM_DYLD_LIBRARY_PATH"
++    else
++        eval "$($foamClean -sh-env=LD_LIBRARY_PATH $foamOldDirs)"
++    fi
+     eval "$($foamClean -sh-env=MANPATH $foamOldDirs)"
+ fi
+ 
+-[ -n "$LD_LIBRARY_PATH" ] || unset LD_LIBRARY_PATH
++if [ $isDarwin ]
++then
++    [ -n "$DYLD_LIBRARY_PATH" ] || unset DYLD_LIBRARY_PATH
++    unset FOAM_DYLD_LIBRARY_PATH
++else
++    [ -n "$LD_LIBRARY_PATH" ] || unset LD_LIBRARY_PATH
++fi
+ [ -n "$MANPATH" ] || unset MANPATH
+ 
+ #------------------------------------------------------------------------------
+@@ -208,6 +224,6 @@ unset _of_complete_cache_
+ #------------------------------------------------------------------------------
+ # Intermediate variables (do as last for a clean exit code)
+ 
+-unset cleaned foamClean foamOldDirs
++unset cleaned foamClean foamOldDirs isDarwin
+ 
+ #------------------------------------------------------------------------------
+diff --git a/etc/config.sh/vtk b/etc/config.sh/vtk
+index 312034f8..3d703f23 100644
+--- a/etc/config.sh/vtk
++++ b/etc/config.sh/vtk
+@@ -34,13 +34,13 @@
+ #------------------------------------------------------------------------------
+ # USER EDITABLE PART: Changes made here may be lost with the next upgrade
+ 
+-vtk_version=VTK-8.2.0
+-mesa_version=mesa-17.1.1
++vtk_version=none
++mesa_version=none
+ mesa_llvm=none
+ 
+-export VTK_DIR="$WM_THIRD_PARTY_DIR/platforms/$WM_ARCH$WM_COMPILER/$vtk_version"
+-export MESA_ARCH_PATH="$WM_THIRD_PARTY_DIR/platforms/$WM_ARCH$WM_COMPILER/$mesa_version"
+-export LLVM_ARCH_PATH="$WM_THIRD_PARTY_DIR/platforms/$WM_ARCH/$mesa_llvm"
++export VTK_DIR=
++export MESA_ARCH_PATH=
++export LLVM_ARCH_PATH=
+ 
+ # Define paraview-mesa directory as required
+ unset ParaView_MESA_DIR
+diff --git a/etc/cshrc b/etc/cshrc
+index 91dcace4..39faf137 100644
+--- a/etc/cshrc
++++ b/etc/cshrc
+@@ -97,7 +97,7 @@ setenv WM_PROJECT OpenFOAM
+ # If the directory naming does not match WM_PROJECT, need to change here
+ set projectName="$WM_PROJECT"
+ set projectDir=`lsof +p $$ |& \
+-    sed -ne 's@^[^/]*@@;\@/'"$projectName"'[^/]*/etc/cshrc@{s@/etc/cshrc.*@@p; q}'`
++    sed -ne 's@^[^/]*@@;\@/'"$projectName"'[^/]*/etc/cshrc@{s@/etc/cshrc.*@@p; q; }'`
+ 
+ # set projectDir="$HOME/OpenFOAM/OpenFOAM-$WM_PROJECT_VERSION"
+ # set projectDir="/opt/openfoam/OpenFOAM-$WM_PROJECT_VERSION"
+diff --git a/src/OSspecific/POSIX/signals/sigFpe.C b/src/OSspecific/POSIX/signals/sigFpe.C
+index 55c1fed7..39aca0c3 100644
+--- a/src/OSspecific/POSIX/signals/sigFpe.C
++++ b/src/OSspecific/POSIX/signals/sigFpe.C
+@@ -44,6 +44,12 @@ License
+     #include <malloc.h>
+ #endif
+ 
++#if defined(__APPLE__)
++    #include <malloc/malloc.h>
++    #include <sys/mman.h>
++    #include <unistd.h>
++#endif
++
+ #ifdef __APPLE__
+     #include "feexceptErsatz.H"
+ #endif
+@@ -60,8 +66,20 @@ bool Foam::sigFpe::switchNan_(Foam::debug::optimisationSwitch("setNaN", 0));
+ bool Foam::sigFpe::sigActive_ = false;
+ bool Foam::sigFpe::nanActive_ = false;
+ 
+-
+ // * * * * * * * * * * * * * * * Local Functions * * * * * * * * * * * * * * //
++#if defined(__APPLE__)
++static void* (*oldMalloc)(struct _malloc_zone_t *zone, size_t size) = nullptr;
++
++static void* nanMalloc(struct _malloc_zone_t *zone, size_t size)
++{
++    if (!oldMalloc) return nullptr;
++    void* result = oldMalloc(zone, size);
++    Foam::UList<Foam::scalar> lst(reinterpret_cast<Foam::scalar*>(result),
++                                  size/sizeof(Foam::scalar));
++    Foam::sigFpe::fillNan(lst);
++    return result;
++}
++#endif
+ 
+ // Can turn on/off via env variable containing a bool (true|false|on|off ...)
+ // or by the specified flag
+@@ -226,6 +244,25 @@ void Foam::sigFpe::set(bool verbose)
+         nanActive_ = true;
+         #endif
+ 
++        #ifdef __APPLE__
++        malloc_zone_t *zone = malloc_default_zone();
++        if (zone != nullptr)
++        {
++            oldMalloc = zone->malloc;
++            if(mprotect(zone, getpagesize(), PROT_READ | PROT_WRITE) == 0)
++            {
++                zone->malloc = nanMalloc;
++                if
++                (
++                    mprotect(zone, getpagesize(), PROT_READ) == 0
++                )
++                {
++                    nanActive_ = true;
++                }
++            }
++        }
++        #endif
++
+         if (verbose)
+         {
+             Info<< "setNaN : Initialise allocated memory to NaN ";
+@@ -276,6 +313,18 @@ void Foam::sigFpe::unset(bool verbose)
+     #endif
+ 
+     nanActive_ = false;
++    #if defined(__APPLE__)
++    if (oldMalloc != nullptr)
++    {
++        malloc_zone_t *zone = malloc_default_zone();
++        if (zone != nullptr)
++        {
++            mprotect(zone, getpagesize(), PROT_READ | PROT_WRITE);
++            zone->malloc = oldMalloc;
++            mprotect(zone, getpagesize(), PROT_READ);
++        }
++    }
++    #endif
+ }
+ 
+ 
+diff --git a/src/OpenFOAM/containers/HashTables/HashSet/HashSet.C b/src/OpenFOAM/containers/HashTables/HashSet/HashSet.C
+index c4012bd3..227c109a 100644
+--- a/src/OpenFOAM/containers/HashTables/HashSet/HashSet.C
++++ b/src/OpenFOAM/containers/HashTables/HashSet/HashSet.C
+@@ -6,7 +6,7 @@
+      \\/     M anipulation  |
+ -------------------------------------------------------------------------------
+     Copyright (C) 2011-2016 OpenFOAM Foundation
+-    Copyright (C) 2016-2019 OpenCFD Ltd.
++    Copyright (C) 2016-2020 OpenCFD Ltd.
+ -------------------------------------------------------------------------------
+ License
+     This file is part of OpenFOAM.
+@@ -246,14 +246,14 @@ inline Foam::label Foam::HashSet<Key, Hash>::unset
+ // * * * * * * * * * * * * * * * Member Operators  * * * * * * * * * * * * * //
+ 
+ template<class Key, class Hash>
+-inline bool Foam::HashSet<Key, Hash>::operator()(const Key& key) const
++inline bool Foam::HashSet<Key, Hash>::operator()(const Key& key) const noexcept
+ {
+     return this->found(key);
+ }
+ 
+ 
+ template<class Key, class Hash>
+-inline bool Foam::HashSet<Key, Hash>::operator[](const Key& key) const
++inline bool Foam::HashSet<Key, Hash>::operator[](const Key& key) const noexcept
+ {
+     return this->found(key);
+ }
+@@ -353,6 +353,14 @@ Foam::HashSet<Key, Hash>::operator^=(const HashSet<Key, Hash>& rhs)
+ }
+ 
+ 
++template<class Key, class Hash>
++inline Foam::HashSet<Key, Hash>&
++Foam::HashSet<Key, Hash>::operator+=(const HashSet<Key, Hash>& rhs)
++{
++    return this->operator|=(rhs);
++}
++
++
+ template<class Key, class Hash>
+ inline Foam::HashSet<Key, Hash>&
+ Foam::HashSet<Key, Hash>::operator-=(const HashSet<Key, Hash>& rhs)
+@@ -419,9 +427,9 @@ template<class Key, class Hash>
+ inline typename Foam::HashSet<Key, Hash>::iterator
+ Foam::HashSet<Key, Hash>::begin()
+ {
+-    return HashTableCore::iterator_begin<iterator>
++    return iterator
+     (
+-        static_cast<parent_type&>(*this)
++        static_cast<parent_type&>(*this).begin()
+     );
+ }
+ 
+@@ -430,9 +438,9 @@ template<class Key, class Hash>
+ inline typename Foam::HashSet<Key, Hash>::const_iterator
+ Foam::HashSet<Key, Hash>::begin() const
+ {
+-    return HashTableCore::iterator_cbegin<const_iterator>
++    return const_iterator
+     (
+-        static_cast<const parent_type&>(*this)
++        static_cast<const parent_type&>(*this).begin()
+     );
+ }
+ 
+@@ -441,34 +449,34 @@ template<class Key, class Hash>
+ inline typename Foam::HashSet<Key, Hash>::const_iterator
+ Foam::HashSet<Key, Hash>::cbegin() const
+ {
+-    return HashTableCore::iterator_cbegin<const_iterator>
++    return const_iterator
+     (
+-        static_cast<const parent_type&>(*this)
++        static_cast<const parent_type&>(*this).cbegin()
+     );
+ }
+ 
+ 
+ template<class Key, class Hash>
+-inline const typename Foam::HashSet<Key, Hash>::iterator&
+-Foam::HashSet<Key, Hash>::end()
++inline typename Foam::HashSet<Key, Hash>::iterator
++Foam::HashSet<Key, Hash>::end() noexcept
+ {
+-    return HashTableCore::iterator_end<iterator>();
++    return iterator();
+ }
+ 
+ 
+ template<class Key, class Hash>
+-inline const typename Foam::HashSet<Key, Hash>::const_iterator&
+-Foam::HashSet<Key, Hash>::end() const
++inline typename Foam::HashSet<Key, Hash>::const_iterator
++Foam::HashSet<Key, Hash>::end() const noexcept
+ {
+-    return HashTableCore::iterator_cend<const_iterator>();
++    return const_iterator();
+ }
+ 
+ 
+ template<class Key, class Hash>
+-inline const typename Foam::HashSet<Key, Hash>::const_iterator&
+-Foam::HashSet<Key, Hash>::cend() const
++inline constexpr typename Foam::HashSet<Key, Hash>::const_iterator
++Foam::HashSet<Key, Hash>::cend() const noexcept
+ {
+-    return HashTableCore::iterator_cend<const_iterator>();
++    return const_iterator();
+ }
+ 
+ 
+diff --git a/src/OpenFOAM/containers/HashTables/HashSet/HashSet.H b/src/OpenFOAM/containers/HashTables/HashSet/HashSet.H
+index 0f22599e..12af96c8 100644
+--- a/src/OpenFOAM/containers/HashTables/HashSet/HashSet.H
++++ b/src/OpenFOAM/containers/HashTables/HashSet/HashSet.H
+@@ -6,7 +6,7 @@
+      \\/     M anipulation  |
+ -------------------------------------------------------------------------------
+     Copyright (C) 2011-2016 OpenFOAM Foundation
+-    Copyright (C) 2016-2019 OpenCFD Ltd.
++    Copyright (C) 2016-2020 OpenCFD Ltd.
+ -------------------------------------------------------------------------------
+ License
+     This file is part of OpenFOAM.
+@@ -73,10 +73,9 @@ Description
+ namespace Foam
+ {
+ 
+-// Forward declarations
++// Forward Declarations
+ template<class T> class MinMax;
+ 
+-
+ /*---------------------------------------------------------------------------*\
+                            Class HashSet Declaration
+ \*---------------------------------------------------------------------------*/
+@@ -115,12 +114,24 @@ public:
+ 
+     // Constructors
+ 
+-        //- Construct null with default (128) table capacity
++        //- Default construct with default (128) table capacity
+         HashSet()
+         :
+             parent_type()
+         {}
+ 
++        //- Copy construct
++        HashSet(const this_type& rhs)
++        :
++            parent_type(rhs)
++        {}
++
++        //- Move construct
++        HashSet(this_type&& rhs)
++        :
++            parent_type(std::move(rhs))
++        {}
++
+         //- Construct given initial table capacity
+         explicit HashSet(const label size)
+         :
+@@ -128,7 +139,7 @@ public:
+         {}
+ 
+         //- Construct from Istream with default table capacity
+-        HashSet(Istream& is)
++        explicit HashSet(Istream& is)
+         :
+             parent_type(is)
+         {}
+@@ -147,18 +158,6 @@ public:
+         //- Construct from an initializer list of Key
+         HashSet(std::initializer_list<Key> list);
+ 
+-        //- Copy construct
+-        HashSet(const this_type& hs)
+-        :
+-            parent_type(hs)
+-        {}
+-
+-        //- Move construct
+-        HashSet(this_type&& hs)
+-        :
+-            parent_type(std::move(hs))
+-        {}
+-
+         //- Construct from the keys of another HashTable,
+         //- the type of values held is arbitrary.
+         template<class AnyType, class AnyHash>
+@@ -169,7 +168,7 @@ public:
+ 
+         //- Same as found() - return true if key exists in the set.
+         //  Method name compatibility with bitSet and boolList.
+-        bool test(const Key& key) const
++        bool test(const Key& key) const noexcept
+         {
+             return found(key);
+         }
+@@ -291,13 +290,13 @@ public:
+ 
+     // STL iterators
+ 
+-        iterator begin();
+-        const_iterator begin() const;
+-        const_iterator cbegin() const;
++        inline iterator begin();
++        inline const_iterator begin() const;
++        inline const_iterator cbegin() const;
+ 
+-        const iterator& end();
+-        const const_iterator& end() const;
+-        const const_iterator& cend() const;
++        inline iterator end() noexcept;
++        inline const_iterator end() const noexcept;
++        inline constexpr const_iterator cend() const noexcept;
+ 
+ 
+     // Writing
+@@ -314,10 +313,10 @@ public:
+     // Member Operators
+ 
+         //- Return true if the entry exists, same as found()
+-        inline bool operator()(const Key& key) const;
++        inline bool operator()(const Key& key) const noexcept;
+ 
+         //- Return true if the entry exists, same as found().
+-        inline bool operator[](const Key& key) const;
++        inline bool operator[](const Key& key) const noexcept;
+ 
+         using parent_type::operator=;
+ 
+@@ -368,13 +367,10 @@ public:
+         //- Only retain unique entries (xor)
+         this_type& operator^=(const this_type& rhs);
+ 
+-        //- Add entries to this HashSet
+-        inline this_type& operator+=(const this_type& rhs)
+-        {
+-            return this->operator|=(rhs);
+-        }
++        //- Add entries to this HashSet. Same as the '|=' operator
++        inline this_type& operator+=(const this_type& rhs);
+ 
+-        //- Remove entries from this HashSet
++        //- Remove entries from this HashSet. Uses erase()
+         inline this_type& operator-=(const this_type& rhs);
+ 
+ 
+@@ -403,7 +399,6 @@ public:
+         //- Not applicable for HashSet
+         template<class BinaryPredicate>
+         label filterEntries(const BinaryPredicate&, const bool) = delete;
+-
+ };
+ 
+ 
+diff --git a/src/OpenFOAM/containers/HashTables/HashTable/HashTable.H b/src/OpenFOAM/containers/HashTables/HashTable/HashTable.H
+index 9fc07ea5..c83653b0 100644
+--- a/src/OpenFOAM/containers/HashTables/HashTable/HashTable.H
++++ b/src/OpenFOAM/containers/HashTables/HashTable/HashTable.H
+@@ -6,7 +6,7 @@
+      \\/     M anipulation  |
+ -------------------------------------------------------------------------------
+     Copyright (C) 2011-2016 OpenFOAM Foundation
+-    Copyright (C) 2017-2019 OpenCFD Ltd.
++    Copyright (C) 2017-2020 OpenCFD Ltd.
+ -------------------------------------------------------------------------------
+ License
+     This file is part of OpenFOAM.
+@@ -105,7 +105,6 @@ template<class T> class UList;
+ template<class T, unsigned N> class FixedList;
+ template<class T, class Key, class Hash> class HashTable;
+ 
+-
+ /*---------------------------------------------------------------------------*\
+                           Class HashTable Declaration
+ \*---------------------------------------------------------------------------*/
+@@ -171,10 +170,17 @@ public:
+         //- The third template parameter, the hash index method.
+         typedef Hash hasher;
+ 
++        //- Pointer type for storing into value_type objects.
++        //  This type is usually 'value_type*'.
++        typedef T* pointer;
++
+         //- Reference to the stored value_type.
+         //  This type is usually 'value_type&'.
+         typedef T& reference;
+ 
++        //- Const pointer type for the stored value_type.
++        typedef const T* const_pointer;
++
+         //- Const reference to the stored value_type.
+         typedef const T& const_reference;
+ 
+@@ -586,10 +592,10 @@ protected:
+ 
+             //- True if iterator points to an entry
+             //  This can be used directly instead of comparing to end()
+-            inline bool good() const;
++            inline bool good() const noexcept;
+ 
+             //- True if iterator points to an entry - same as good()
+-            inline bool found() const;
++            inline bool found() const noexcept;
+ 
+             //- The key associated with the iterator
+             inline const Key& key() const;
+@@ -606,11 +612,11 @@ protected:
+ 
+             //- Compare hash-entry element pointers.
+             //  Independent of const/non-const access
+-            inline bool operator==(const Iterator<true>& iter) const;
+-            inline bool operator!=(const Iterator<true>& iter) const;
++            template<bool Any>
++            inline bool operator==(const Iterator<Any>& iter) const noexcept;
+ 
+-            inline bool operator==(const Iterator<false>& iter) const;
+-            inline bool operator!=(const Iterator<false>& iter) const;
++            template<bool Any>
++            inline bool operator!=(const Iterator<Any>& iter) const noexcept;
+ 
+ 
+         protected:
+@@ -620,11 +626,11 @@ protected:
+ 
+             //- The selected entry.
+             //  MUST be the first member for easy comparison between iterators
+-            //  and for reinterpret_cast from nullObject
++            //  and to support reinterpret_cast from nullObject
+             node_type* entry_;
+ 
+             //- The hash-table container being iterated on.
+-            //  Using a pointer allows default bitwise copy/assignment
++            //  Uses pointer for default copy/assignment
+             table_type* container_;
+ 
+             //- Index within the hash-table data.
+@@ -635,11 +641,11 @@ protected:
+ 
+         // Protected Constructors
+ 
+-            //- Construct null (end iterator)
+-            inline Iterator();
++            //- Default construct (end iterator)
++            inline constexpr Iterator() noexcept;
+ 
+             //- Construct from begin of hash-table
+-            inline Iterator(bool, table_type* tbl);
++            inline explicit Iterator(table_type* tbl);
+ 
+             //- Construct by finding key in hash table
+             Iterator(table_type* tbl, const Key& key);
+@@ -650,10 +656,11 @@ protected:
+             //- Increment to the next position
+             inline void increment();
+ 
+-            //- Permit an explicit cast to the other (const/non-const) searcher
+-            inline explicit operator const Iterator<!Const>&() const
++            //- Permit explicit cast to the other (const/non-const) iterator
++            template<bool Any>
++            explicit operator const Iterator<Any>&() const
+             {
+-                return *reinterpret_cast<const Iterator<!Const>*>(this);
++                return *reinterpret_cast<const Iterator<Any>*>(this);
+             }
+         };
+ 
+@@ -678,17 +685,19 @@ public:
+             using key_type    = this_type::key_type;
+             using mapped_type = this_type::mapped_type;
+             using value_type  = this_type::value_type;
++            using pointer     = this_type::pointer;
+             using reference   = this_type::reference;
++            using const_pointer = this_type::const_pointer;
+             using const_reference = this_type::const_reference;
+ 
+ 
+         // Constructors
+ 
+             //- Construct null (end iterator)
+-            inline iterator() = default;
++            iterator() = default;
+ 
+             //- Copy construct from similar access type
+-            inline explicit iterator(const Iterator<false>& iter)
++            explicit iterator(const Iterator<false>& iter)
+             :
+                 Iterator<false>(iter)
+             {}
+@@ -736,31 +745,33 @@ public:
+             using key_type    = this_type::key_type;
+             using mapped_type = const this_type::mapped_type;
+             using value_type  = const this_type::value_type;
++            using pointer     = this_type::const_pointer;
+             using reference   = this_type::const_reference;
+ 
+ 
+-        // Constructors
++        // Generated Methods
+ 
+-            //- Construct null (end iterator)
+-            inline const_iterator() = default;
++            //- Default construct (end iterator)
++            const_iterator() = default;
+ 
+-            //- Copy construct from similar access type
+-            inline explicit const_iterator(const Iterator<true>& iter)
+-            :
+-                Iterator<true>(iter)
+-            {}
++            //- Copy construct
++            const_iterator(const const_iterator&) = default;
++
++            //- Copy assignment
++            const_iterator& operator=(const const_iterator&) = default;
+ 
+-            //- Copy construct from dissimilar access type
+-            inline explicit const_iterator(const Iterator<false>& iter)
++
++        // Constructors
++
++            //- Copy construct from any access type
++            template<bool Any>
++            const_iterator(const Iterator<Any>& iter)
+             :
+-                Iterator<true>
+-                (
+-                    static_cast<const Iterator<true>&>(iter)
+-                )
++                Iterator<true>(static_cast<const Iterator<Any>&>(iter))
+             {}
+ 
+             //- Implicit conversion from dissimilar access type
+-            inline const_iterator(const iterator& iter)
++            const_iterator(const iterator& iter)
+             :
+                 const_iterator(reinterpret_cast<const const_iterator&>(iter))
+             {}
+@@ -781,9 +792,8 @@ public:
+             inline const_iterator& operator++();
+             inline const_iterator operator++(int);
+ 
+-        // Assignment
+ 
+-            const_iterator& operator=(const const_iterator&) = default;
++        // Assignment
+ 
+             // Allow assign from iterator to const_iterator
+             const_iterator& operator=(const iterator& iter)
+@@ -805,11 +815,19 @@ public:
+             public Iter
+         {
+         public:
++
+             using value_type = this_type::key_type;
++            using pointer    = const Key*;
+             using reference  = const Key&;
+ 
+-            //- Implicit conversion
+-            inline key_iterator_base(const Iter& iter)
++            //- Default construct (end iterator)
++            constexpr key_iterator_base() noexcept
++            :
++                Iter()
++            {}
++
++            //- Copy construct with implicit conversion
++            explicit key_iterator_base(const Iter& iter)
+             :
+                 Iter(iter)
+             {}
+@@ -842,8 +860,7 @@ public:
+         //- A const iterator begin/end pair for iterating over keys
+         const_iterator_pair<const_key_iterator, this_type> keys() const
+         {
+-            return
+-                const_iterator_pair<const_key_iterator,this_type>(*this);
++            return const_iterator_pair<const_key_iterator, this_type>(*this);
+         }
+ 
+ 
+@@ -858,14 +875,14 @@ public:
+         //- const_iterator set to the beginning of the HashTable
+         inline const_iterator cbegin() const;
+ 
+-        //- iterator to signal the end for any HashTable
+-        inline const iterator& end();
++        //- iterator to signal the end (for any HashTable)
++        inline iterator end() noexcept;
+ 
+-        //- const_iterator to signal the end for any HashTable
+-        inline const const_iterator& end() const;
++        //- const_iterator to signal the end (for any HashTable)
++        inline const_iterator end() const noexcept;
+ 
+-        //- const_iterator to signal the end for any HashTable
+-        inline const const_iterator& cend() const;
++        //- const_iterator to signal the end (for any HashTable)
++        inline constexpr const_iterator cend() const noexcept;
+ 
+ 
+     // Writing
+diff --git a/src/OpenFOAM/containers/HashTables/HashTable/HashTableCore.H b/src/OpenFOAM/containers/HashTables/HashTable/HashTableCore.H
+index 6272e915..e483ee17 100644
+--- a/src/OpenFOAM/containers/HashTables/HashTable/HashTableCore.H
++++ b/src/OpenFOAM/containers/HashTables/HashTable/HashTableCore.H
+@@ -6,7 +6,7 @@
+      \\/     M anipulation  |
+ -------------------------------------------------------------------------------
+     Copyright (C) 2011-2016 OpenFOAM Foundation
+-    Copyright (C) 2017-2019 OpenCFD Ltd.
++    Copyright (C) 2017-2020 OpenCFD Ltd.
+ -------------------------------------------------------------------------------
+ License
+     This file is part of OpenFOAM.
+@@ -62,12 +62,12 @@ struct HashTableCore
+     //- Return a canonical (power-of-two) of the requested size.
+     static label canonicalSize(const label requested_size);
+ 
+-    //- Construct null
+-    HashTableCore() = default;
+-
+-    //- Define template name and debug
++    //- Declare type-name (with debug switch)
+     ClassName("HashTable");
+ 
++    //- Default construct
++    HashTableCore() = default;
++
+     static_assert
+     (
+         sizeof(NullObject) >= sizeof(void*),
+@@ -75,34 +75,19 @@ struct HashTableCore
+     );
+ 
+ 
+-    //- Factory method to create a non-const iterator begin
+-    template<class IteratorType, class TableType>
+-    inline static IteratorType iterator_begin(TableType& table);
+-
+-    //- Factory method to create a const iterator begin
+-    template<class IteratorType, class TableType>
+-    inline static IteratorType iterator_cbegin(const TableType& table);
+-
+-    //- Factory method to return an iterator end
+-    //  Simply reinterprets a NullObject as a hash-table iterator.
+-    template<class IteratorType>
+-    inline static const IteratorType& iterator_end();
+-
+-    //- Factory method to return an iterator cend
+-    //  Simply reinterprets a NullObject as a hash-table iterator.
+-    template<class IteratorType>
+-    inline static const IteratorType& iterator_cend();
+-
+-
+     //- Factory class for creating a begin/end pair for any const iterator.
+     template<class IteratorType, class TableType>
+     class const_iterator_pair
+     {
+-        label size_;
++        const label size_;
+         IteratorType iter_;
+ 
+     public:
+ 
++        //- Default construct an empty pair
++        inline const_iterator_pair();
++
++        //- Construct begin/end pair for table
+         inline const_iterator_pair(const TableType& tbl);
+ 
+         label size() const noexcept { return size_; }
+@@ -111,8 +96,8 @@ struct HashTableCore
+         inline IteratorType begin() const;
+         inline IteratorType cbegin() const;
+ 
+-        inline const IteratorType& end() const;
+-        inline const IteratorType& cend() const;
++        inline IteratorType end() const;
++        inline IteratorType cend() const;
+     };
+ };
+ 
+diff --git a/src/OpenFOAM/containers/HashTables/HashTable/HashTableCoreI.H b/src/OpenFOAM/containers/HashTables/HashTable/HashTableCoreI.H
+index e63d6009..e4c39787 100644
+--- a/src/OpenFOAM/containers/HashTables/HashTable/HashTableCoreI.H
++++ b/src/OpenFOAM/containers/HashTables/HashTable/HashTableCoreI.H
+@@ -5,7 +5,7 @@
+     \\  /    A nd           | www.openfoam.com
+      \\/     M anipulation  |
+ -------------------------------------------------------------------------------
+-    Copyright (C) 2017-2019 OpenCFD Ltd.
++    Copyright (C) 2017-2020 OpenCFD Ltd.
+ -------------------------------------------------------------------------------
+ License
+     This file is part of OpenFOAM.
+@@ -25,43 +25,16 @@ License
+ 
+ \*---------------------------------------------------------------------------*/
+ 
+-// * * * * * * * * * * * * * * * helper methods  * * * * * * * * * * * * * * //
+-
+-template<class IteratorType, class TableType>
+-inline IteratorType Foam::HashTableCore::iterator_begin
+-(
+-    TableType& table
+-)
+-{
+-    return IteratorType(table.begin());
+-}
+-
++// * * * * * * * * * * * * * const iterator pair * * * * * * * * * * * * * * //
+ 
+ template<class IteratorType, class TableType>
+-inline IteratorType Foam::HashTableCore::iterator_cbegin
+-(
+-    const TableType& table
+-)
+-{
+-    return IteratorType(table.cbegin());
+-}
+-
+-
+-template<class IteratorType>
+-inline const IteratorType& Foam::HashTableCore::iterator_end()
+-{
+-    return *reinterpret_cast<const IteratorType*>(nullObjectPtr);
+-}
+-
+-
+-template<class IteratorType>
+-inline const IteratorType& Foam::HashTableCore::iterator_cend()
+-{
+-    return *reinterpret_cast<const IteratorType*>(nullObjectPtr);
+-}
+-
++inline Foam::HashTableCore::const_iterator_pair<IteratorType, TableType>
++::const_iterator_pair()
++:
++    size_(0),
++    iter_()
++{}
+ 
+-// * * * * * * * * * * * * * const iterator pair * * * * * * * * * * * * * * //
+ 
+ template<class IteratorType, class TableType>
+ inline Foam::HashTableCore::const_iterator_pair<IteratorType, TableType>
+@@ -98,24 +71,24 @@ inline IteratorType Foam::HashTableCore::const_iterator_pair
+ 
+ 
+ template<class IteratorType, class TableType>
+-inline const IteratorType& Foam::HashTableCore::const_iterator_pair
++inline IteratorType Foam::HashTableCore::const_iterator_pair
+ <
+     IteratorType,
+     TableType
+ >::end() const
+ {
+-    return HashTableCore::iterator_cend<IteratorType>();
++    return IteratorType();
+ }
+ 
+ 
+ template<class IteratorType, class TableType>
+-inline const IteratorType& Foam::HashTableCore::const_iterator_pair
++inline IteratorType Foam::HashTableCore::const_iterator_pair
+ <
+     IteratorType,
+     TableType
+ >::cend() const
+ {
+-    return HashTableCore::iterator_cend<IteratorType>();
++    return IteratorType();
+ }
+ 
+ 
+diff --git a/src/OpenFOAM/containers/HashTables/HashTable/HashTableIterI.H b/src/OpenFOAM/containers/HashTables/HashTable/HashTableIterI.H
+index 649828c3..07be2b62 100644
+--- a/src/OpenFOAM/containers/HashTables/HashTable/HashTableIterI.H
++++ b/src/OpenFOAM/containers/HashTables/HashTable/HashTableIterI.H
+@@ -5,7 +5,7 @@
+     \\  /    A nd           | www.openfoam.com
+      \\/     M anipulation  |
+ -------------------------------------------------------------------------------
+-    Copyright (C) 2017-2019 OpenCFD Ltd.
++    Copyright (C) 2017-2020 OpenCFD Ltd.
+ -------------------------------------------------------------------------------
+ License
+     This file is part of OpenFOAM.
+@@ -29,7 +29,8 @@ License
+ 
+ template<class T, class Key, class Hash>
+ template<bool Const>
+-inline Foam::HashTable<T, Key, Hash>::Iterator<Const>::Iterator()
++inline constexpr
++Foam::HashTable<T, Key, Hash>::Iterator<Const>::Iterator() noexcept
+ :
+     entry_(nullptr),
+     container_(nullptr),
+@@ -41,7 +42,6 @@ template<class T, class Key, class Hash>
+ template<bool Const>
+ inline Foam::HashTable<T, Key, Hash>::Iterator<Const>::Iterator
+ (
+-    bool, // Future use and to avoid implicit construct
+     table_type* tbl
+ )
+ :
+@@ -112,7 +112,7 @@ Foam::HashTable<T, Key, Hash>::Iterator<Const>::increment()
+ template<class T, class Key, class Hash>
+ template<bool Const>
+ inline bool
+-Foam::HashTable<T, Key, Hash>::Iterator<Const>::good() const
++Foam::HashTable<T, Key, Hash>::Iterator<Const>::good() const noexcept
+ {
+     return entry_;
+ }
+@@ -121,7 +121,7 @@ Foam::HashTable<T, Key, Hash>::Iterator<Const>::good() const
+ template<class T, class Key, class Hash>
+ template<bool Const>
+ inline bool
+-Foam::HashTable<T, Key, Hash>::Iterator<Const>::found() const
++Foam::HashTable<T, Key, Hash>::Iterator<Const>::found() const noexcept
+ {
+     return entry_;
+ }
+@@ -161,32 +161,11 @@ bool() const noexcept
+ 
+ template<class T, class Key, class Hash>
+ template<bool Const>
++template<bool Any>
+ inline bool Foam::HashTable<T, Key, Hash>::Iterator<Const>::operator==
+ (
+-    const Iterator<true>& iter
+-) const
+-{
+-    return entry_ == iter.entry_;
+-}
+-
+-
+-template<class T, class Key, class Hash>
+-template<bool Const>
+-inline bool Foam::HashTable<T, Key, Hash>::Iterator<Const>::operator!=
+-(
+-    const Iterator<true>& iter
+-) const
+-{
+-    return entry_ != iter.entry_;
+-}
+-
+-
+-template<class T, class Key, class Hash>
+-template<bool Const>
+-inline bool Foam::HashTable<T, Key, Hash>::Iterator<Const>::operator==
+-(
+-    const Iterator<false>& iter
+-) const
++    const Iterator<Any>& iter
++) const noexcept
+ {
+     return entry_ == iter.entry_;
+ }
+@@ -194,10 +173,11 @@ inline bool Foam::HashTable<T, Key, Hash>::Iterator<Const>::operator==
+ 
+ template<class T, class Key, class Hash>
+ template<bool Const>
++template<bool Any>
+ inline bool Foam::HashTable<T, Key, Hash>::Iterator<Const>::operator!=
+ (
+-    const Iterator<false>& iter
+-) const
++    const Iterator<Any>& iter
++) const noexcept
+ {
+     return entry_ != iter.entry_;
+ }
+@@ -251,7 +231,7 @@ template<class T, class Key, class Hash>
+ inline typename Foam::HashTable<T, Key, Hash>::iterator
+ Foam::HashTable<T, Key, Hash>::begin()
+ {
+-    return iterator(Iterator<false>(true, this));
++    return iterator(Iterator<false>(this));
+ }
+ 
+ 
+@@ -259,7 +239,7 @@ template<class T, class Key, class Hash>
+ inline typename Foam::HashTable<T, Key, Hash>::const_iterator
+ Foam::HashTable<T, Key, Hash>::begin() const
+ {
+-    return const_iterator(Iterator<true>(true, this));
++    return const_iterator(Iterator<true>(this));
+ }
+ 
+ 
+@@ -267,31 +247,31 @@ template<class T, class Key, class Hash>
+ inline typename Foam::HashTable<T, Key, Hash>::const_iterator
+ Foam::HashTable<T, Key, Hash>::cbegin() const
+ {
+-    return const_iterator(Iterator<true>(true, this));
++    return const_iterator(Iterator<true>(this));
+ }
+ 
+ 
+ template<class T, class Key, class Hash>
+-inline const typename Foam::HashTable<T, Key, Hash>::iterator&
+-Foam::HashTable<T, Key, Hash>::end()
++inline typename Foam::HashTable<T, Key, Hash>::iterator
++Foam::HashTable<T, Key, Hash>::end() noexcept
+ {
+-    return iterator_end<iterator>();
++    return iterator();
+ }
+ 
+ 
+ template<class T, class Key, class Hash>
+-inline const typename Foam::HashTable<T, Key, Hash>::const_iterator&
+-Foam::HashTable<T, Key, Hash>::end() const
++inline typename Foam::HashTable<T, Key, Hash>::const_iterator
++Foam::HashTable<T, Key, Hash>::end() const noexcept
+ {
+-    return iterator_cend<const_iterator>();
++    return const_iterator();
+ }
+ 
+ 
+ template<class T, class Key, class Hash>
+-inline const typename Foam::HashTable<T, Key, Hash>::const_iterator&
+-Foam::HashTable<T, Key, Hash>::cend() const
++inline constexpr typename Foam::HashTable<T, Key, Hash>::const_iterator
++Foam::HashTable<T, Key, Hash>::cend() const noexcept
+ {
+-    return iterator_cend<const_iterator>();
++    return const_iterator();
+ }
+ 
+ 
+diff --git a/src/OpenFOAM/containers/LinkedLists/linkTypes/DLListBase/DLListBase.H b/src/OpenFOAM/containers/LinkedLists/linkTypes/DLListBase/DLListBase.H
+index 3c8bff42..ef6c98c0 100644
+--- a/src/OpenFOAM/containers/LinkedLists/linkTypes/DLListBase/DLListBase.H
++++ b/src/OpenFOAM/containers/LinkedLists/linkTypes/DLListBase/DLListBase.H
+@@ -244,7 +244,8 @@ public:
+ 
+             //- Deprecated(2019-01) Pointing at a valid storage node
+             //  \deprecated(2019-01) - use good() method
+-            bool FOAM_DEPRECATED_FOR(2019-01, "good() method") found() const
++            FOAM_DEPRECATED_FOR(2019-01, "good() method")
++            bool found() const
+             {
+                 return this->good();
+             }
+@@ -297,7 +298,8 @@ public:
+ 
+             //- Deprecated(2019-01) Pointing at a valid storage node
+             //  \deprecated(2019-01) - use good() method
+-            bool FOAM_DEPRECATED_FOR(2019-01, "good() method") found() const
++            FOAM_DEPRECATED_FOR(2019-01, "good() method")
++            bool found() const
+             {
+                 return this->good();
+             }
+diff --git a/src/OpenFOAM/containers/LinkedLists/linkTypes/SLListBase/SLListBase.H b/src/OpenFOAM/containers/LinkedLists/linkTypes/SLListBase/SLListBase.H
+index ccc7c9ab..bd58fadd 100644
+--- a/src/OpenFOAM/containers/LinkedLists/linkTypes/SLListBase/SLListBase.H
++++ b/src/OpenFOAM/containers/LinkedLists/linkTypes/SLListBase/SLListBase.H
+@@ -220,7 +220,8 @@ public:
+ 
+             //- Deprecated(2019-01) Pointing at a valid storage node
+             //  \deprecated(2019-01) - use good() method
+-            bool FOAM_DEPRECATED_FOR(2019-01, "good() method") found() const
++            FOAM_DEPRECATED_FOR(2019-01, "good() method")
++            bool found() const
+             {
+                 return this->good();
+             }
+@@ -271,7 +272,8 @@ public:
+ 
+             //- Deprecated(2019-01) Pointing at a valid storage node
+             //  \deprecated(2019-01) - use good() method
+-            bool FOAM_DEPRECATED_FOR(2019-01, "good() method") found() const
++            FOAM_DEPRECATED_FOR(2019-01, "good() method")
++            bool found() const
+             {
+                 return this->good();
+             }
+diff --git a/src/OpenFOAM/containers/Lists/ListOps/ListOps.H b/src/OpenFOAM/containers/Lists/ListOps/ListOps.H
+index 4060e090..67ca8066 100644
+--- a/src/OpenFOAM/containers/Lists/ListOps/ListOps.H
++++ b/src/OpenFOAM/containers/Lists/ListOps/ListOps.H
+@@ -401,7 +401,8 @@ List<OutputIntListType> invertManyToMany
+ //  \return The index found or return -1 if not found.
+ //  \deprecated(2017-10) - use the UList find/found methods
+ template<class ListType>
+-label FOAM_DEPRECATED(2017-10) findIndex
++FOAM_DEPRECATED(2017-10)
++label findIndex
+ (
+     const ListType& input,
+     typename ListType::const_reference val,
+diff --git a/src/OpenFOAM/db/dictionary/dictionary.H b/src/OpenFOAM/db/dictionary/dictionary.H
+index 9f201e70..e102648c 100644
+--- a/src/OpenFOAM/db/dictionary/dictionary.H
++++ b/src/OpenFOAM/db/dictionary/dictionary.H
+@@ -1288,8 +1288,8 @@ public:
+         //- Deprecated(2018-07) find and return an entry data stream
+         //
+         //  \deprecated(2018-07) - use lookup() method
+-        ITstream& FOAM_DEPRECATED_FOR(2018-07, "lookup() method")
+-        operator[](const word& keyword) const
++        FOAM_DEPRECATED_FOR(2018-07, "lookup() method")
++        ITstream& operator[](const word& keyword) const
+         {
+             return lookup(keyword);
+         }
+@@ -1297,8 +1297,8 @@ public:
+         //- Deprecated(2018-10) find and return a T.
+         //  \deprecated(2018-10) - use get() method
+         template<class T>
+-        T FOAM_DEPRECATED_FOR(2018-10, "get() method")
+-        lookupType
++        FOAM_DEPRECATED_FOR(2018-10, "get() method")
++        T lookupType
+         (
+             const word& keyword,
+             bool recursive = false,
+@@ -1310,8 +1310,8 @@ public:
+ 
+         //- Deprecated(2018-10)
+         //  \deprecated(2018-10) - use keyType::option version
+-        bool FOAM_DEPRECATED_FOR(2018-10, "found(keyType::option)")
+-        found
++        FOAM_DEPRECATED_FOR(2018-10, "found(keyType::option)")
++        bool found
+         (
+             const word& keyword,
+             bool recursive,
+@@ -1323,9 +1323,8 @@ public:
+ 
+         //- Deprecated(2018-10)
+         //  \deprecated(2018-10) - use keyType::option version
+-        entry*
+         FOAM_DEPRECATED_FOR(2018-10, "findEntry(keyType::option)")
+-        lookupEntryPtr
++        entry* lookupEntryPtr
+         (
+             const word& keyword,
+             bool recursive,
+@@ -1337,9 +1336,8 @@ public:
+ 
+         //- Deprecated(2018-10)
+         //  \deprecated(2018-10) - use keyType::option version
+-        const entry*
+         FOAM_DEPRECATED_FOR(2018-10, "findEntry(keyType::option)")
+-        lookupEntryPtr
++        const entry* lookupEntryPtr
+         (
+             const word& keyword,
+             bool recursive,
+@@ -1351,9 +1349,8 @@ public:
+ 
+         //- Deprecated(2018-10)
+         //  \deprecated(2018-10) - use keyType::option version
+-        const entry*
+         FOAM_DEPRECATED_FOR(2018-10, "findScoped(keyType::option)")
+-        lookupScopedEntryPtr
++        const entry* lookupScopedEntryPtr
+         (
+             const word& keyword,
+             bool recursive,
+@@ -1369,9 +1366,8 @@ public:
+         //
+         //  Search type: non-recursive with patterns.
+         //  \deprecated(2018-10) - use findDict() method
+-        const dictionary*
+         FOAM_DEPRECATED_FOR(2018-10, "findDict() method")
+-        subDictPtr(const word& keyword) const
++        const dictionary* subDictPtr(const word& keyword) const
+         {
+             return findDict(keyword, keyType::REGEX);
+         }
+@@ -1382,18 +1378,16 @@ public:
+         //
+         //  Search type: non-recursive with patterns.
+         //  \deprecated(2018-10) - use findDict() method
+-        dictionary*
+         FOAM_DEPRECATED_FOR(2018-10, "findDict() method")
+-        subDictPtr(const word& keyword)
++        dictionary* subDictPtr(const word& keyword)
+         {
+             return findDict(keyword, keyType::REGEX);
+         }
+ 
+         //- Deprecated(2018-10)
+         //  \deprecated(2018-10) - use keyType::option version
+-        const entry&
+         FOAM_DEPRECATED_FOR(2018-10, "lookupEntry(keyType::option)")
+-        lookupEntry
++        const entry& lookupEntry
+         (
+             const word& keyword,
+             bool recursive,
+@@ -1405,9 +1399,8 @@ public:
+ 
+         //- Deprecated(2018-10)
+         //  \deprecated(2018-10) - use keyType::option version
+-        ITstream&
+         FOAM_DEPRECATED_FOR(2018-10, "lookup(keyType::option)")
+-        lookup
++        ITstream& lookup
+         (
+             const word& keyword,
+             bool recursive,
+@@ -1420,8 +1413,8 @@ public:
+         //- Deprecated(2018-10)
+         //  \deprecated(2018-10) - use keyType::option version
+         template<class T>
+-        T FOAM_DEPRECATED_FOR(2018-10, "lookupOrDefault(keyType::option)")
+-        lookupOrDefault
++        FOAM_DEPRECATED_FOR(2018-10, "lookupOrDefault(keyType::option)")
++        T lookupOrDefault
+         (
+             const word& keyword,
+             const T& deflt,
+@@ -1437,8 +1430,8 @@ public:
+         //- Deprecated(2018-10)
+         //  \deprecated(2018-10) - use keyType::option version
+         template<class T>
+-        T FOAM_DEPRECATED_FOR(2018-10, "lookupOrAddDefault(keyType::option)")
+-        lookupOrAddDefault
++        FOAM_DEPRECATED_FOR(2018-10, "lookupOrAddDefault(keyType::option)")
++        T lookupOrAddDefault
+         (
+             const word& keyword,
+             const T& deflt,
+@@ -1454,9 +1447,8 @@ public:
+         //- Deprecated(2018-10)
+         //  \deprecated(2018-10) - use keyType::option version
+         template<class T>
+-        bool
+         FOAM_DEPRECATED_FOR(2018-10, "readIfPresent(keyType::option)")
+-        readIfPresent
++        bool readIfPresent
+         (
+             const word& keyword,
+             T& val,
+diff --git a/src/OpenFOAM/dimensionedTypes/dimensionedType/dimensionedType.H b/src/OpenFOAM/dimensionedTypes/dimensionedType/dimensionedType.H
+index 823c2557..a43270cd 100644
+--- a/src/OpenFOAM/dimensionedTypes/dimensionedType/dimensionedType.H
++++ b/src/OpenFOAM/dimensionedTypes/dimensionedType/dimensionedType.H
+@@ -371,16 +371,14 @@ public:
+         //  \deprecated(2018-11) - should generally use construct from
+         //      dictionary or primitiveEntry instead
+         //      (additional checks on the input stream).
+-        explicit dimensioned(Istream& is)
+-        FOAM_DEPRECATED(2018-11);
++        FOAM_DEPRECATED(2018-11) explicit dimensioned(Istream& is);
+ 
+         //- Deprecated(2018-11) Construct from Istream with given name
+         //- (expects dimensions, value)
+         //  \deprecated(2018-11) - should generally use construct from
+         //      dictionary or primitiveEntry instead
+         //      (additional checks on the input stream).
+-        dimensioned(const word& name, Istream& is)
+-        FOAM_DEPRECATED(2018-11);
++        FOAM_DEPRECATED(2018-11) dimensioned(const word& name, Istream& is);
+ 
+         //- Deprecated(2018-11) Construct from Istream with given name
+         //- and expected dimensions.
+@@ -390,8 +388,7 @@ public:
+         //  \deprecated(2018-11) - should generally use construct from
+         //      dictionary or primitiveEntry instead
+         //      (additional checks on the input stream).
+-        dimensioned(const word& name, const dimensionSet& dims, Istream& is)
+-        FOAM_DEPRECATED(2018-11);
++        FOAM_DEPRECATED(2018-11) dimensioned(const word& name, const dimensionSet& dims, Istream& is);
+ 
+ 
+         //- Construct dimensioned from dictionary, with default value.
+diff --git a/src/OpenFOAM/fields/GeometricFields/GeometricField/GeometricField.H b/src/OpenFOAM/fields/GeometricFields/GeometricField/GeometricField.H
+index 21891cbc..3204a4bd 100644
+--- a/src/OpenFOAM/fields/GeometricFields/GeometricField/GeometricField.H
++++ b/src/OpenFOAM/fields/GeometricFields/GeometricField/GeometricField.H
+@@ -698,11 +698,12 @@ public:
+ 
+         //- Deprecated(2019-01) identical to clip()
+         //  \deprecated(2019-01) identical to clip()
++        FOAM_DEPRECATED_FOR(2019-01, "clip() method")
+         void maxMin
+         (
+             const dimensioned<Type>& minVal,
+             const dimensioned<Type>& maxVal
+-        ) FOAM_DEPRECATED_FOR(2019-01, "clip() method");
++        );
+ 
+ 
+     // Member Operators
+diff --git a/src/OpenFOAM/global/argList/argList.H b/src/OpenFOAM/global/argList/argList.H
+index 407315f0..c2a3440d 100644
+--- a/src/OpenFOAM/global/argList/argList.H
++++ b/src/OpenFOAM/global/argList/argList.H
+@@ -628,8 +628,8 @@ public:
+         //  Index 1 is the first (non-option) argument.
+         //  \deprecated(2018-08) - use get() method
+         template<class T>
+-        T FOAM_DEPRECATED_FOR(2018-08, "get() method")
+-        read(const label index) const
++        FOAM_DEPRECATED_FOR(2018-08, "get() method")
++        T read(const label index) const
+         {
+             return this->get<T>(index);
+         }
+@@ -638,24 +638,24 @@ public:
+         //  Index 1 is the first (non-option) argument.
+         //  \deprecated(2018-01) - use get() method
+         template<class T>
+-        T FOAM_DEPRECATED_FOR(2018-01, "get() method")
+-        argRead(const label index) const
++        FOAM_DEPRECATED_FOR(2018-01, "get() method")
++        T argRead(const label index) const
+         {
+             return this->get<T>(index);
+         }
+ 
+         //- Deprecated(2018-01) return true if the named option is found
+         //  \deprecated(2018-01) - use found() method
+-        bool FOAM_DEPRECATED_FOR(2018-01, "found() method")
+-        optionFound(const word& optName) const
++        FOAM_DEPRECATED_FOR(2018-01, "found() method")
++        bool optionFound(const word& optName) const
+         {
+             return found(optName);
+         }
+ 
+         //- Deprecated(2018-01) return an input stream from the named option
+         //  \deprecated(2018-01) - use lookup() method
+-        ITstream FOAM_DEPRECATED_FOR(2018-01, "lookup() method")
+-        optionLookup(const word& optName) const
++        FOAM_DEPRECATED_FOR(2018-01, "lookup() method")
++        ITstream optionLookup(const word& optName) const
+         {
+             return lookup(optName);
+         }
+@@ -663,8 +663,8 @@ public:
+         //- Deprecated(2018-01) read a value from the named option
+         //  \deprecated(2018-01) - use get() method
+         template<class T>
+-        T FOAM_DEPRECATED_FOR(2018-01, "get() method")
+-        optionRead(const word& optName) const
++        FOAM_DEPRECATED_FOR(2018-01, "get() method")
++        T optionRead(const word& optName) const
+         {
+             return get<T>(optName);
+         }
+@@ -673,8 +673,8 @@ public:
+         //  Return true if the named option was found.
+         //  \deprecated(2018-01) - use readIfPresent() method
+         template<class T>
+-        bool FOAM_DEPRECATED_FOR(2018-01, "readIfPresent() method")
+-        optionReadIfPresent
++        FOAM_DEPRECATED_FOR(2018-01, "readIfPresent() method")
++        bool optionReadIfPresent
+         (
+             const word& optName,
+             T& val
+@@ -688,8 +688,8 @@ public:
+         //  use the supplied default and return false.
+         //  \deprecated(2018-01) - use readIfPresent() method
+         template<class T>
+-        bool FOAM_DEPRECATED_FOR(2018-01, "readIfPresent() method")
+-        optionReadIfPresent
++        FOAM_DEPRECATED_FOR(2018-01, "readIfPresent() method")
++        bool optionReadIfPresent
+         (
+             const word& optName,
+             T& val,
+@@ -703,8 +703,8 @@ public:
+         //  Return supplied default otherwise.
+         //  \deprecated(2018-01) - use getOrDefault() method
+         template<class T>
+-        T FOAM_DEPRECATED_FOR(2018-01, "getOrDefault() method")
+-        optionLookupOrDefault
++        FOAM_DEPRECATED_FOR(2018-01, "getOrDefault() method")
++        T optionLookupOrDefault
+         (
+             const word& optName,
+             const T& deflt
+@@ -716,8 +716,8 @@ public:
+         //- Deprecated(2018-01) read a List of values from the named option
+         //  \deprecated(2018-01) - use getList() method
+         template<class T>
+-        List<T> FOAM_DEPRECATED_FOR(2018-01, "getList() method")
+-        optionReadList(const word& optName) const
++        FOAM_DEPRECATED_FOR(2018-01, "getList() method")
++        List<T> optionReadList(const word& optName) const
+         {
+             return this->getList<T>(optName);
+         }
+diff --git a/src/OpenFOAM/matrices/Matrix/Matrix.H b/src/OpenFOAM/matrices/Matrix/Matrix.H
+index 461a1a99..abbff3ba 100644
+--- a/src/OpenFOAM/matrices/Matrix/Matrix.H
++++ b/src/OpenFOAM/matrices/Matrix/Matrix.H
+@@ -505,22 +505,24 @@ public:
+ 
+         //- Deprecated(2019-04) raw data pointer, const access
+         //  \deprecated(2019-04) - use cdata() method
+-        const Type* FOAM_DEPRECATED_FOR(2019-04, "cdata() method") v() const
++        FOAM_DEPRECATED_FOR(2019-04, "cdata() method")
++        const Type* v() const
+         {
+             return v_;
+         }
+ 
+         //- Deprecated(2019-04) raw data pointer, non-const access
+         //  \deprecated(2019-04) - use data() method
+-        Type* FOAM_DEPRECATED_FOR(2019-04, "data() method") v()
++        FOAM_DEPRECATED_FOR(2019-04, "data() method")
++        Type* v()
+         {
+             return v_;
+         }
+ 
+         //- Deprecated(2019-04) - use subMatrix()
+         //  \deprecated(2019-04) - use subMatrix()
+-        ConstMatrixBlock<mType>
+-        FOAM_DEPRECATED_FOR(2019-04, "subMatrix() method") block
++        FOAM_DEPRECATED_FOR(2019-04, "subMatrix() method")
++        ConstMatrixBlock<mType> block
+         (
+             const label m,
+             const label n,
+@@ -533,8 +535,8 @@ public:
+ 
+         //- Deprecated(2019-04) - use subMatrix()
+         //  \deprecated(2019-04) - use subMatrix()
+-        MatrixBlock<mType>
+-        FOAM_DEPRECATED_FOR(2019-04, "subMatrix() method") block
++        FOAM_DEPRECATED_FOR(2019-04, "subMatrix() method")
++        MatrixBlock<mType> block
+         (
+             const label m,
+             const label n,
+@@ -548,8 +550,8 @@ public:
+ 
+         //- Deprecated(2019-04) - use subColumn()
+         //  \deprecated(2019-04) - use subColumn()
+-        ConstMatrixBlock<mType>
+-        FOAM_DEPRECATED_FOR(2019-04, "subColumn() method") col
++        FOAM_DEPRECATED_FOR(2019-04, "subColumn() method")
++        ConstMatrixBlock<mType> col
+         (
+             const label m,
+             const label mStart,
+@@ -561,8 +563,8 @@ public:
+ 
+         //- Deprecated(2019-04) - use subColumn()
+         //  \deprecated(2019-04) - use subColumn()
+-        MatrixBlock<mType>
+-        FOAM_DEPRECATED_FOR(2019-04, "subColumn() method") col
++        FOAM_DEPRECATED_FOR(2019-04, "subColumn() method")
++        MatrixBlock<mType> col
+         (
+             const label m,
+             const label mStart,
+diff --git a/src/OpenFOAM/meshes/meshShapes/face/face.H b/src/OpenFOAM/meshes/meshShapes/face/face.H
+index d6612f4d..45a78907 100644
+--- a/src/OpenFOAM/meshes/meshShapes/face/face.H
++++ b/src/OpenFOAM/meshes/meshShapes/face/face.H
+@@ -203,8 +203,8 @@ public:
+ 
+         //- Legacy name for areaNormal()
+         //  \deprecated(2018-06) Deprecated for new use
+-        vector FOAM_DEPRECATED_FOR(2018-12, "areaNormal() or unitNormal()")
+-        normal(const UList<point>& p) const
++        FOAM_DEPRECATED_FOR(2018-12, "areaNormal() or unitNormal()")
++        vector normal(const UList<point>& p) const
+         {
+             return areaNormal(p); // Legacy definition
+         }
+diff --git a/src/OpenFOAM/meshes/meshShapes/triFace/triFace.H b/src/OpenFOAM/meshes/meshShapes/triFace/triFace.H
+index af17d81f..111e7984 100644
+--- a/src/OpenFOAM/meshes/meshShapes/triFace/triFace.H
++++ b/src/OpenFOAM/meshes/meshShapes/triFace/triFace.H
+@@ -134,8 +134,8 @@ public:
+ 
+         //- Legacy name for areaNormal()
+         //  \deprecated(2018-06) Deprecated for new use
+-        vector FOAM_DEPRECATED_FOR(2018-12, "areaNormal() or unitNormal()")
+-        normal(const UList<point>& points) const
++        FOAM_DEPRECATED_FOR(2018-12, "areaNormal() or unitNormal()")
++        vector normal(const UList<point>& points) const
+         {
+             return areaNormal(points); // Legacy definition
+         }
+diff --git a/src/OpenFOAM/meshes/primitiveShapes/triangle/triangle.H b/src/OpenFOAM/meshes/primitiveShapes/triangle/triangle.H
+index 8f3a55e0..22ffff5e 100644
+--- a/src/OpenFOAM/meshes/primitiveShapes/triangle/triangle.H
++++ b/src/OpenFOAM/meshes/primitiveShapes/triangle/triangle.H
+@@ -217,8 +217,8 @@ public:
+ 
+             //- Legacy name for areaNormal().
+             //  \deprecated(2018-06) Deprecated for new use
+-            vector FOAM_DEPRECATED_FOR(2018-12, "areaNormal() or unitNormal()")
+-            normal() const
++            FOAM_DEPRECATED_FOR(2018-12, "areaNormal() or unitNormal()")
++            vector normal() const
+             {
+                 return areaNormal();
+             }
+diff --git a/src/OpenFOAM/primitives/Scalar/doubleFloat.H b/src/OpenFOAM/primitives/Scalar/doubleFloat.H
+index 4442a4eb..d4c5f6e1 100644
+--- a/src/OpenFOAM/primitives/Scalar/doubleFloat.H
++++ b/src/OpenFOAM/primitives/Scalar/doubleFloat.H
+@@ -67,11 +67,19 @@ MAXMINPOW(double, double, int)
+ MAXMINPOW(double, int, double)
+ MAXMINPOW(double, double, long)
+ MAXMINPOW(double, long, double)
++#if defined(__APPLE__) && WM_LABEL_SIZE == 64
++MAXMINPOW(double, double, int64_t)
++MAXMINPOW(double, int64_t, double)
++#endif
+ MAXMINPOW(float, float, float)
+ MAXMINPOW(float, float, int)
+ MAXMINPOW(float, int, float)
+ MAXMINPOW(float, float, long)
+ MAXMINPOW(float, long, float)
++#if defined(__APPLE__) && WM_LABEL_SIZE == 64
++MAXMINPOW(float, float, int64_t)
++MAXMINPOW(float, int64_t, float)
++#endif
+ 
+ #undef MAXMINPOW
+ 
+diff --git a/src/OpenFOAM/primitives/enums/Enum.H b/src/OpenFOAM/primitives/enums/Enum.H
+index 02090993..0cdd5c9c 100644
+--- a/src/OpenFOAM/primitives/enums/Enum.H
++++ b/src/OpenFOAM/primitives/enums/Enum.H
+@@ -282,8 +282,8 @@ public:
+ 
+         //- Deprecated(2018-10) same as two-parameter get()
+         //  \deprecated(2018-10) - use two-parameter get() method
+-        EnumType FOAM_DEPRECATED_FOR(2018-10, "get() method")
+-        lookup(const word& key, const dictionary& dict) const
++        FOAM_DEPRECATED_FOR(2018-10, "get() method")
++        EnumType lookup(const word& key, const dictionary& dict) const
+         {
+             return get(key, dict);
+         }
+diff --git a/src/OpenFOAM/primitives/enums/NamedEnum.H b/src/OpenFOAM/primitives/enums/NamedEnum.H
+index 0bd09497..8dd69dd2 100644
+--- a/src/OpenFOAM/primitives/enums/NamedEnum.H
++++ b/src/OpenFOAM/primitives/enums/NamedEnum.H
+@@ -102,8 +102,8 @@ public:
+     // Constructors
+ 
+         //- Construct from names
+-        NamedEnum()
+-        FOAM_DEPRECATED_FOR(2017-05, "Enum instead of using NamedEnum");
++        FOAM_DEPRECATED_FOR(2017-05, "Enum instead of using NamedEnum")
++        NamedEnum();
+ 
+ 
+     // Member Functions
+diff --git a/src/OpenFOAM/primitives/strings/lists/hashedWordList.H b/src/OpenFOAM/primitives/strings/lists/hashedWordList.H
+index 2bd429d5..e1364d8f 100644
+--- a/src/OpenFOAM/primitives/strings/lists/hashedWordList.H
++++ b/src/OpenFOAM/primitives/strings/lists/hashedWordList.H
+@@ -183,8 +183,8 @@ public:
+ 
+         //- Deprecated(2019-01) Is the specified name found in the list?
+         //  \deprecated(2019-01) - use found() method
+-        bool FOAM_DEPRECATED_FOR(2019-01, "found() method")
+-        contains(const word& name) const
++        FOAM_DEPRECATED_FOR(2019-01, "found() method")
++        bool contains(const word& name) const
+         {
+             return this->found(name);
+         }
+diff --git a/src/fileFormats/ensight/part/ensightPart.H b/src/fileFormats/ensight/part/ensightPart.H
+index 2b9d3f9d..b46c6d1a 100644
+--- a/src/fileFormats/ensight/part/ensightPart.H
++++ b/src/fileFormats/ensight/part/ensightPart.H
+@@ -158,8 +158,8 @@ public:
+ 
+         //- Deprecated(2019-12) - use rename() method
+         //  \deprecated(2019-12) - use rename() method
+-        void FOAM_DEPRECATED_FOR(2019-12, "rename() method")
+-        name(string value)
++        FOAM_DEPRECATED_FOR(2019-12, "rename() method")
++        void name(string value)
+         {
+             name_ = std::move(value);
+         }
+diff --git a/src/functionObjects/graphics/Allwmake b/src/functionObjects/graphics/Allwmake
+index 33fb4cf3..e18e4c6a 100755
+--- a/src/functionObjects/graphics/Allwmake
++++ b/src/functionObjects/graphics/Allwmake
+@@ -5,7 +5,7 @@ cd "${0%/*}" || exit                                # Run from this directory
+ #------------------------------------------------------------------------------
+ if [ "$targetType" != "objects" ]
+ then
+-    runTimePostProcessing/Allwmake $*
++    [ "$(uname -s)" = "Darwin" ] || runTimePostProcessing/Allwmake $*
+ fi
+ 
+ #------------------------------------------------------------------------------
+diff --git a/wmake/rules/General/Clang/c++ b/wmake/rules/General/Clang/c++
+index aa379895..e911783e 100644
+--- a/wmake/rules/General/Clang/c++
++++ b/wmake/rules/General/Clang/c++
+@@ -1,6 +1,6 @@
+ SUFFIXES += .C .cc .cpp .cxx
+ 
+-CC          = clang++ -std=c++11
++CC          = clang++ -std=c++14
+ 
+ c++ARCH     =
+ c++DBUG     =
+diff --git a/wmake/rules/General/Clang/openmp b/wmake/rules/General/Clang/openmp
+index 070a2c5d..4c276fec 100644
+--- a/wmake/rules/General/Clang/openmp
++++ b/wmake/rules/General/Clang/openmp
+@@ -4,5 +4,5 @@
+ # Clang provides 'omp' and a link for 'gomp'.
+ # With 'gomp' we can use system libs.
+ 
+-COMP_OPENMP = -DUSE_OMP -fopenmp
+-LINK_OPENMP = -lgomp
++COMP_OPENMP = -DUSE_OMP -Xpreprocessor -fopenmp
++LINK_OPENMP = -lomp

@@ -15,6 +15,22 @@ OPENFOAM(R)  and OpenCFD(R)  trade marks.
 OPENFOAM(R)  is a registered trade mark of OpenCFD Limited, producer and
 distributor of the OpenFOAM software via www.openfoam.com.
 
+## Apr. 9, 2020
+
+Updated version OpenFOAM(R) 5.x, 6, and 7 patches. Added OpenFOAM(R) v1912 patch. Notes:
+
+- Set C++ standard to `C++14` in `wmake` rules due to `CGAL` 5.0. It started to
+  requite C++14 and became header only.
+- Rewrote SIP remedy code. It was started as an issue in OpenCFD GitLab and
+  resulted in modified configuration logic.
+- Fixed `csh` initialisation scripts, so users of `tcsh` can use `source
+  etc/cshrc` to initialise environment.
+
+Small note on `WM_LABEL_SIZE=64`: since all Mac OS X installations are
+performed on personal notebooks I do not see a point in using 64-bit labels. So
+I won't test this configuration any more. Though I am open to suggestions and
+reasoning behind using 64-bit labels.
+
 ## Jul. 15, 2019
 
 Added version 7 patch. Updated patches for 5.x and 6.
