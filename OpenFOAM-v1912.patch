@@ -2,22 +2,24 @@
  bin/tools/lib-dir                                  |   8 +-
  etc/bashrc                                         |   2 +-
  etc/config.csh/functions                           |  12 ++-
+ etc/config.csh/mac/paraview                        |  13 +++
  etc/config.csh/paraview                            |  23 ++++-
  etc/config.csh/settings                            |   1 +
- etc/config.csh/setup                               |  40 ++++++--
- etc/config.csh/unset                               |  22 ++++-
+ etc/config.csh/setup                               |  48 +++++++--
+ etc/config.csh/unset                               |  26 +++--
  etc/config.sh/CGAL                                 |   4 +-
  etc/config.sh/FFTW                                 |   2 +-
  etc/config.sh/adios2                               |   2 +-
  etc/config.sh/functions                            |   2 +
  etc/config.sh/kahip                                |   4 +-
+ etc/config.sh/mac/paraview                         |  18 ++++
  etc/config.sh/metis                                |   2 +-
  etc/config.sh/paraview                             |   2 +-
  etc/config.sh/petsc                                |   2 +-
  etc/config.sh/scotch                               |   2 +-
  etc/config.sh/settings                             |   1 +
- etc/config.sh/setup                                |  39 +++++++-
- etc/config.sh/unset                                |  24 ++++-
+ etc/config.sh/setup                                |  50 ++++++++--
+ etc/config.sh/unset                                |  26 ++++-
  etc/config.sh/vtk                                  |  10 +-
  etc/cshrc                                          |   2 +-
  src/OSspecific/POSIX/signals/sigFpe.C              |  51 +++++++++-
@@ -46,7 +48,7 @@
  src/functionObjects/graphics/Allwmake              |   2 +-
  wmake/rules/General/Clang/c++                      |   2 +-
  wmake/rules/General/Clang/openmp                   |   4 +-
- 48 files changed, 465 insertions(+), 337 deletions(-)
+ 50 files changed, 515 insertions(+), 343 deletions(-)
 
 diff --git a/bin/tools/RunFunctions b/bin/tools/RunFunctions
 index 8adacd73..32fd5b51 100644
@@ -130,6 +132,25 @@ index f71dd990..91523b7b 100644
  
  # Echo values when FOAM_VERBOSE is on, no-op otherwise
  if ($?FOAM_VERBOSE && $?prompt) then
+diff --git a/etc/config.csh/mac/paraview b/etc/config.csh/mac/paraview
+new file mode 100644
+index 00000000..53adbcca
+--- /dev/null
++++ b/etc/config.csh/mac/paraview
+@@ -0,0 +1,13 @@
++set _paraview = /Applications/[Pp][Aa][Rr][Aa][Vv][Ii][Ee][Ww]*.app
++if ( -d $_paraview ) then
++    if ( $?prompt ) echo Using $_paraview
++    alias paraview "$_paraview/Contents/MacOS/paraview"
++else
++    echo
++    echo "Please download binary Paraview release from"
++    echo "http://paraview.org and install it in /Applications"
++    echo "folder."
++    echo
++endif
++
++#----------------------------- vi: set ft=csh et: ----------------------------
 diff --git a/etc/config.csh/paraview b/etc/config.csh/paraview
 index bc57ed56..d69dbfcb 100644
 --- a/etc/config.csh/paraview
@@ -192,7 +213,7 @@ index 206846e1..8702115e 100644
      breaksw
  
 diff --git a/etc/config.csh/setup b/etc/config.csh/setup
-index 51a92cd0..1a696f31 100644
+index 51a92cd0..ce7449ea 100644
 --- a/etc/config.csh/setup
 +++ b/etc/config.csh/setup
 @@ -32,6 +32,9 @@ setenv FOAM_API `$WM_PROJECT_DIR/bin/foamEtcFile -show-api`
@@ -242,7 +263,22 @@ index 51a92cd0..1a696f31 100644
  
  # Setup for OpenFOAM compilation etc
  # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-@@ -161,7 +184,12 @@ endif
+@@ -139,8 +162,12 @@ _foamEtc -config  settings
+ # Setup for third-party packages
+ # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ _foamEtc -config  mpi
+-_foamEtc -config  paraview -- "$FOAM_SETTINGS"  # Pass through for evaluation
+-_foamEtc -config  vtk
++if ( $foamDarwin ) then
++    _foamEtc -config  mac/paraview
++else
++    _foamEtc -config  paraview -- "$FOAM_SETTINGS"  # Pass through for evaluation
++    _foamEtc -config  vtk
++endif
+ _foamEtc -config  adios2
+ _foamEtc -config  CGAL
+ _foamEtc -config  FFTW
+@@ -161,7 +188,12 @@ endif
  
  _foamClean PATH
  _foamClean MANPATH
@@ -256,7 +292,7 @@ index 51a92cd0..1a696f31 100644
  
  # Add trailing ':' for system manpages
  if ( $?MANPATH ) then
-@@ -182,6 +210,6 @@ unalias _foamAddLib
+@@ -182,6 +214,6 @@ unalias _foamAddLib
  unalias _foamAddLibAuto
  
  # Variables (done as final statement for a clean exit code)
@@ -266,7 +302,7 @@ index 51a92cd0..1a696f31 100644
 -#------------------------------------------------------------------------------
 +#--------------------- vi: set ft=csh et sw=4 ts=4 sts=4: ---------------------
 diff --git a/etc/config.csh/unset b/etc/config.csh/unset
-index c3405cd6..f8bdf269 100644
+index c3405cd6..bda35572 100644
 --- a/etc/config.csh/unset
 +++ b/etc/config.csh/unset
 @@ -20,6 +20,8 @@
@@ -333,6 +369,23 @@ index c3405cd6..f8bdf269 100644
  
  #------------------------------------------------------------------------------
  # Cleanup aliases
+@@ -194,6 +206,8 @@ unalias wmRefresh
+ unalias foamVersion
+ unalias foamPV
+ 
++if ( $foamDarwin ) unalias paraview
++
+ # Remove old completions, which look like:
+ #   complete APPNAME 'p,*,`bash $WM_PROJECT_DIR/etc/ ...
+ if ($?prompt && $?tcsh) then  # Interactive tcsh only
+@@ -205,6 +219,6 @@ endif
+ #------------------------------------------------------------------------------
+ # Intermediate variables (do as last for a clean exit code)
+ 
+-unset cleaned foamClean foamOldDirs
++unset cleaned foamClean foamOldDirs foamDarwin
+ 
+ #------------------------------------------------------------------------------
 diff --git a/etc/config.sh/CGAL b/etc/config.sh/CGAL
 index 38014a26..31f1b783 100644
 --- a/etc/config.sh/CGAL
@@ -409,6 +462,30 @@ index 6eb38547..9abec1c2 100644
  
  # END OF (NORMAL) USER EDITABLE PART
  #------------------------------------------------------------------------------
+diff --git a/etc/config.sh/mac/paraview b/etc/config.sh/mac/paraview
+new file mode 100644
+index 00000000..cc69c194
+--- /dev/null
++++ b/etc/config.sh/mac/paraview
+@@ -0,0 +1,18 @@
++_paraviews=(/Applications/[Pp][Aa][Rr][Aa][Vv][Ii][Ee][Ww]*.app)
++if test -d $_paraviews;
++then
++    [ "$FOAM_VERBOSE" -a "$PS1" ] && echo Using $_paraviews
++
++    paraview () {
++        local _paraviews=(/Applications/[Pp][Aa][Rr][Aa][Vv][Ii][Ee][Ww]*.app)
++        $_paraviews/Contents/MacOS/paraview "$@"
++    }
++
++    export -f paraview
++else
++    echo
++    echo "Please download binary Paraview release from"
++    echo "http://paraview.org and install it in /Applications"
++    echo "folder."
++    echo
++fi
 diff --git a/etc/config.sh/metis b/etc/config.sh/metis
 index ce42f62a..8a481a8f 100644
 --- a/etc/config.sh/metis
@@ -474,7 +551,7 @@ index 8b3ba124..a0c53cc4 100644
      ;;
  
 diff --git a/etc/config.sh/setup b/etc/config.sh/setup
-index d502e835..10e27692 100644
+index d502e835..ae371310 100644
 --- a/etc/config.sh/setup
 +++ b/etc/config.sh/setup
 @@ -26,6 +26,10 @@
@@ -514,7 +591,25 @@ index d502e835..10e27692 100644
  
  # Setup for OpenFOAM compilation etc
  # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-@@ -142,11 +159,23 @@ fi
+@@ -119,9 +136,14 @@ _foamEtc -config  settings
+ # Setup for third-party packages
+ # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ _foamEtc -config  mpi
+-_foamEtc -config  paraview -- "$@"  # Pass through for evaluation
+-_foamEtc -config  vtk
+-_foamEtc -config  gperftools
++if [ $isDarwin ]
++then
++    _foamEtc -config  mac/paraview -- "$@"  # Pass through for evaluation
++else
++    _foamEtc -config  paraview -- "$@"  # Pass through for evaluation
++    _foamEtc -config  vtk
++    _foamEtc -config  gperftools
++fi
+ _foamEtc -config  adios2
+ _foamEtc -config  CGAL
+ _foamEtc -config  scotch
+@@ -142,11 +164,23 @@ fi
  
  # Clean environment paths again. Only remove duplicates
  # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -540,7 +635,7 @@ index d502e835..10e27692 100644
  
  # Add trailing ':' for system manpages
  if [ -n "$MANPATH" ]
-@@ -162,6 +191,6 @@ fi
+@@ -162,6 +196,6 @@ fi
  . "$WM_PROJECT_DIR/etc/config.sh/functions"
  
  # Variables (done as the last statement for a clean exit code)
@@ -549,7 +644,7 @@ index d502e835..10e27692 100644
  
  #------------------------------------------------------------------------------
 diff --git a/etc/config.sh/unset b/etc/config.sh/unset
-index 3676b19c..75cff862 100644
+index 3676b19c..2a70c295 100644
 --- a/etc/config.sh/unset
 +++ b/etc/config.sh/unset
 @@ -20,6 +20,9 @@
@@ -570,7 +665,7 @@ index 3676b19c..75cff862 100644
  
  unset FOAM_API
  unset FOAM_APPBIN
-@@ -139,16 +143,28 @@ unset SCOTCH_ARCH_PATH
+@@ -139,21 +143,35 @@ unset SCOTCH_ARCH_PATH
  
  #------------------------------------------------------------------------------
  # Cleanup environment
@@ -602,7 +697,14 @@ index 3676b19c..75cff862 100644
  [ -n "$MANPATH" ] || unset MANPATH
  
  #------------------------------------------------------------------------------
-@@ -208,6 +224,6 @@ unset _of_complete_cache_
+ # Cleanup aliases and functions
+ 
++[ $isDarwin ] && unset -f paraview 2>/dev/null
++
+ unalias wmSet       2>/dev/null
+ unalias wmInt32     2>/dev/null
+ unalias wmInt64     2>/dev/null
+@@ -208,6 +226,6 @@ unset _of_complete_cache_
  #------------------------------------------------------------------------------
  # Intermediate variables (do as last for a clean exit code)
  
