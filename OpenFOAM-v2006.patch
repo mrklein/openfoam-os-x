@@ -1,0 +1,1035 @@
+ .../DelaunayMesh/DelaunayMesh.C                    |  4 +-
+ .../DelaunayMesh/DistributedDelaunayMesh.C         |  4 +-
+ .../CGALTriangulation3DKernel.H                    |  5 +++
+ .../indexedVertex/indexedVertex.H                  |  3 ++
+ .../surfaceBooleanFeatures.C                       |  3 ++
+ bin/tools/RunFunctions                             |  3 ++
+ bin/tools/lib-dir                                  |  8 ++--
+ etc/config.csh/functions                           |  8 +++-
+ etc/config.csh/mac/paraview                        | 13 ++++++
+ etc/config.csh/paraview                            | 21 ++++++++--
+ etc/config.csh/setup                               | 45 ++++++++++++++++++---
+ etc/config.csh/unset                               | 22 ++++++++--
+ etc/config.sh/CGAL                                 |  4 +-
+ etc/config.sh/FFTW                                 |  2 +-
+ etc/config.sh/adios2                               |  4 +-
+ etc/config.sh/ccmio                                |  2 +-
+ etc/config.sh/functions                            |  3 +-
+ etc/config.sh/gperftools                           |  2 +-
+ etc/config.sh/hypre                                |  2 +-
+ etc/config.sh/kahip                                |  2 +-
+ etc/config.sh/mac/paraview                         | 18 +++++++++
+ etc/config.sh/metis                                |  2 +-
+ etc/config.sh/mgridgen                             |  4 +-
+ etc/config.sh/petsc                                |  2 +-
+ etc/config.sh/scotch                               |  2 +-
+ etc/config.sh/setup                                | 47 ++++++++++++++++++----
+ etc/config.sh/unset                                | 25 ++++++++++--
+ etc/config.sh/vtk                                  | 10 ++---
+ .../JohnsonJacksonParticleSlipFvPatchVectorField.C |  1 -
+ .../univariate/extended/beta/betaEQMOM.C           |  2 +-
+ .../univariate/extended/gamma/gammaEQMOM.C         |  4 +-
+ .../avalanche/src/avalanche/gistools/shapefile.C   |  3 ++
+ src/OpenFOAM/containers/Lists/UList/UList.C        |  5 ++-
+ .../fvOptions/fvIOoptionListAdjoint.C              |  2 +-
+ .../fvOptions/fvIOoptionListAdjoint.H              |  2 +-
+ src/renumber/SloanRenumber/SloanRenumber.C         |  3 ++
+ wmake/rules/darwin64Clang/CGAL                     |  5 +--
+ wmake/rules/darwin64Clang/c                        |  2 +
+ wmake/rules/darwin64Clang/c++                      |  2 +
+ wmake/scripts/have_adios2                          | 25 ++++++------
+ wmake/scripts/have_mgridgen                        | 10 +++--
+ 41 files changed, 257 insertions(+), 79 deletions(-)
+
+diff --git a/applications/utilities/mesh/generation/foamyMesh/conformalVoronoiMesh/DelaunayMesh/DelaunayMesh.C b/applications/utilities/mesh/generation/foamyMesh/conformalVoronoiMesh/DelaunayMesh/DelaunayMesh.C
+index 9ae95d5d..211c5fc5 100644
+--- a/applications/utilities/mesh/generation/foamyMesh/conformalVoronoiMesh/DelaunayMesh/DelaunayMesh.C
++++ b/applications/utilities/mesh/generation/foamyMesh/conformalVoronoiMesh/DelaunayMesh/DelaunayMesh.C
+@@ -304,7 +304,9 @@ Foam::Map<Foam::label> Foam::DelaunayMesh<Triangulation>::rangeInsertWithInfo
+         );
+     }
+ 
+-    std::random_shuffle(points.begin(), points.end());
++    std::random_device rd;
++    std::mt19937 g(rd());
++    std::shuffle(points.begin(), points.end(), g);
+ 
+     spatial_sort
+     (
+diff --git a/applications/utilities/mesh/generation/foamyMesh/conformalVoronoiMesh/DelaunayMesh/DistributedDelaunayMesh.C b/applications/utilities/mesh/generation/foamyMesh/conformalVoronoiMesh/DelaunayMesh/DistributedDelaunayMesh.C
+index bbd54cf4..5cf35bda 100644
+--- a/applications/utilities/mesh/generation/foamyMesh/conformalVoronoiMesh/DelaunayMesh/DistributedDelaunayMesh.C
++++ b/applications/utilities/mesh/generation/foamyMesh/conformalVoronoiMesh/DelaunayMesh/DistributedDelaunayMesh.C
+@@ -879,7 +879,9 @@ Foam::DistributedDelaunayMesh<Triangulation>::rangeInsertReferredWithInfo
+         );
+     }
+ 
+-    std::random_shuffle(pointsBbDistSqr.begin(), pointsBbDistSqr.end());
++    std::random_device rd;
++    std::mt19937 g(rd());
++    std::shuffle(pointsBbDistSqr.begin(), pointsBbDistSqr.end(), g);
+ 
+     // Sort in ascending order by the distance of the point from the centre
+     // of the processor bounding box
+diff --git a/applications/utilities/mesh/generation/foamyMesh/conformalVoronoiMesh/conformalVoronoiMesh/CGALTriangulation3DKernel.H b/applications/utilities/mesh/generation/foamyMesh/conformalVoronoiMesh/conformalVoronoiMesh/CGALTriangulation3DKernel.H
+index 277bd836..9dfe234d 100644
+--- a/applications/utilities/mesh/generation/foamyMesh/conformalVoronoiMesh/conformalVoronoiMesh/CGALTriangulation3DKernel.H
++++ b/applications/utilities/mesh/generation/foamyMesh/conformalVoronoiMesh/conformalVoronoiMesh/CGALTriangulation3DKernel.H
+@@ -35,6 +35,9 @@ Description
+ 
+ // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+ 
++#pragma clang diagnostic push
++#pragma clang diagnostic ignored "-W#pragma-messages"
++
+ #include "CGAL/Delaunay_triangulation_3.h"
+ 
+ #ifdef CGAL_INEXACT
+@@ -62,6 +65,8 @@ Description
+ 
+ // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+ 
++#pragma clang diagnostic pop
++
+ #endif
+ 
+ // ************************************************************************* //
+diff --git a/applications/utilities/mesh/generation/foamyMesh/conformalVoronoiMesh/conformalVoronoiMesh/indexedVertex/indexedVertex.H b/applications/utilities/mesh/generation/foamyMesh/conformalVoronoiMesh/conformalVoronoiMesh/indexedVertex/indexedVertex.H
+index 22271ebe..c53bb14c 100644
+--- a/applications/utilities/mesh/generation/foamyMesh/conformalVoronoiMesh/conformalVoronoiMesh/indexedVertex/indexedVertex.H
++++ b/applications/utilities/mesh/generation/foamyMesh/conformalVoronoiMesh/conformalVoronoiMesh/indexedVertex/indexedVertex.H
+@@ -40,7 +40,10 @@ SourceFiles
+ #ifndef indexedVertex_H
+ #define indexedVertex_H
+ 
++#pragma clang diagnostic push
++#pragma clang diagnostic ignored "-W#pragma-messages"
+ #include "CGAL/Triangulation_3.h"
++#pragma clang diagnostic pop
+ #include "CGALTriangulation3DKernel.H"
+ #include "tensor.H"
+ #include "triad.H"
+diff --git a/applications/utilities/surface/surfaceBooleanFeatures/surfaceBooleanFeatures.C b/applications/utilities/surface/surfaceBooleanFeatures/surfaceBooleanFeatures.C
+index 174ae436..8ca5a13f 100644
+--- a/applications/utilities/surface/surfaceBooleanFeatures/surfaceBooleanFeatures.C
++++ b/applications/utilities/surface/surfaceBooleanFeatures/surfaceBooleanFeatures.C
+@@ -91,7 +91,10 @@ Description
+ #ifndef NO_CGAL
+ 
+ #include <CGAL/AABB_tree.h>
++#pragma clang diagnostic push
++#pragma clang diagnostic ignored "-W#pragma-messages"
+ #include <CGAL/AABB_traits.h>
++#pragma clang diagnostic pop
+ #include <CGAL/AABB_face_graph_triangle_primitive.h>
+ #include "CGALIndexedPolyhedron.H"
+ #include "PolyhedronReader.H"
+diff --git a/bin/tools/RunFunctions b/bin/tools/RunFunctions
+index 0194f946..4583f3f7 100644
+--- a/bin/tools/RunFunctions
++++ b/bin/tools/RunFunctions
+@@ -22,6 +22,9 @@
+ # The normal locations
+ [ -n "$FOAM_TUTORIALS" ] || export FOAM_TUTORIALS=$WM_PROJECT_DIR/tutorials
+ 
++# Work-around for cleared DYLD_LIBRARY_PATH variable
++[ -z "$DYLD_LIBRARY_PATH" -a -n "$FOAM_DYLD_LIBRARY_PATH" ] \
++    && export DYLD_LIBRARY_PATH="$FOAM_DYLD_LIBRARY_PATH"
+ 
+ #------------------------------------------------------------------------------
+ 
+diff --git a/bin/tools/lib-dir b/bin/tools/lib-dir
+index f423411f..38328167 100755
+--- a/bin/tools/lib-dir
++++ b/bin/tools/lib-dir
+@@ -162,10 +162,10 @@ then
+         printf "%s\n" "-L$resolved"
+         ;;
+     csh-Darwin*)
+-        echo "setenv DYLD_LIBRARY_PATH $resolved:$DYLD_LIBRARY_PATH"
++        echo "setenv FOAM_DYLD_LIBRARY_PATH $resolved:$FOAM_DYLD_LIBRARY_PATH"
+         if [ -n "$verboseOutput" ]
+         then
+-            echo "setenv DYLD_LIBRARY_PATH $resolved:$DYLD_LIBRARY_PATH" 1>&2
++            echo "setenv FOAM_DYLD_LIBRARY_PATH $resolved:$FOAM_DYLD_LIBRARY_PATH" 1>&2
+         fi
+         ;;
+     csh*)
+@@ -176,10 +176,10 @@ then
+         fi
+         ;;
+     sh-Darwin*)
+-        echo "DYLD_LIBRARY_PATH=$resolved:$DYLD_LIBRARY_PATH"
++        echo "FOAM_DYLD_LIBRARY_PATH=$resolved:$FOAM_DYLD_LIBRARY_PATH"
+         if [ -n "$verboseOutput" ]
+         then
+-            echo "DYLD_LIBRARY_PATH=$resolved:$DYLD_LIBRARY_PATH" 1>&2
++            echo "FOAM_DYLD_LIBRARY_PATH=$resolved:$FOAM_DYLD_LIBRARY_PATH" 1>&2
+         fi
+         ;;
+     *)
+diff --git a/etc/config.csh/functions b/etc/config.csh/functions
+index c7cec4f0..fe450328 100644
+--- a/etc/config.csh/functions
++++ b/etc/config.csh/functions
+@@ -31,7 +31,7 @@ alias _foamAddMan  'setenv MANPATH \!*\:${MANPATH}'
+ # Special treatment for Darwin
+ # - DYLD_LIBRARY_PATH instead of LD_LIBRARY_PATH
+ if (`uname -s` == "Darwin") then
+-    alias _foamAddLib  'setenv DYLD_LIBRARY_PATH \!*\:${DYLD_LIBRARY_PATH}'
++    alias _foamAddLib  'setenv DYLD_LIBRARY_PATH \!*\:${DYLD_LIBRARY_PATH}; setenv FOAM_DYLD_LIBRARY_PATH \!*\:${FOAM_DYLD_LIBRARY_PATH}'
+ else
+     alias _foamAddLib  'setenv LD_LIBRARY_PATH \!*\:${LD_LIBRARY_PATH}'
+ endif
+@@ -39,7 +39,11 @@ endif
+ # Prefix to LD_LIBRARY_PATH with additional checking
+ # $1 = base directory for 'lib' or 'lib64'
+ # $2 = fallback libname ('lib' or 'lib64')
+-alias _foamAddLibAuto 'eval `$WM_PROJECT_DIR/bin/tools/lib-dir -csh \!*`'
++if (`uname -s` == "Darwin") then
++    alias _foamAddLibAuto 'eval `$WM_PROJECT_DIR/bin/tools/lib-dir -csh \!*`; setenv DYLD_LIBRARY_PATH "$FOAM_DYLD_LIBRARY_PATH"'
++else
++    alias _foamAddLibAuto 'eval `$WM_PROJECT_DIR/bin/tools/lib-dir -csh \!*`'
++endif
+ 
+ # Echo values when FOAM_VERBOSE is on, no-op otherwise
+ # Source an etc file, possibly with some verbosity
+diff --git a/etc/config.csh/mac/paraview b/etc/config.csh/mac/paraview
+new file mode 100644
+index 00000000..53adbcca
+--- /dev/null
++++ b/etc/config.csh/mac/paraview
+@@ -0,0 +1,13 @@
++set _paraview = /Applications/[Pp][Aa][Rr][Aa][Vv][Ii][Ee][Ww]*.app
++if ( -d $_paraview ) then
++    if ( $?prompt ) echo Using $_paraview
++    alias paraview "$_paraview/Contents/MacOS/paraview"
++else
++    echo
++    echo "Please download binary Paraview release from"
++    echo "http://paraview.org and install it in /Applications"
++    echo "folder."
++    echo
++endif
++
++#----------------------------- vi: set ft=csh et: ----------------------------
+diff --git a/etc/config.csh/paraview b/etc/config.csh/paraview
+index b31d544d..d2b6d235 100644
+--- a/etc/config.csh/paraview
++++ b/etc/config.csh/paraview
+@@ -67,7 +67,12 @@ set archDir="$WM_THIRD_PARTY_DIR/platforms/$WM_ARCH$WM_COMPILER"
+ 
+ # Clean path and library path
+ eval `$WM_PROJECT_DIR/bin/foamCleanPath -csh-env=PATH "$ParaView_DIR $archDir/ParaView- $archDir/qt-"`
+-eval `$WM_PROJECT_DIR/bin/foamCleanPath -csh-env=LD_LIBRARY_PATH "$ParaView_DIR $archDir/ParaView- $archDir/qt-"`
++if ( $foamDarwin ) then
++    eval `$WM_PROJECT_DIR/bin/foamCleanPath -csh-env=FOAM_DYLD_LIBRARY_PATH "$ParaView_DIR $archDir/ParaView- $archDir/qt-"`
++    setenv DYLD_LIBRARY_PATH="$FOAM_DYLD_LIBRARY_PATH"
++else
++    eval `$WM_PROJECT_DIR/bin/foamCleanPath -csh-env=LD_LIBRARY_PATH "$ParaView_DIR $archDir/ParaView- $archDir/qt-"`
++endif
+ 
+ # Evaluate command-line parameters for ParaView
+ while ( $#argv > 0 )
+@@ -168,7 +173,12 @@ default:
+             endsw
+             foreach libDir ("lib$WM_COMPILER_LIB_ARCH" "lib")
+                 if ( -d "${qtDir}/${libDir}" ) then
+-                    setenv LD_LIBRARY_PATH "${qtDir}/${libDir}:${LD_LIBRARY_PATH}"
++		    if ( $foamDarwin ) then
++                        setenv FOAM_DYLD_LIBRARY_PATH "${qtDir}/${libDir}:${FOAM_DYLD_LIBRARY_PATH}"
++                        setenv DYLD_LIBRARY_PATH "${qtDir}/${libDir}:${DYLD_LIBRARY_PATH}"
++		    else
++                        setenv LD_LIBRARY_PATH "${qtDir}/${libDir}:${LD_LIBRARY_PATH}"
++		    endif
+                     break
+                 endif
+             end
+@@ -186,7 +196,12 @@ default:
+                     set libDir="$pvLibDir"   # Needs lib/paraview-X.X (not lib)
+                     breaksw
+                 endsw
+-                setenv LD_LIBRARY_PATH "${ParaView_DIR}/${libDir}:${LD_LIBRARY_PATH}"
++		if ( $foamDarwin ) then
++                    setenv FOAM_DYLD_LIBRARY_PATH "${ParaView_DIR}/${libDir}:${FOAM_DYLD_LIBRARY_PATH}"
++                    setenv DYLD_LIBRARY_PATH "${ParaView_DIR}/${libDir}:${DYLD_LIBRARY_PATH}"
++		else
++                    setenv LD_LIBRARY_PATH "${ParaView_DIR}/${libDir}:${LD_LIBRARY_PATH}"
++		endif
+                 break
+             endif
+             set pvLibDir="unknown"
+diff --git a/etc/config.csh/setup b/etc/config.csh/setup
+index 0d43ccb0..b95814fb 100644
+--- a/etc/config.csh/setup
++++ b/etc/config.csh/setup
+@@ -26,6 +26,8 @@
+ #
+ #------------------------------------------------------------------------------
+ 
++@ foamDarwin = ( `uname -s` == "Darwin" )
++
+ # [FOAM_API] - The API level for the project
+ setenv FOAM_API `$WM_PROJECT_DIR/bin/foamEtcFile -show-api`
+ 
+@@ -141,13 +143,34 @@ endif
+ # Clean standard environment variables (PATH, MANPATH, LD_LIBRARY_PATH)
+ # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ # Prevent local variables from shadowing setenv variables
+-unset PATH MANPATH LD_LIBRARY_PATH DYLD_LIBRARY_PATH
++unset PATH MANPATH
++if ( $foamDarwin ) then
++    unset DYLD_LIBRARY_PATH FOAM_DYLD_LIBRARY_PATH
++else
++    unset LD_LIBRARY_PATH
++endif
++if ( $foamDarwin ) then
++    if (! $?DYLD_LIBRARY_PATH ) setenv DYLD_LIBRARY_PATH
++    if ( $?DYLD_LIBRARY_PATH ) then
++       # Initial value copy
++       setenv FOAM_DYLD_LIBRARY_PATH $DYLD_LIBRARY_PATH
++    else
++       setenv FOAM_DYLD_LIBRARY_PATH
++    endif
++else
++    if (! $?LD_LIBRARY_PATH ) setenv LD_LIBRARY_PATH
++endif
+ if (! $?MANPATH ) setenv MANPATH
+ if (! $?LD_LIBRARY_PATH ) setenv LD_LIBRARY_PATH
+ 
+ _foamClean PATH "$foamOldDirs"
+ _foamClean MANPATH "$foamOldDirs"
+-_foamClean LD_LIBRARY_PATH "$foamOldDirs"
++if ( $foamDarwin ) then
++    _foamClean FOAM_DYLD_LIBRARY_PATH "$foamOldDirs"
++    setenv DYLD_LIBRARY_PATH $FOAM_DYLD_LIBRARY_PATH
++else
++    _foamClean LD_LIBRARY_PATH "$foamOldDirs"
++endif
+ 
+ # Setup for OpenFOAM compilation etc
+ # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+@@ -156,8 +179,12 @@ _foamEtc -config  settings
+ # Setup for third-party packages
+ # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ _foamEtc -config  mpi
+-_foamEtc -config  paraview -- "$FOAM_SETTINGS"  # Pass through for evaluation
+-_foamEtc -config  vtk
++if ( $foamDarwin ) then
++    _foamEtc -config  mac/paraview
++else
++    _foamEtc -config  paraview -- "$FOAM_SETTINGS"  # Pass through for evaluation
++    _foamEtc -config  vtk
++endif
+ _foamEtc -config  adios2
+ _foamEtc -config  CGAL
+ _foamEtc -config  FFTW
+@@ -178,7 +205,12 @@ endif
+ 
+ _foamClean PATH
+ _foamClean MANPATH
+-_foamClean LD_LIBRARY_PATH
++if ( $foamDarwin ) then
++    _foamClean FOAM_DYLD_LIBRARY_PATH
++    setenv DYLD_LIBRARY_PATH $FOAM_DYLD_LIBRARY_PATH
++else
++    _foamClean LD_LIBRARY_PATH
++endif
+ 
+ # Add trailing ':' for system manpages
+ if ( $?MANPATH ) then
+@@ -193,6 +225,7 @@ endif
+ if ($?DYLD_LIBRARY_PATH) then
+     if ("${DYLD_LIBRARY_PATH}" == "") unsetenv DYLD_LIBRARY_PATH
+ endif
++unsetenv FOAM_DYLD_LIBRARY_PATH
+ 
+ 
+ # Cleanup temporary information
+@@ -208,6 +241,6 @@ unalias _foamAddLib
+ unalias _foamAddLibAuto
+ 
+ # Variables (done as final statement for a clean exit code)
+-unset cleaned foamOldDirs foundDir foamDir prefixDir
++unset cleaned foamOldDirs foundDir foamDir prefixDir foamDarwin
+ 
+ #------------------------------------------------------------------------------
+diff --git a/etc/config.csh/unset b/etc/config.csh/unset
+index 484836fc..cf89a9a6 100644
+--- a/etc/config.csh/unset
++++ b/etc/config.csh/unset
+@@ -19,6 +19,8 @@
+ #
+ #------------------------------------------------------------------------------
+ 
++@ foamDarwin = ( `uname -s` == "Darwin" )
++
+ # Clean standard environment variables (PATH, LD_LIBRARY_PATH, MANPATH)
+ 
+ unset foamClean
+@@ -156,9 +158,17 @@ if ( $?foamClean ) then
+ 
+     eval `$foamClean -csh-env=PATH "$foamOldDirs"`
+ 
+-    if ($?LD_LIBRARY_PATH) then
+-        eval `$foamClean -csh-env=LD_LIBRARY_PATH "$foamOldDirs"`
+-        if ("${LD_LIBRARY_PATH}" == "") unsetenv LD_LIBRARY_PATH
++    if ( $foamDarwin ) then
++        if ($?DYLD_LIBRARY_PATH) then
++            eval `$foamClean -csh-env=FOAM_DYLD_LIBRARY_PATH "$foamOldDirs"`
++            setenv DYLD_LIBRARY_PATH $FOAM_DYLD_LIBRARY_PATH
++            if ( "${FOAM_DYLD_LIBRARY_PATH}" == "" ) unsetenv DYLD_LIBRARY_PATH
++        endif
++    else
++        if ($?LD_LIBRARY_PATH) then
++            eval `$foamClean -csh-env=LD_LIBRARY_PATH "$foamOldDirs"`
++            if ( "${LD_LIBRARY_PATH}" == "" ) unsetenv LD_LIBRARY_PATH
++        endif
+     endif
+ 
+     if ($?MANPATH) then
+@@ -168,6 +178,9 @@ if ( $?foamClean ) then
+ 
+ endif
+ 
++if ( $foamDarwin ) then
++    unsetenv FOAM_DYLD_LIBRARY_PATH
++endif
+ 
+ #------------------------------------------------------------------------------
+ # Cleanup aliases
+@@ -202,6 +215,7 @@ unalias uutil
+ unalias wmRefresh
+ unalias foamVersion
+ unalias foamPV
++if ( $foamDarwin ) unalias paraview
+ 
+ # Remove old completions, which look like:
+ #   complete APPNAME 'p,*,`bash $WM_PROJECT_DIR/etc/ ...
+@@ -214,6 +228,6 @@ endif
+ #------------------------------------------------------------------------------
+ # Intermediate variables (do as last for a clean exit code)
+ 
+-unset cleaned foamClean foamOldDirs
++unset cleaned foamClean foamOldDirs foamDarwin
+ 
+ #------------------------------------------------------------------------------
+diff --git a/etc/config.sh/CGAL b/etc/config.sh/CGAL
+index ce985f1b..f676d048 100644
+--- a/etc/config.sh/CGAL
++++ b/etc/config.sh/CGAL
+@@ -43,8 +43,8 @@
+ #------------------------------------------------------------------------------
+ # USER EDITABLE PART: Changes made here may be lost with the next upgrade
+ 
+-boost_version=boost_1_66_0
+-cgal_version=CGAL-4.12.2
++boost_version=boost-system
++cgal_version=CGAL-system
+ 
+ export BOOST_ARCH_PATH="$WM_THIRD_PARTY_DIR/platforms/$WM_ARCH$WM_COMPILER/$boost_version"
+ export CGAL_ARCH_PATH="$WM_THIRD_PARTY_DIR/platforms/$WM_ARCH$WM_COMPILER/$cgal_version"
+diff --git a/etc/config.sh/FFTW b/etc/config.sh/FFTW
+index 65e16581..1ddd3bc6 100644
+--- a/etc/config.sh/FFTW
++++ b/etc/config.sh/FFTW
+@@ -35,7 +35,7 @@
+ #------------------------------------------------------------------------------
+ # USER EDITABLE PART: Changes made here may be lost with the next upgrade
+ 
+-fftw_version=fftw-3.3.7
++fftw_version=fftw-system
+ export FFTW_ARCH_PATH=$WM_THIRD_PARTY_DIR/platforms/$WM_ARCH$WM_COMPILER/$fftw_version
+ 
+ # END OF (NORMAL) USER EDITABLE PART
+diff --git a/etc/config.sh/adios2 b/etc/config.sh/adios2
+index 0b15b2a5..b025c2df 100644
+--- a/etc/config.sh/adios2
++++ b/etc/config.sh/adios2
+@@ -21,8 +21,8 @@
+ #------------------------------------------------------------------------------
+ # USER EDITABLE PART: Changes made here may be lost with the next upgrade
+ 
+-adios2_version=ADIOS2-2.4.0
+-export ADIOS2_ARCH_PATH="$WM_THIRD_PARTY_DIR/platforms/$WM_ARCH$WM_COMPILER/$adios2_version"
++adios2_version=ADIOS2-system
++export ADIOS2_ARCH_PATH="/usr/local/opt/adios2"
+ 
+ # END OF (NORMAL) USER EDITABLE PART
+ #------------------------------------------------------------------------------
+diff --git a/etc/config.sh/ccmio b/etc/config.sh/ccmio
+index 122bd43f..8f8f34e2 100644
+--- a/etc/config.sh/ccmio
++++ b/etc/config.sh/ccmio
+@@ -27,7 +27,7 @@
+ #------------------------------------------------------------------------------
+ # USER EDITABLE PART: Changes made here may be lost with the next upgrade
+ 
+-ccmio_version=libccmio-2.6.1
++ccmio_version=libccmio-system
+ export CCMIO_ARCH_PATH=$WM_THIRD_PARTY_DIR/platforms/$WM_ARCH$WM_COMPILER/$ccmio_version
+ 
+ # END OF (NORMAL) USER EDITABLE PART
+diff --git a/etc/config.sh/functions b/etc/config.sh/functions
+index 9c55f5cd..8ce833ce 100644
+--- a/etc/config.sh/functions
++++ b/etc/config.sh/functions
+@@ -147,7 +147,7 @@ then
+         # Prepend DYLD_LIBRARY_PATH
+         _foamAddLib()
+         {
+-            [ -n "$1" ] && export DYLD_LIBRARY_PATH="$1:$DYLD_LIBRARY_PATH"
++            [ -n "$1" ] && export FOAM_DYLD_LIBRARY_PATH="$1:$FOAM_DYLD_LIBRARY_PATH"
+         }
+ 
+         # Prepend to DYLD_LIBRARY_PATH with additional checking
+@@ -155,6 +155,7 @@ then
+         _foamAddLibAuto()
+         {
+             eval "$("$WM_PROJECT_DIR"/bin/tools/lib-dir -sh "$@")";
++	    export DYLD_LIBRARY_PATH=$FOAM_DYLD_LIBRARY_PATH
+         }
+     fi
+ 
+diff --git a/etc/config.sh/gperftools b/etc/config.sh/gperftools
+index ea58dc58..6812eb1e 100644
+--- a/etc/config.sh/gperftools
++++ b/etc/config.sh/gperftools
+@@ -37,7 +37,7 @@
+ #------------------------------------------------------------------------------
+ # USER EDITABLE PART: Changes made here may be lost with the next upgrade
+ 
+-gperftools_version=gperftools-2.5
++gperftools_version=gperftools-none
+ GPERFTOOLS_ARCH_PATH=$WM_THIRD_PARTY_DIR/platforms/$WM_ARCH$WM_COMPILER/$gperftools_version
+ 
+ # END OF (NORMAL) USER EDITABLE PART
+diff --git a/etc/config.sh/hypre b/etc/config.sh/hypre
+index e401b482..e98bd77f 100644
+--- a/etc/config.sh/hypre
++++ b/etc/config.sh/hypre
+@@ -27,7 +27,7 @@
+ #------------------------------------------------------------------------------
+ # USER EDITABLE PART: Changes made here may be lost with the next upgrade
+ 
+-hypre_version=hypre-2.19.0
++hypre_version=hypre-system
+ export HYPRE_ARCH_PATH="$WM_THIRD_PARTY_DIR/platforms/$WM_ARCH$WM_COMPILER$WM_PRECISION_OPTION$WM_LABEL_OPTION/$hypre_version"
+ 
+ # END OF (NORMAL) USER EDITABLE PART
+diff --git a/etc/config.sh/kahip b/etc/config.sh/kahip
+index 6eb38547..423575c7 100644
+--- a/etc/config.sh/kahip
++++ b/etc/config.sh/kahip
+@@ -37,7 +37,7 @@
+ #------------------------------------------------------------------------------
+ # USER EDITABLE PART: Changes made here may be lost with the next upgrade
+ 
+-KAHIP_VERSION=kahip-2.12
++KAHIP_VERSION=kahip-system
+ export KAHIP_ARCH_PATH=$WM_THIRD_PARTY_DIR/platforms/$WM_ARCH$WM_COMPILER/$KAHIP_VERSION
+ 
+ # END OF (NORMAL) USER EDITABLE PART
+diff --git a/etc/config.sh/mac/paraview b/etc/config.sh/mac/paraview
+new file mode 100644
+index 00000000..cc69c194
+--- /dev/null
++++ b/etc/config.sh/mac/paraview
+@@ -0,0 +1,18 @@
++_paraviews=(/Applications/[Pp][Aa][Rr][Aa][Vv][Ii][Ee][Ww]*.app)
++if test -d $_paraviews;
++then
++    [ "$FOAM_VERBOSE" -a "$PS1" ] && echo Using $_paraviews
++
++    paraview () {
++        local _paraviews=(/Applications/[Pp][Aa][Rr][Aa][Vv][Ii][Ee][Ww]*.app)
++        $_paraviews/Contents/MacOS/paraview "$@"
++    }
++
++    export -f paraview
++else
++    echo
++    echo "Please download binary Paraview release from"
++    echo "http://paraview.org and install it in /Applications"
++    echo "folder."
++    echo
++fi
+diff --git a/etc/config.sh/metis b/etc/config.sh/metis
+index ce42f62a..8a481a8f 100644
+--- a/etc/config.sh/metis
++++ b/etc/config.sh/metis
+@@ -34,7 +34,7 @@
+ #------------------------------------------------------------------------------
+ # USER EDITABLE PART: Changes made here may be lost with the next upgrade
+ 
+-METIS_VERSION=metis-5.1.0
++METIS_VERSION=metis-system
+ export METIS_ARCH_PATH=$WM_THIRD_PARTY_DIR/platforms/$WM_ARCH$WM_COMPILER$WM_PRECISION_OPTION$WM_LABEL_OPTION/$METIS_VERSION
+ 
+ # END OF (NORMAL) USER EDITABLE PART
+diff --git a/etc/config.sh/mgridgen b/etc/config.sh/mgridgen
+index 3ef0ce4a..06cc67ee 100644
+--- a/etc/config.sh/mgridgen
++++ b/etc/config.sh/mgridgen
+@@ -36,8 +36,8 @@
+ #------------------------------------------------------------------------------
+ # USER EDITABLE PART: Changes made here may be lost with the next upgrade
+ 
+-MGRIDGEN_VERSION=ParMGridGen-1.0
+-export MGRIDGEN_ARCH_PATH=$WM_THIRD_PARTY_DIR/platforms/$WM_ARCH$WM_COMPILER$WM_PRECISION_OPTION$WM_LABEL_OPTION/$MGRIDGEN_VERSION
++MGRIDGEN_VERSION=ParMGridGen-system
++export MGRIDGEN_ARCH_PATH=/usr/local/opt/parmgridgen
+ 
+ # END OF (NORMAL) USER EDITABLE PART
+ #------------------------------------------------------------------------------
+diff --git a/etc/config.sh/petsc b/etc/config.sh/petsc
+index f6976cbd..2b541be2 100644
+--- a/etc/config.sh/petsc
++++ b/etc/config.sh/petsc
+@@ -27,7 +27,7 @@
+ #------------------------------------------------------------------------------
+ # USER EDITABLE PART: Changes made here may be lost with the next upgrade
+ 
+-petsc_version=petsc-3.13.2
++petsc_version=petsc-system
+ export PETSC_ARCH_PATH="$WM_THIRD_PARTY_DIR/platforms/$WM_ARCH$WM_COMPILER$WM_PRECISION_OPTION$WM_LABEL_OPTION/$petsc_version"
+ 
+ # END OF (NORMAL) USER EDITABLE PART
+diff --git a/etc/config.sh/scotch b/etc/config.sh/scotch
+index b7538a7b..ac5261d8 100644
+--- a/etc/config.sh/scotch
++++ b/etc/config.sh/scotch
+@@ -34,7 +34,7 @@
+ #------------------------------------------------------------------------------
+ # USER EDITABLE PART: Changes made here may be lost with the next upgrade
+ 
+-SCOTCH_VERSION=scotch_6.0.9
++SCOTCH_VERSION=scotch-system
+ export SCOTCH_ARCH_PATH=$WM_THIRD_PARTY_DIR/platforms/$WM_ARCH$WM_COMPILER$WM_PRECISION_OPTION$WM_LABEL_OPTION/$SCOTCH_VERSION
+ 
+ # END OF (NORMAL) USER EDITABLE PART
+diff --git a/etc/config.sh/setup b/etc/config.sh/setup
+index 48287d4f..e8e89344 100644
+--- a/etc/config.sh/setup
++++ b/etc/config.sh/setup
+@@ -26,6 +26,9 @@
+ #
+ #------------------------------------------------------------------------------
+ 
++isDarwin=0
++[ "$(uname -s)" = "Darwin" ] && isDarwin=1
++
+ # [FOAM_API] - The API level for the project
+ export FOAM_API=$("$WM_PROJECT_DIR/bin/foamEtcFile" -show-api)
+ 
+@@ -133,10 +136,23 @@ fi
+ 
+ # Clean standard environment variables (PATH, MANPATH, LD_LIBRARY_PATH)
+ # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+-export PATH MANPATH LD_LIBRARY_PATH
++export PATH MANPATH
++if [ $isDarwin ]
++then
++    [ -n "$DYLD_LIBRARY_PATH" ] && FOAM_DYLD_LIBRARY_PATH=DYLD_LIBRARY_PATH
++    export DYLD_LIBRARY_PATH FOAM_DYLD_LIBRARY_PATH
++else
++    export LD_LIBRARY_PATH
++fi
+ _foamClean PATH "$foamOldDirs"
+ _foamClean MANPATH "$foamOldDirs"
+-_foamClean LD_LIBRARY_PATH "$foamOldDirs"
++if [ $isDarwin ]
++then
++    _foamClean FOAM_DYLD_LIBRARY_PATH "$foamOldDirs"
++    DYLD_LIBRARY_PATH=$FOAM_DYLD_LIBRARY_PATH
++else
++    _foamClean LD_LIBRARY_PATH "$foamOldDirs"
++fi
+ 
+ # Setup for OpenFOAM compilation etc
+ # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+@@ -145,8 +161,13 @@ _foamEtc -config  settings
+ # Setup for third-party packages
+ # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ _foamEtc -config  mpi
+-_foamEtc -config  paraview -- "$@"  # Pass through for evaluation
+-_foamEtc -config  vtk
++if [ $isDarwin ]
++then
++    _foamEtc -config  mac/paraview -- "$@"  # Pass through for evaluation
++else
++    _foamEtc -config  paraview -- "$@"  # Pass through for evaluation
++    _foamEtc -config  vtk
++fi
+ _foamEtc -config  adios2
+ _foamEtc -config  CGAL
+ _foamEtc -config  scotch
+@@ -167,11 +188,23 @@ fi
+ 
+ # Clean environment paths again. Only remove duplicates
+ # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+-export PATH MANPATH LD_LIBRARY_PATH
++export PATH MANPATH
++if [ $isDarwin ]
++then
++    export FOAM_DYLD_LIBRARY_PATH DYLD_LIBRARY_PATH
++else
++    export LD_LIBRARY_PATH
++fi
+ 
+ _foamClean PATH
+ _foamClean MANPATH
+-_foamClean LD_LIBRARY_PATH
++if [ $isDarwin ]
++then
++    _foamClean FOAM_DYLD_LIBRARY_PATH
++    DYLD_LIBRARY_PATH="$FOAM_DYLD_LIBRARY_PATH"
++else
++    _foamClean LD_LIBRARY_PATH
++fi
+ 
+ # Add trailing ':' for system manpages
+ if [ -n "$MANPATH" ]
+@@ -187,6 +220,6 @@ fi
+ . "$WM_PROJECT_DIR/etc/config.sh/functions"
+ 
+ # Variables (done as the last statement for a clean exit code)
+-unset cleaned foamOldDirs foundDir prefixDir
++unset cleaned foamOldDirs foundDir prefixDir isDarwin
+ 
+ #------------------------------------------------------------------------------
+diff --git a/etc/config.sh/unset b/etc/config.sh/unset
+index 01c90886..7f15b2ed 100644
+--- a/etc/config.sh/unset
++++ b/etc/config.sh/unset
+@@ -19,6 +19,9 @@
+ #
+ #------------------------------------------------------------------------------
+ 
++isDarwin=0
++[ "$(uname -s)" = "Darwin" ] && isDarwin=1
++
+ # Clean standard environment variables (PATH, LD_LIBRARY_PATH, MANPATH)
+ foamClean=$WM_PROJECT_DIR/bin/foamCleanPath
+ [ -f "$foamClean" -a -x "$foamClean" ] || unset foamClean
+@@ -147,21 +150,35 @@ unset SCOTCH_ARCH_PATH
+ 
+ #------------------------------------------------------------------------------
+ # Cleanup environment
+-# PATH, LD_LIBRARY_PATH, MANPATH
++# PATH, [DY]LD_LIBRARY_PATH, MANPATH
+ 
+ if [ -n "$foamClean" ]
+ then
+     eval "$($foamClean -sh-env=PATH $foamOldDirs)"
+-    eval "$($foamClean -sh-env=LD_LIBRARY_PATH $foamOldDirs)"
++    if [ $isDarwin ]
++    then
++        eval "$($foamClean -sh-env=FOAM_LD_LIBRARY_PATH $foamOldDirs)"
++	DYLD_LIBARARY_PATH="$FOAM_DYLD_LIBRARY_PATH"
++    else
++        eval "$($foamClean -sh-env=LD_LIBRARY_PATH $foamOldDirs)"
++    fi
+     eval "$($foamClean -sh-env=MANPATH $foamOldDirs)"
+ fi
+ 
+-[ -n "$LD_LIBRARY_PATH" ] || unset LD_LIBRARY_PATH
++if [ $isDarwin ]
++then
++    [ -n "$DYLD_LIBRARY_PATH" ] || unset DYLD_LIBRARY_PATH
++    unset FOAM_DYLD_LIBRARY_PATH
++else
++    [ -n "$LD_LIBRARY_PATH" ] || unset LD_LIBRARY_PATH
++fi
+ [ -n "$MANPATH" ] || unset MANPATH
+ 
+ #------------------------------------------------------------------------------
+ # Cleanup aliases and functions
+ 
++[ $isDarwin ] && unset -f paraview 2>/dev/null
++
+ unalias wmSet       2>/dev/null
+ unalias wmInt32     2>/dev/null
+ unalias wmInt64     2>/dev/null
+@@ -216,6 +233,6 @@ unset _of_complete_cache_
+ #------------------------------------------------------------------------------
+ # Intermediate variables (do as last for a clean exit code)
+ 
+-unset cleaned foamClean foamOldDirs
++unset cleaned foamClean foamOldDirs isDarwin
+ 
+ #------------------------------------------------------------------------------
+diff --git a/etc/config.sh/vtk b/etc/config.sh/vtk
+index 312034f8..972e6564 100644
+--- a/etc/config.sh/vtk
++++ b/etc/config.sh/vtk
+@@ -34,13 +34,13 @@
+ #------------------------------------------------------------------------------
+ # USER EDITABLE PART: Changes made here may be lost with the next upgrade
+ 
+-vtk_version=VTK-8.2.0
+-mesa_version=mesa-17.1.1
++vtk_version=VTK-system
++mesa_version=mesa-none
+ mesa_llvm=none
+ 
+-export VTK_DIR="$WM_THIRD_PARTY_DIR/platforms/$WM_ARCH$WM_COMPILER/$vtk_version"
+-export MESA_ARCH_PATH="$WM_THIRD_PARTY_DIR/platforms/$WM_ARCH$WM_COMPILER/$mesa_version"
+-export LLVM_ARCH_PATH="$WM_THIRD_PARTY_DIR/platforms/$WM_ARCH/$mesa_llvm"
++export VTK_DIR=
++export MESA_ARCH_PATH=
++export LLVM_ARCH_PATH=
+ 
+ # Define paraview-mesa directory as required
+ unset ParaView_MESA_DIR
+diff --git a/modules/OpenQBMM/applications/solvers/multiphase/phaseCompressibleTurbulenceModels/kineticTheory/derivedFvPatchFields/JohnsonJacksonParticleSlip/JohnsonJacksonParticleSlipFvPatchVectorField.C b/modules/OpenQBMM/applications/solvers/multiphase/phaseCompressibleTurbulenceModels/kineticTheory/derivedFvPatchFields/JohnsonJacksonParticleSlip/JohnsonJacksonParticleSlipFvPatchVectorField.C
+index 92cc8812..79460b04 100644
+--- a/modules/OpenQBMM/applications/solvers/multiphase/phaseCompressibleTurbulenceModels/kineticTheory/derivedFvPatchFields/JohnsonJacksonParticleSlip/JohnsonJacksonParticleSlipFvPatchVectorField.C
++++ b/modules/OpenQBMM/applications/solvers/multiphase/phaseCompressibleTurbulenceModels/kineticTheory/derivedFvPatchFields/JohnsonJacksonParticleSlip/JohnsonJacksonParticleSlipFvPatchVectorField.C
+@@ -265,7 +265,6 @@ void Foam::JohnsonJacksonParticleSlipFvPatchVectorField::updateCoeffs()
+             )
+            .subDict("RAS")
+            .subDict("kineticTheoryCoeffs")
+-           .lookup("alphaMax")
+         );
+ 
+         scalarField c
+diff --git a/modules/OpenQBMM/src/quadratureMethods/momentInversion/univariate/extended/beta/betaEQMOM.C b/modules/OpenQBMM/src/quadratureMethods/momentInversion/univariate/extended/beta/betaEQMOM.C
+index d4752788..8a87dcb2 100644
+--- a/modules/OpenQBMM/src/quadratureMethods/momentInversion/univariate/extended/beta/betaEQMOM.C
++++ b/modules/OpenQBMM/src/quadratureMethods/momentInversion/univariate/extended/beta/betaEQMOM.C
+@@ -371,7 +371,7 @@ Foam::tmp<Foam::scalarField> Foam::betaEQMOM::f(const scalarField& x) const
+ 
+         y +=
+             pow(x, lambda - 1)*pow(1.0 - x, mu - 1)
+-           /(gamma(lambda)*gamma(mu)/gamma(lambda + mu))
++           /(tgamma(lambda)*tgamma(mu)/tgamma(lambda + mu))
+            *this->primaryWeights_[pNodei];
+     }
+ 
+diff --git a/modules/OpenQBMM/src/quadratureMethods/momentInversion/univariate/extended/gamma/gammaEQMOM.C b/modules/OpenQBMM/src/quadratureMethods/momentInversion/univariate/extended/gamma/gammaEQMOM.C
+index 310c5d7d..1e22d239 100644
+--- a/modules/OpenQBMM/src/quadratureMethods/momentInversion/univariate/extended/gamma/gammaEQMOM.C
++++ b/modules/OpenQBMM/src/quadratureMethods/momentInversion/univariate/extended/gamma/gammaEQMOM.C
+@@ -260,7 +260,7 @@ void Foam::gammaEQMOM::recurrenceRelation
+         a[ai] = (2.0*scalar(ai) + alpha + 1.0);
+     }
+ 
+-    b[0] = gamma(1.0 + alpha);
++    b[0] = tgamma(1.0 + alpha);
+ 
+     for (label bi = 1; bi < b.size(); bi++)
+     {
+@@ -291,7 +291,7 @@ Foam::tmp<Foam::scalarField> Foam::gammaEQMOM::f(const scalarField& x) const
+ 
+         y +=
+             pow(x, lambda - 1.0)*exp(-x/theta)
+-           /max(gamma(lambda)*pow(theta, lambda), SMALL)
++           /max(tgamma(lambda)*pow(theta, lambda), SMALL)
+            *primaryWeights_[pNodei];
+     }
+ 
+diff --git a/modules/avalanche/src/avalanche/gistools/shapefile.C b/modules/avalanche/src/avalanche/gistools/shapefile.C
+index 5dbffd08..a295db14 100644
+--- a/modules/avalanche/src/avalanche/gistools/shapefile.C
++++ b/modules/avalanche/src/avalanche/gistools/shapefile.C
+@@ -49,6 +49,9 @@ namespace
+ //
+ // Compare with OpenFOAM endian::swap32()
+ 
++#if defined(ntohl)
++#undef ntohl
++#endif
+ static inline uint32_t ntohl(uint32_t u)
+ {
+ #if (__BYTE_ORDER__ == __ORDER_BIG_ENDIAN__)
+diff --git a/src/OpenFOAM/containers/Lists/UList/UList.C b/src/OpenFOAM/containers/Lists/UList/UList.C
+index 6564cf66..0bff423f 100644
+--- a/src/OpenFOAM/containers/Lists/UList/UList.C
++++ b/src/OpenFOAM/containers/Lists/UList/UList.C
+@@ -32,6 +32,7 @@ License
+ #include "labelRange.H"
+ 
+ #include <algorithm>
++#include <random>
+ 
+ // * * * * * * * * * * * * Protected Member Functions  * * * * * * * * * * * //
+ 
+@@ -281,7 +282,9 @@ void Foam::stableSort(UList<T>& a, const Compare& comp)
+ template<class T>
+ void Foam::shuffle(UList<T>& a)
+ {
+-    std::random_shuffle(a.begin(), a.end());
++    std::random_device rd;
++    std::mt19937 g(rd());
++    std::shuffle(a.begin(), a.end(), g);
+ }
+ 
+ 
+diff --git a/src/optimisation/adjointOptimisation/adjoint/fvOptionsAdjoint/fvOptions/fvIOoptionListAdjoint.C b/src/optimisation/adjointOptimisation/adjoint/fvOptionsAdjoint/fvOptions/fvIOoptionListAdjoint.C
+index 442dd86a..d9dda16e 100644
+--- a/src/optimisation/adjointOptimisation/adjoint/fvOptionsAdjoint/fvOptions/fvIOoptionListAdjoint.C
++++ b/src/optimisation/adjointOptimisation/adjoint/fvOptionsAdjoint/fvOptions/fvIOoptionListAdjoint.C
+@@ -77,7 +77,7 @@ Foam::fv::IOoptionListAdjoint::IOoptionListAdjoint
+ {}
+ 
+ 
+-bool Foam::fv::IOoptionListAdjoint::read()
++bool Foam::fv::IOoptionListAdjoint::read(const dictionary& dict)
+ {
+     if (regIOobject::read())
+     {
+diff --git a/src/optimisation/adjointOptimisation/adjoint/fvOptionsAdjoint/fvOptions/fvIOoptionListAdjoint.H b/src/optimisation/adjointOptimisation/adjoint/fvOptionsAdjoint/fvOptions/fvIOoptionListAdjoint.H
+index 0866976d..c861bae1 100644
+--- a/src/optimisation/adjointOptimisation/adjoint/fvOptionsAdjoint/fvOptions/fvIOoptionListAdjoint.H
++++ b/src/optimisation/adjointOptimisation/adjoint/fvOptionsAdjoint/fvOptions/fvIOoptionListAdjoint.H
+@@ -90,7 +90,7 @@ public:
+     // Member Functions
+ 
+         //- Read dictionary
+-        virtual bool read();
++        virtual bool read(const dictionary& dict);
+ };
+ 
+ 
+diff --git a/src/renumber/SloanRenumber/SloanRenumber.C b/src/renumber/SloanRenumber/SloanRenumber.C
+index c7a01e6b..4fbc2cc8 100644
+--- a/src/renumber/SloanRenumber/SloanRenumber.C
++++ b/src/renumber/SloanRenumber/SloanRenumber.C
+@@ -38,7 +38,10 @@ License
+ #include <vector>
+ #include <iostream>
+ #include <boost/graph/adjacency_list.hpp>
++#pragma clang diagnostic push
++#pragma clang diagnostic ignored "-W#pragma-messages"
+ #include <boost/graph/sloan_ordering.hpp>
++#pragma clang diagnostic pop
+ #include <boost/graph/properties.hpp>
+ #include <boost/graph/bandwidth.hpp>
+ #include <boost/graph/profile.hpp>
+diff --git a/wmake/rules/darwin64Clang/CGAL b/wmake/rules/darwin64Clang/CGAL
+index b04e6b0c..f1d0ae09 100644
+--- a/wmake/rules/darwin64Clang/CGAL
++++ b/wmake/rules/darwin64Clang/CGAL
+@@ -6,9 +6,6 @@ CGAL_INC  = \
+     $(foreach dir,$(BOOST_INC_DIR),-I$(dir)) \
+     $(foreach dir,$(CGAL_INC_DIR),-I$(dir))
+ 
+-CGAL_LIBS = \
+-    $(foreach dir,$(BOOST_LIB_DIR),-L$(dir)) \
+-    $(foreach dir,$(CGAL_LIB_DIR),-L$(dir)) \
+-    -lCGAL
++CGAL_LIBS =
+ 
+ # ----------------------------------------------------------------------------
+diff --git a/wmake/rules/darwin64Clang/c b/wmake/rules/darwin64Clang/c
+index 202efeb3..7a3e1948 100644
+--- a/wmake/rules/darwin64Clang/c
++++ b/wmake/rules/darwin64Clang/c
+@@ -1,5 +1,7 @@
+ include $(GENERAL_RULES)/Clang/c
+ 
++c           = xcrun cc
++
+ cARCH       = -m64 -ftrapping-math
+ 
+ # Compile option is non-mandatory, but must be non-empty
+diff --git a/wmake/rules/darwin64Clang/c++ b/wmake/rules/darwin64Clang/c++
+index 4908d100..707f3daf 100644
+--- a/wmake/rules/darwin64Clang/c++
++++ b/wmake/rules/darwin64Clang/c++
+@@ -1,5 +1,7 @@
+ include $(GENERAL_RULES)/Clang/c++
+ 
++CC          = xcrun c++ -std=c++14
++
+ c++ARCH     = -m64 -pthread -ftrapping-math
+ 
+ include $(DEFAULT_RULES)/c++$(WM_COMPILE_OPTION)
+diff --git a/wmake/scripts/have_adios2 b/wmake/scripts/have_adios2
+index 8e76d4fa..029340c3 100644
+--- a/wmake/scripts/have_adios2
++++ b/wmake/scripts/have_adios2
+@@ -72,12 +72,13 @@ INFORMATION
+ # -> HAVE_ADIOS2, ADIOS2_INC_DIR, ADIOS2_LIB_DIR
+ search_adios2()
+ {
+-    local warn # warn="==> skip adios2"
+-    local incName="adios2.h"
+-    local libName="libadios2"
++    local warn="==> skip adios2"
++    local confName="adios2-config"
+ 
+     local prefix="${1:-system}"
+-    local header library
++    local config cxxflags cxxlibs
++
++    echo $confName $prefix
+ 
+     # ----------------------------------
+     if isNone "$prefix"
+@@ -86,25 +87,27 @@ search_adios2()
+         return 1
+     elif hasAbsdir "$prefix"
+     then
+-        header=$(findFirstFile "$prefix/include/$incName")
+-        library=$(findExtLib "$libName")
++        config="$prefix/bin/$confName"
++        cxxflags=$($config --cxx-flags)
++        cxxlibs=$($config -cxx-libs)
+     elif isSystem "$prefix"
+     then
+-        header=$(findSystemInclude -name="$incName")
+-        prefix=$(sysPrefix "$header")
++        config="$confName"
++        cxxflags=$($config --cxx-flags)
++        cxxlibs=$($config -cxx-libs)
+     else
+         unset prefix
+     fi
+     # ----------------------------------
+ 
+     # Header
+-    [ -n "$header" ] || {
++    [ -n "$cxxflags" ] || {
+         [ -n "$warn" ] && echo "$warn (no header)"
+         return 2
+     }
+ 
+     # Library
+-    [ -n "$library" ] \
++    [ -n "$cxxlibs" ] \
+     || library=$(findLibrary -prefix="$prefix" -name="$libName") \
+     || {
+         [ -n "$warn" ] && echo "$warn (no library)"
+@@ -116,8 +119,6 @@ search_adios2()
+     # OK
+     export HAVE_ADIOS2=true
+     export ADIOS2_ARCH_PATH="$prefix"
+-    export ADIOS2_INC_DIR="${header%/*}"     # Basename
+-    export ADIOS2_LIB_DIR="${library%/*}"    # Basename
+ }
+ 
+ 
+diff --git a/wmake/scripts/have_mgridgen b/wmake/scripts/have_mgridgen
+index 6c00f401..bc117bf9 100644
+--- a/wmake/scripts/have_mgridgen
++++ b/wmake/scripts/have_mgridgen
+@@ -105,11 +105,13 @@ search_mgridgen()
+ 
+     # Ensure consistent sizes with OpenFOAM and mgridgen header
+     # Extract typedef for idxtype, realtype
+-    label=$(sed -ne \
+-        's/^.*typedef *\([^ ]*\) *idxtype.*/\1/ip' \
++    label=$(perl -n \
++        -e '/^.*typedef *([^ ]*) *idxtype.*/i or next;' \
++	-e 'print($1) if $1;' \
+         "$header")
+-    scalar=$(sed -ne \
+-        's/^.*typedef *\([^ ]*\) *realtype.*/\1/ip' \
++    scalar=$(perl -n \
++        -e '/^.*typedef *([^ ]*) *realtype.*/i or next;' \
++	-e 'print($1) if $1;' \
+         "$header")
+ 
+     : "${label:=unknown}"

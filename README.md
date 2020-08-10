@@ -15,6 +15,24 @@ OPENFOAM(R)  and OpenCFD(R)  trade marks.
 OPENFOAM(R)  is a registered trade mark of OpenCFD Limited, producer and
 distributor of the OpenFOAM software via www.openfoam.com.
 
+## Aug. 10, 2020
+
+Added OpenFOAM 8 and OpenFOAM v2006 patches.
+
+In case of OpenFOAM 8 it is simple adaptation of the previous patch.
+
+For OpenFOAM v2006 due to external modules it
+was necessary to make more changes:
+- Changed ADIOS configuration logic (`has_adios` script). Instead of looking
+  for header and library, look up `adios2-config` utility and check if
+  cxx-flags and cxx-libs are not empty.
+- Avalanche defines `ntohl` inline function, yet does not check it is already
+  defined. So on OS X compilation stops with rather misleading messages about
+  missing braces.
+- `OpenQBBM` module uses obsolete `gamma` function. Decided to change it into
+  `tgamma`. *NOTE!* Maybe it should be changed to `lgamma` instead, if original
+  author meant to calculate logarithm of gamma (as in glibc).
+
 ## Apr. 9, 2020
 
 Updated version OpenFOAM(R) 5.x, 6, and 7 patches. Added OpenFOAM(R) v1912 patch. Notes:
