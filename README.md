@@ -15,6 +15,13 @@ OPENFOAM(R)  and OpenCFD(R)  trade marks.
 OPENFOAM(R)  is a registered trade mark of OpenCFD Limited, producer and
 distributor of the OpenFOAM software via www.openfoam.com.
 
+## Jan. 23, 2021
+
+Added patch for OpenFOAM v2012. Slight correction of the patch for the previous
+version. `OpenQBBM` fixed obsolete `gamma` function issue, yet, decided to
+leave `alphaMax` constructor issue in
+`JohnsonJacksonParticleSlipFvPatchVectorField.C` where it was.
+
 ## Aug. 10, 2020
 
 Added OpenFOAM 8 and OpenFOAM v2006 patches.
