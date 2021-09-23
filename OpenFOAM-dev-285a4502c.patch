@@ -15,7 +15,7 @@
  bin/foamMonitor                                    |  15 ++-
  bin/paraFoam                                       |   6 +
  bin/tools/RunFunctions                             |   3 +
- etc/bashrc                                         |  66 ++++++++--
+ etc/bashrc                                         |  65 ++++++++--
  etc/config.csh/mac/paraview                        |  13 ++
  etc/config.csh/mpi                                 |   7 +-
  etc/config.csh/settings                            |  27 ++++-
@@ -79,7 +79,7 @@
  wmake/src/Makefile                                 |   2 +
  wmake/wmake                                        |   5 +
  wmake/wmakeLnIncludeAll                            |   1 +
- 81 files changed, 1276 insertions(+), 99 deletions(-)
+ 81 files changed, 1276 insertions(+), 98 deletions(-)
 
 diff --git a/Allwmake b/Allwmake
 index 3f6a7523d..00810aff6 100755
@@ -128,7 +128,7 @@ index 2b725832b..8f96f6ec1 100755
  wmake -all $targetType solvers
  wmake -all $targetType utilities
 diff --git a/applications/utilities/mesh/conversion/fluent3DMeshToFoam/fluent3DMeshToFoam.L b/applications/utilities/mesh/conversion/fluent3DMeshToFoam/fluent3DMeshToFoam.L
-index 1a7c40741..83676bac7 100644
+index b7f887dc5..8d0902af0 100644
 --- a/applications/utilities/mesh/conversion/fluent3DMeshToFoam/fluent3DMeshToFoam.L
 +++ b/applications/utilities/mesh/conversion/fluent3DMeshToFoam/fluent3DMeshToFoam.L
 @@ -1076,8 +1076,8 @@ int main(int argc, char *argv[])
@@ -446,7 +446,7 @@ index 1a040df6a..67a2ef2b9 100644
  {
      for i in "$@"; do
 diff --git a/etc/bashrc b/etc/bashrc
-index 9759c9f2b..18f1cdae8 100644
+index 99aa258f5..e5d7d9c04 100644
 --- a/etc/bashrc
 +++ b/etc/bashrc
 @@ -52,6 +52,16 @@ export FOAM_INST_DIR=$HOME/$WM_PROJECT
@@ -466,16 +466,15 @@ index 9759c9f2b..18f1cdae8 100644
  # The default environment variables below can be overridden in a prefs.sh file
  # located in ~/.OpenFOAM/$WM_PROJECT_VERSION, ~/.OpenFOAM,
  # $FOAM_INST_DIR/site/$WM_PROJECT_VERSION or $FOAM_INST_DIR/site
-@@ -62,7 +72,7 @@ export WM_COMPILER_TYPE=system
- 
+@@ -63,6 +73,7 @@ export WM_COMPILER_TYPE=system
  #- Compiler:
- #    WM_COMPILER = Gcc | Gcc48 ... Gcc62 | Clang | Icc
--export WM_COMPILER=Gcc
-+export WM_COMPILER=Clang
+ #    WM_COMPILER = Gcc | Gcc48 ... Gcc62 | Clang | Icx
+ export WM_COMPILER=Gcc
++_foam_on_macos && export WM_COMPILER=Clang
  unset WM_COMPILER_ARCH WM_COMPILER_LIB_ARCH
  
  #- Memory addressing:
-@@ -125,7 +135,8 @@ fi
+@@ -125,7 +136,8 @@ fi
  
  # Location of third-party software
  # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -485,7 +484,7 @@ index 9759c9f2b..18f1cdae8 100644
  
  if [ -d "$WM_THIRD_PARTY_DIR" ]
  then
-@@ -154,9 +165,10 @@ export WM_PROJECT_USER_DIR=$HOME/$WM_PROJECT/$USER-$WM_PROJECT_VERSION
+@@ -154,9 +166,10 @@ export WM_PROJECT_USER_DIR=$HOME/$WM_PROJECT/$USER-$WM_PROJECT_VERSION
  # Source initialisation functions
  # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  . $WM_PROJECT_DIR/etc/config.sh/functions
@@ -497,7 +496,7 @@ index 9759c9f2b..18f1cdae8 100644
  
  # Evaluate command-line parameters of the form "param=keyword" or unset
  # parameters with "param="
-@@ -168,16 +180,27 @@ _foamParams $@
+@@ -168,16 +181,27 @@ _foamParams $@
  foamClean=$WM_PROJECT_DIR/bin/foamCleanPath
  
  #- Clean PATH
@@ -531,7 +530,7 @@ index 9759c9f2b..18f1cdae8 100644
  
  
  # Source project setup files
-@@ -189,7 +212,12 @@ _foamSource $WM_PROJECT_DIR/etc/config.sh/aliases
+@@ -189,7 +213,12 @@ _foamSource $WM_PROJECT_DIR/etc/config.sh/aliases
  # Source user setup files for optional packages
  # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  _foamSource `$WM_PROJECT_DIR/bin/foamEtcFile config.sh/mpi`
@@ -545,7 +544,7 @@ index 9759c9f2b..18f1cdae8 100644
  _foamSource `$WM_PROJECT_DIR/bin/foamEtcFile config.sh/ensight`
  _foamSource `$WM_PROJECT_DIR/bin/foamEtcFile config.sh/gperftools`
  
-@@ -199,13 +227,23 @@ _foamSource `$WM_PROJECT_DIR/bin/foamEtcFile config.sh/gperftools`
+@@ -199,13 +228,23 @@ _foamSource `$WM_PROJECT_DIR/bin/foamEtcFile config.sh/gperftools`
  #- Clean PATH
  cleaned=`$foamClean "$PATH"` && PATH="$cleaned"
  
@@ -572,7 +571,7 @@ index 9759c9f2b..18f1cdae8 100644
  
  #- Clean LD_PRELOAD
  if [ -n "$LD_PRELOAD" ]
-@@ -224,6 +262,8 @@ unset cleaned foamClean foamOldDirs
+@@ -224,6 +263,8 @@ unset cleaned foamClean foamOldDirs
  # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  . $WM_PROJECT_DIR/etc/config.sh/functions
  
@@ -686,7 +685,7 @@ index f7cf4020c..580667000 100644
 -#------------------------------------------------------------------------------
 +#-------------------- vi: set ft=tcsh et sw=4 ts=4 sts=4: ---------------------
 diff --git a/etc/config.csh/unset b/etc/config.csh/unset
-index 6e4a95e92..1d2166bcf 100644
+index d3de9c6fd..73ca8a9a2 100644
 --- a/etc/config.csh/unset
 +++ b/etc/config.csh/unset
 @@ -29,6 +29,8 @@
@@ -728,7 +727,7 @@ index 6e4a95e92..1d2166bcf 100644
  
  
  #------------------------------------------------------------------------------
-@@ -144,11 +151,21 @@ if ( $?foamClean ) then
+@@ -146,11 +153,21 @@ if ( $?foamClean ) then
      set cleaned=`$foamClean "$PATH" "$foamOldDirs"`
      if ( $status == 0 ) setenv PATH $cleaned
  
@@ -755,7 +754,7 @@ index 6e4a95e92..1d2166bcf 100644
      endif
  
      if ($?MANPATH) then
-@@ -161,7 +178,7 @@ if ( $?foamClean ) then
+@@ -163,7 +180,7 @@ if ( $?foamClean ) then
  endif
  
  
@@ -764,7 +763,7 @@ index 6e4a95e92..1d2166bcf 100644
  
  #------------------------------------------------------------------------------
  # Cleanup aliases
-@@ -171,6 +188,7 @@ unalias wm64
+@@ -173,6 +190,7 @@ unalias wm64
  unalias wm32
  unalias wmSP
  unalias wmDP
@@ -772,7 +771,7 @@ index 6e4a95e92..1d2166bcf 100644
  
  unalias wmRefresh
  unalias wmUnset
-@@ -193,4 +211,4 @@ unalias foamVersion
+@@ -195,4 +213,4 @@ unalias foamVersion
  unalias foamPV
  
  
@@ -1170,7 +1169,7 @@ index d48896bac..9a3bfba53 100644
 +
  #------------------------------------------------------------------------------
 diff --git a/etc/config.sh/unset b/etc/config.sh/unset
-index d9c368034..6fc93b397 100644
+index f3d72d1a4..820996c50 100644
 --- a/etc/config.sh/unset
 +++ b/etc/config.sh/unset
 @@ -29,6 +29,9 @@
@@ -1200,7 +1199,7 @@ index d9c368034..6fc93b397 100644
  
  
  #------------------------------------------------------------------------------
-@@ -138,12 +142,24 @@ unset FOAMY_HEX_MESH
+@@ -140,12 +144,24 @@ unset FOAMY_HEX_MESH
  if [ -n "$foamClean" ]
  then
      cleaned=`$foamClean "$PATH" "$foamOldDirs"` && PATH="$cleaned"
@@ -1227,7 +1226,7 @@ index d9c368034..6fc93b397 100644
  [ -n "$MANPATH" ] || unset MANPATH
  [ -n "$LD_PRELOAD" ] || unset LD_PRELOAD
  
-@@ -159,6 +175,7 @@ unalias wm64
+@@ -161,6 +177,7 @@ unalias wm64
  unalias wm32
  unalias wmSP
  unalias wmDP
@@ -1235,14 +1234,14 @@ index d9c368034..6fc93b397 100644
  
  unalias wmUnset
  
-@@ -181,4 +198,4 @@ unset foamVersion
+@@ -183,4 +200,4 @@ unset foamVersion
  unset foamPV
  
  
 -#------------------------------------------------------------------------------
 +#--------------------- vi: set ft=sh et sw=4 ts=4 sts=4: ----------------------
 diff --git a/etc/cshrc b/etc/cshrc
-index a78f7a80c..b503787aa 100644
+index d2c5194f8..f779dacca 100644
 --- a/etc/cshrc
 +++ b/etc/cshrc
 @@ -51,6 +51,8 @@ setenv FOAM_INST_DIR `lsof +p $$ |& grep -oE '/.*'$WM_PROJECT'[^/]*/etc/cshrc' |
@@ -1256,13 +1255,13 @@ index a78f7a80c..b503787aa 100644
  # $FOAM_INST_DIR/site/$WM_PROJECT_VERSION or $FOAM_INST_DIR/site
 @@ -62,6 +64,7 @@ setenv WM_COMPILER_TYPE system
  #- Compiler:
- #    WM_COMPILER = Gcc | Gcc48 ... Gcc62 | Clang | Icc
+ #    WM_COMPILER = Gcc | Gcc48 ... Gcc62 | Clang | Icx
  setenv WM_COMPILER Gcc
 +if ($foamDarwin) setenv WM_COMPILER Clang
- setenv WM_COMPILER_ARCH # defined but empty
- unsetenv WM_COMPILER_LIB_ARCH
+ unsetenv WM_COMPILER_ARCH WM_COMPILER_LIB_ARCH
  
-@@ -128,7 +131,7 @@ setenv WM_PROJECT_DIR $WM_PROJECT_INST_DIR/$WM_PROJECT-$WM_PROJECT_VERSION
+ #- Memory addressing:
+@@ -127,7 +130,7 @@ setenv WM_PROJECT_DIR $WM_PROJECT_INST_DIR/$WM_PROJECT-$WM_PROJECT_VERSION
  
  # Location of third-party software
  # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -1271,7 +1270,7 @@ index a78f7a80c..b503787aa 100644
  
  # Location of site-specific templates etc
  # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-@@ -184,9 +187,19 @@ end
+@@ -183,9 +186,19 @@ end
  set foamClean=$WM_PROJECT_DIR/bin/foamCleanPath
  
  #- prevent local variables from shadowing setenv variables
@@ -1293,7 +1292,7 @@ index a78f7a80c..b503787aa 100644
  if (! $?MANPATH) setenv MANPATH ''
  
  #- Clean PATH (path)
-@@ -194,8 +207,16 @@ set cleaned=`$foamClean "$PATH" "$foamOldDirs"`
+@@ -193,8 +206,16 @@ set cleaned=`$foamClean "$PATH" "$foamOldDirs"`
  if ( $status == 0 ) setenv PATH $cleaned
  
  #- Clean LD_LIBRARY_PATH
@@ -1312,7 +1311,7 @@ index a78f7a80c..b503787aa 100644
  
  #- Clean MANPATH
  set cleaned=`$foamClean "$MANPATH" "$foamOldDirs"`
-@@ -210,7 +231,11 @@ _foamSource $WM_PROJECT_DIR/etc/config.csh/aliases
+@@ -209,7 +230,11 @@ _foamSource $WM_PROJECT_DIR/etc/config.csh/aliases
  # Source user setup files for optional packages
  # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  _foamSource `$WM_PROJECT_DIR/bin/foamEtcFile config.csh/mpi`
@@ -1325,7 +1324,7 @@ index a78f7a80c..b503787aa 100644
  _foamSource `$WM_PROJECT_DIR/bin/foamEtcFile config.csh/ensight`
  
  
-@@ -220,9 +245,17 @@ _foamSource `$WM_PROJECT_DIR/bin/foamEtcFile config.csh/ensight`
+@@ -219,9 +244,17 @@ _foamSource `$WM_PROJECT_DIR/bin/foamEtcFile config.csh/ensight`
  set cleaned=`$foamClean "$PATH"`
  if ( $status == 0 ) setenv PATH $cleaned
  
@@ -1346,7 +1345,7 @@ index a78f7a80c..b503787aa 100644
  
  #- Clean MANPATH (trailing ':' to find system pages)
  set cleaned=`$foamClean "$MANPATH"`:
-@@ -237,7 +270,7 @@ endif
+@@ -236,7 +269,7 @@ endif
  
  # cleanup environment:
  # ~~~~~~~~~~~~~~~~~~~~
@@ -1357,7 +1356,7 @@ index a78f7a80c..b503787aa 100644
 -#------------------------------------------------------------------------------
 +#--------------------- vi: set ft=tcsh et sw=4 ts=4 sts=4: ---------------------
 diff --git a/src/Allwmake b/src/Allwmake
-index b1eb0c0c1..a389f0153 100755
+index 29f8b1f14..18c261d2e 100755
 --- a/src/Allwmake
 +++ b/src/Allwmake
 @@ -12,11 +12,13 @@ wmakeCheckPwd "$WM_PROJECT_DIR/src" || {
@@ -1769,7 +1768,7 @@ index b3fb45c9b..4cbcb2928 100644
          static void* mallocNan(size_t size);
          #endif
 diff --git a/src/OpenFOAM/Make/files b/src/OpenFOAM/Make/files
-index cda6ab451..c6a21d21a 100644
+index cb7645f7c..9b17a343b 100644
 --- a/src/OpenFOAM/Make/files
 +++ b/src/OpenFOAM/Make/files
 @@ -29,11 +29,13 @@ $(chars)/wchar/wcharIO.C
@@ -2447,10 +2446,10 @@ index cf6e54861..e3b7efff8 100644
 +LIB_LIBS += -lboost_system
 +endif
 diff --git a/src/thermophysicalModels/basic/basicThermo/basicThermo.C b/src/thermophysicalModels/basic/basicThermo/basicThermo.C
-index f0b5bfffd..4209f5a35 100644
+index 0960bbb1f..9d4edaefe 100644
 --- a/src/thermophysicalModels/basic/basicThermo/basicThermo.C
 +++ b/src/thermophysicalModels/basic/basicThermo/basicThermo.C
-@@ -140,7 +140,7 @@ Foam::wordList Foam::basicThermo::splitThermoName
+@@ -138,7 +138,7 @@ Foam::wordList Foam::basicThermo::splitThermoName
          }
          else if ((endc = thermoName.find(',', beg)) != string::npos)
          {
@@ -2489,7 +2488,7 @@ index efb86df86..f7caf9384 100644
  #------------------------------------------------------------------------------
 diff --git a/wmake/rules/darwin64Clang/CGAL b/wmake/rules/darwin64Clang/CGAL
 new file mode 100644
-index 000000000..9abc1c6c0
+index 000000000..a1e88161d
 --- /dev/null
 +++ b/wmake/rules/darwin64Clang/CGAL
 @@ -0,0 +1,9 @@
@@ -2501,7 +2500,7 @@ index 000000000..9abc1c6c0
 +    -I$(GMP_ARCH_PATH)/include \
 +    -I$(BOOST_ARCH_PATH)/include
 +
-+CGAL_LIBS = -lgmp -lmpfr
++CGAL_LIBS = -L$(GMP_ARCH_PATH)/lib -L$(MPFR_ARCH_PATH)/lib -lgmp -lmpfr
 diff --git a/wmake/rules/darwin64Clang/bison b/wmake/rules/darwin64Clang/bison
 new file mode 100644
 index 000000000..3d11bf122
