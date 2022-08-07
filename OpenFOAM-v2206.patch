@@ -1,0 +1,209 @@
+ bin/foamCleanPath                                    |  6 +++---
+ etc/config.csh/functions                             |  2 +-
+ etc/config.csh/setup                                 | 16 +++++++++++-----
+ etc/config.csh/unset                                 |  5 +++--
+ etc/config.sh/functions                              |  5 ++++-
+ etc/config.sh/setup                                  | 20 ++++++++++++++++++--
+ etc/config.sh/unset                                  |  3 ++-
+ .../triSurface/triSurfaceTools/geompack/geompack.C   |  4 ++++
+ 8 files changed, 46 insertions(+), 15 deletions(-)
+
+diff --git a/bin/foamCleanPath b/bin/foamCleanPath
+index 03d75bad..366b5046 100755
+--- a/bin/foamCleanPath
++++ b/bin/foamCleanPath
+@@ -123,7 +123,7 @@ do
+         (-path) name='PATH';;
+         (-lib)
+             case "$(uname -s 2>/dev/null)" in
+-                (Darwin) name='DYLD_LIBRARY_PATH';;
++                (Darwin) name='FOAM_DYLD_LIBRARY_PATH';;
+                 (*) name='LD_LIBRARY_PATH';;
+             esac
+             ;;
+@@ -141,7 +141,7 @@ do
+     -csh-lib | -sh-lib)
+         shellFlavour="$1"
+         case "$(uname -s 2>/dev/null)" in
+-            (Darwin) name='DYLD_LIBRARY_PATH';;
++            (Darwin) name='FOAM_DYLD_LIBRARY_PATH';;
+             (*) name='LD_LIBRARY_PATH';;
+         esac
+         optEnvName="$name"      # Use for input evaluation
+@@ -157,7 +157,7 @@ do
+         (-path) name='PATH';;
+         (-lib)
+             case "$(uname -s 2>/dev/null)" in
+-                (Darwin) name='DYLD_LIBRARY_PATH';;
++                (Darwin) name='FOAM_DYLD_LIBRARY_PATH';;
+                 (*) name='LD_LIBRARY_PATH';;
+             esac
+             ;;
+diff --git a/etc/config.csh/functions b/etc/config.csh/functions
+index eb0b6bf0..4e146cca 100644
+--- a/etc/config.csh/functions
++++ b/etc/config.csh/functions
+@@ -47,7 +47,7 @@ alias _foamAddMan  'setenv MANPATH \!*\:${MANPATH}'
+ # Special treatment for Darwin
+ # - DYLD_LIBRARY_PATH instead of LD_LIBRARY_PATH
+ if ("${_foam_uname_s}" == "Darwin") then
+-    alias _foamAddLib  'setenv DYLD_LIBRARY_PATH \!*\:${DYLD_LIBRARY_PATH}'
++    alias _foamAddLib  'if (-e \!*) setenv DYLD_LIBRARY_PATH \!*\:${DYLD_LIBRARY_PATH}; if (-e \!*) setenv FOAM_DYLD_LIBRARY_PATH \!*\:${FOAM_DYLD_LIBRARY_PATH}'
+ else
+     alias _foamAddLib  'setenv LD_LIBRARY_PATH \!*\:${LD_LIBRARY_PATH}'
+ endif
+diff --git a/etc/config.csh/setup b/etc/config.csh/setup
+index 47cd76a9..25e464d3 100644
+--- a/etc/config.csh/setup
++++ b/etc/config.csh/setup
+@@ -150,15 +150,18 @@ endif
+ 
+ unset PATH MANPATH LD_LIBRARY_PATH DYLD_LIBRARY_PATH
+ if (! $?MANPATH ) setenv MANPATH
+-if (! $?LD_LIBRARY_PATH ) setenv LD_LIBRARY_PATH
++if ("${_foam_uname_s}" != "Darwin" ) then
++    if (! $?LD_LIBRARY_PATH ) setenv LD_LIBRARY_PATH
++endif
+ if ("${_foam_uname_s}" == "Darwin" ) then
+     if (! $?DYLD_LIBRARY_PATH ) setenv DYLD_LIBRARY_PATH
++    if (! $?FOAM_DYLD_LIBRARY_PATH ) setenv FOAM_DYLD_LIBRARY_PATH
+ endif
+ 
+ _foamClean PATH "$foamOldDirs"
+ _foamClean MANPATH "$foamOldDirs"
+ _foamClean -lib "$foamOldDirs"
+-
++if ( $_foam_uname_s == "Darwin" ) setenv DYLD_LIBRARY_PATH "${FOAM_DYLD_LIBRARY_PATH}"
+ 
+ #------------------------------------------------------------------------------
+ # Base setup (OpenFOAM compilation), MPI and third-party packages
+@@ -213,6 +216,7 @@ endif
+ _foamClean PATH
+ _foamClean MANPATH
+ _foamClean -lib
++if ( $_foam_uname_s == "Darwin" ) setenv DYLD_LIBRARY_PATH "${FOAM_DYLD_LIBRARY_PATH}"
+ 
+ # Add trailing ':' for system manpages
+ if ( $?MANPATH ) then
+@@ -224,10 +228,12 @@ if ($?LD_LIBRARY_PATH) then
+ endif
+ 
+ # Darwin
+-if ($?DYLD_LIBRARY_PATH) then
+-    if ("${DYLD_LIBRARY_PATH}" == "") unsetenv DYLD_LIBRARY_PATH
++if ($?FOAM_DYLD_LIBRARY_PATH) then
++    if ("${FOAM_DYLD_LIBRARY_PATH}" == "") unsetenv DYLD_LIBRARY_PATH
++endif
++if ($?FOAM_DYLD_LIBRARY_PATH) then
++    if ("${FOAM_DYLD_LIBRARY_PATH}" == "") unsetenv FOAM_DYLD_LIBRARY_PATH
+ endif
+-
+ 
+ # Cleanup temporary information
+ # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+diff --git a/etc/config.csh/unset b/etc/config.csh/unset
+index ce5a2e81..f03c3717 100644
+--- a/etc/config.csh/unset
++++ b/etc/config.csh/unset
+@@ -172,8 +172,9 @@ if ( $?foamClean ) then
+     if ($?LD_LIBRARY_PATH) then
+         eval `$foamClean -csh-env=LD_LIBRARY_PATH "$foamOldDirs"`
+     endif
+-    if ($?DYLD_LIBRARY_PATH) then
+-        eval `$foamClean -csh-env=DYLD_LIBRARY_PATH "$foamOldDirs"`
++    if ($?FOAM_DYLD_LIBRARY_PATH) then
++        eval `$foamClean -csh-env=FOAM_DYLD_LIBRARY_PATH "$foamOldDirs"`
++	setenv DYLD_LIBRARY_PATH ${FOAM_DYLD_LIBRARY_PATH}
+     endif
+ endif
+ 
+diff --git a/etc/config.sh/functions b/etc/config.sh/functions
+index 2707f3a5..6ded9d43 100644
+--- a/etc/config.sh/functions
++++ b/etc/config.sh/functions
+@@ -94,7 +94,10 @@ then
+         _foamAddLib()
+         {
+             case "$1" in (/?*)
+-                export DYLD_LIBRARY_PATH="${1}${DYLD_LIBRARY_PATH:+:}${DYLD_LIBRARY_PATH}" ;;
++            [ -e "$1" ] && {
++                export FOAM_DYLD_LIBRARY_PATH="${1}${FOAM_DYLD_LIBRARY_PATH:+:}${FOAM_DYLD_LIBRARY_PATH}"
++		export DYLD_LIBRARY_PATH="$FOAM_DYLD_LIBRARY_PATH"
++	    } ;;
+             esac
+         }
+     else
+diff --git a/etc/config.sh/setup b/etc/config.sh/setup
+index e7576329..557b20f3 100644
+--- a/etc/config.sh/setup
++++ b/etc/config.sh/setup
+@@ -180,10 +180,18 @@ fi
+ 
+ # Clean standard environment variables
+ 
+-export PATH MANPATH LD_LIBRARY_PATH
++export PATH MANPATH
++if [ "${_foam_uname_s}" = "Darwin" ]
++then
++export DYLD_LIBRARY_PATH
++export FOAM_DYLD_LIBRARY_PATH
++else
++export LD_LIBRARY_PATH
++fi
+ _foamClean PATH "$foamOldDirs"
+ _foamClean MANPATH "$foamOldDirs"
+ _foamClean -lib "$foamOldDirs"
++[ "${_foam_uname_s}" = "Darwin" ] && export DYLD_LIBRARY_PATH="$FOAM_DYLD_LIBRARY_PATH"
+ 
+ #------------------------------------------------------------------------------
+ # Base setup (OpenFOAM compilation), MPI and third-party packages
+@@ -237,11 +245,19 @@ fi
+ #------------------------------------------------------------------------------
+ 
+ # Remove duplicates from environment paths
+-export PATH MANPATH LD_LIBRARY_PATH
++export PATH MANPATH
++if [ "${_foam_uname_s}" = Darwin ]
++then
++export DYLD_LIBRARY_PATH
++export FOAM_DYLD_LIBRARY_PATH
++else
++export LD_LIBRARY_PATH
++fi
+ 
+ _foamClean PATH
+ _foamClean MANPATH
+ _foamClean -lib
++[ "${_foam_uname_s}" = "Darwin" ] && export DYLD_LIBRARY_PATH="$FOAM_DYLD_LIBRARY_PATH"
+ 
+ # Add trailing ':' for system manpages
+ if [ -n "$MANPATH" ]
+diff --git a/etc/config.sh/unset b/etc/config.sh/unset
+index ebc9c38c..63924ee8 100644
+--- a/etc/config.sh/unset
++++ b/etc/config.sh/unset
+@@ -164,7 +164,8 @@ then
+     eval "$($foamClean -sh-env=PATH $foamOldDirs)"
+     eval "$($foamClean -sh-env=MANPATH $foamOldDirs)"
+     eval "$($foamClean -sh-env=LD_LIBRARY_PATH $foamOldDirs)"
+-    eval "$($foamClean -sh-env=DYLD_LIBRARY_PATH $foamOldDirs)"
++    eval "$($foamClean -sh-env=FOAM_DYLD_LIBRARY_PATH $foamOldDirs)"
++    export DYLD_LIBRARY_PATH="$FOAM_DYLD_LIBRARY_PATH"
+ fi
+ 
+ [ -n "$MANPATH" ] || unset MANPATH
+diff --git a/src/meshTools/triSurface/triSurfaceTools/geompack/geompack.C b/src/meshTools/triSurface/triSurfaceTools/geompack/geompack.C
+index 7298db60..b586baf8 100644
+--- a/src/meshTools/triSurface/triSurfaceTools/geompack/geompack.C
++++ b/src/meshTools/triSurface/triSurfaceTools/geompack/geompack.C
+@@ -6,6 +6,10 @@
+ # include <ctime>
+ # include <cstring>
+ 
++#if defined(__APPLE__) && defined(__clang__)
++#pragma clang fp exceptions(ignore)
++#endif
++
+ using namespace std;
+ 
+ # include "geompack.H"
