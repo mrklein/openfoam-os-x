@@ -1,16 +1,15 @@
  Allwmake                                           |   5 +-
  applications/Allwmake                              |   2 +
  .../fluent3DMeshToFoam/fluent3DMeshToFoam.L        |   4 +-
- .../utilities/mesh/generation/foamyMesh/Allwmake   |   7 +-
+ .../utilities/mesh/generation/foamyMesh/Allwmake   |   5 +-
  .../DelaunayMesh/DelaunayMesh.C                    |   7 +-
- .../DelaunayMesh/DistributedDelaunayMesh.C         |   7 +-
+ .../DelaunayMesh/DistributedDelaunayMesh.C         |   6 +-
  .../foamyMesh/conformalVoronoiMesh/Make/options    |   1 +
  .../cellShapeControlMesh/cellShapeControlMesh.H    |   7 ++
  .../CGALTriangulation3DKernel.H                    |   5 +
  .../generation/foamyMesh/foamyHexMesh/Make/options |   1 +
  .../foamyMesh/foamyQuadMesh/Make/options           |   1 +
  .../foamyQuadMesh/insertSurfaceNearestPointPairs.C |   2 +-
- .../mesh/manipulation/renumberMesh/Allwmake        |   9 +-
  .../postProcessing/graphics/PVReaders/Allwmake     |   6 +
  bin/foamMonitor                                    |  15 ++-
  bin/paraFoam                                       |   6 +
@@ -79,7 +78,7 @@
  wmake/src/Makefile                                 |   2 +
  wmake/wmake                                        |   5 +
  wmake/wmakeLnIncludeAll                            |   1 +
- 81 files changed, 1276 insertions(+), 98 deletions(-)
+ 80 files changed, 1265 insertions(+), 97 deletions(-)
 
 diff --git a/Allwmake b/Allwmake
 index 3f6a7523d..00810aff6 100755
@@ -128,10 +127,10 @@ index 2b725832b..8f96f6ec1 100755
  wmake -all $targetType solvers
  wmake -all $targetType utilities
 diff --git a/applications/utilities/mesh/conversion/fluent3DMeshToFoam/fluent3DMeshToFoam.L b/applications/utilities/mesh/conversion/fluent3DMeshToFoam/fluent3DMeshToFoam.L
-index b7f887dc5..8d0902af0 100644
+index 91e4ff09a..b97c3bf52 100644
 --- a/applications/utilities/mesh/conversion/fluent3DMeshToFoam/fluent3DMeshToFoam.L
 +++ b/applications/utilities/mesh/conversion/fluent3DMeshToFoam/fluent3DMeshToFoam.L
-@@ -1076,8 +1076,8 @@ int main(int argc, char *argv[])
+@@ -1078,8 +1078,8 @@ int main(int argc, char *argv[])
                              if
                              (
                                  nbrType != type
@@ -143,7 +142,7 @@ index b7f887dc5..8d0902af0 100644
                              {
                                  nbrPatchis[nbrPatchi] = patchi;
 diff --git a/applications/utilities/mesh/generation/foamyMesh/Allwmake b/applications/utilities/mesh/generation/foamyMesh/Allwmake
-index 273a56e5f..0ca85d92f 100755
+index 194ec84b4..ec0b9d7ae 100755
 --- a/applications/utilities/mesh/generation/foamyMesh/Allwmake
 +++ b/applications/utilities/mesh/generation/foamyMesh/Allwmake
 @@ -4,8 +4,11 @@ cd ${0%/*} || exit 1    # Run from this directory
@@ -159,13 +158,6 @@ index 273a56e5f..0ca85d92f 100755
  then
      . $settings
      if [ -n "$BOOST_ARCH_PATH" ]
-@@ -31,4 +34,6 @@ wmake $targetType foamyHexMesh
- #(cd foamyHexMeshSurfaceSimplify && ./Allwmake $targetType $*)
- #wmake $targetType cellSizeAndAlignmentGrid
- 
-+unset CGAL_CONF_FILE
-+
- #------------------------------------------------------------------------------
 diff --git a/applications/utilities/mesh/generation/foamyMesh/conformalVoronoiMesh/DelaunayMesh/DelaunayMesh.C b/applications/utilities/mesh/generation/foamyMesh/conformalVoronoiMesh/DelaunayMesh/DelaunayMesh.C
 index 73a3323d3..7b1a6b466 100644
 --- a/applications/utilities/mesh/generation/foamyMesh/conformalVoronoiMesh/DelaunayMesh/DelaunayMesh.C
@@ -192,20 +184,19 @@ index 73a3323d3..7b1a6b466 100644
      spatial_sort
      (
 diff --git a/applications/utilities/mesh/generation/foamyMesh/conformalVoronoiMesh/DelaunayMesh/DistributedDelaunayMesh.C b/applications/utilities/mesh/generation/foamyMesh/conformalVoronoiMesh/DelaunayMesh/DistributedDelaunayMesh.C
-index 0b59e0ead..ddbf3c175 100644
+index c7c60bcf8..61e45f6c8 100644
 --- a/applications/utilities/mesh/generation/foamyMesh/conformalVoronoiMesh/DelaunayMesh/DistributedDelaunayMesh.C
 +++ b/applications/utilities/mesh/generation/foamyMesh/conformalVoronoiMesh/DelaunayMesh/DistributedDelaunayMesh.C
-@@ -24,6 +24,9 @@ License
+@@ -23,6 +23,8 @@ License
+ 
  \*---------------------------------------------------------------------------*/
  
- #include "DistributedDelaunayMesh.H"
-+
 +#include <random>
 +
+ #include "DistributedDelaunayMesh.H"
  #include "meshSearch.H"
- #include "mapDistribute.H"
- #include "zeroGradientFvPatchFields.H"
-@@ -900,7 +903,9 @@ Foam::DistributedDelaunayMesh<Triangulation>::rangeInsertReferredWithInfo
+ #include "distributionMap.H"
+@@ -900,7 +902,9 @@ Foam::DistributedDelaunayMesh<Triangulation>::rangeInsertReferredWithInfo
          );
      }
  
@@ -307,41 +298,6 @@ index 48d9ed870..843f28abd 100644
          (
              number_of_vertices(),
              size_t(10*sqrt(scalar(number_of_vertices())))
-diff --git a/applications/utilities/mesh/manipulation/renumberMesh/Allwmake b/applications/utilities/mesh/manipulation/renumberMesh/Allwmake
-index ee135cc37..1d3f69f2b 100755
---- a/applications/utilities/mesh/manipulation/renumberMesh/Allwmake
-+++ b/applications/utilities/mesh/manipulation/renumberMesh/Allwmake
-@@ -4,22 +4,29 @@ cd ${0%/*} || exit 1    # Run from this directory
- # Parse arguments for compilation (at least for error catching)
- . $WM_PROJECT_DIR/wmake/scripts/AllwmakeParseArguments
- 
-+_soExt=so
-+[ "$(uname -s)" = "Darwin" ] && _soExt=dylib
-+
- export COMPILE_FLAGS=''
- export LINK_FLAGS=''
- 
--if [ -f "${FOAM_LIBBIN}/libSloanRenumber.so" ]
-+if [ -f "${FOAM_LIBBIN}/libSloanRenumber.$_soExt" ]
- then
-     echo "Found libSloanRenumber.so  --  enabling Sloan renumbering support."
-     export LINK_FLAGS="${LINK_FLAGS} -lSloanRenumber"
- fi
- 
-+[ -n "$ZOLTAN_ARCH_PATH" ] && {
- if [ -f "${ZOLTAN_ARCH_PATH}/lib/libzoltan.a" -a -f "${FOAM_LIBBIN}/libzoltanRenumber.so" ]
- then
-     echo "Found libzoltanRenumber.so  --  enabling zoltan renumbering support."
-     export COMPILE_FLAGS="-DFOAM_USE_ZOLTAN"
-     export LINK_FLAGS="${LINK_FLAGS} -lzoltanRenumber -L${ZOLTAN_ARCH_PATH}/lib -lzoltan"
- fi
-+}
- 
- wmake $targetType
- 
-+unset _soExt
-+
- #------------------------------------------------------------------------------
 diff --git a/applications/utilities/postProcessing/graphics/PVReaders/Allwmake b/applications/utilities/postProcessing/graphics/PVReaders/Allwmake
 index f270c064b..7e474f909 100755
 --- a/applications/utilities/postProcessing/graphics/PVReaders/Allwmake
@@ -415,7 +371,7 @@ index 32b62d792..603771302 100755
      test "$mod_time" -gt "$idle_ago" || break
      sleep "$refresh"
 diff --git a/bin/paraFoam b/bin/paraFoam
-index 78911fdce..d70dc4bf9 100755
+index aab19870b..d2ca9569b 100755
 --- a/bin/paraFoam
 +++ b/bin/paraFoam
 @@ -101,6 +101,12 @@ extension=OpenFOAM
@@ -432,7 +388,7 @@ index 78911fdce..d70dc4bf9 100755
  while [ "$#" -gt 0 ]
  do
 diff --git a/bin/tools/RunFunctions b/bin/tools/RunFunctions
-index 1a040df6a..67a2ef2b9 100644
+index 1f21022b2..b57655033 100644
 --- a/bin/tools/RunFunctions
 +++ b/bin/tools/RunFunctions
 @@ -28,6 +28,9 @@
@@ -622,7 +578,7 @@ index 78b14e474..db7040a51 100644
 -#------------------------------------------------------------------------------
 +#-------------------- vi: set ft=tcsh et sw=4 ts=4 sts=4: ---------------------
 diff --git a/etc/config.csh/settings b/etc/config.csh/settings
-index f7cf4020c..580667000 100644
+index d4d8836a6..ca2534282 100644
 --- a/etc/config.csh/settings
 +++ b/etc/config.csh/settings
 @@ -32,8 +32,12 @@
@@ -665,9 +621,9 @@ index f7cf4020c..580667000 100644
  
  # Site-specific directory
  if ( $?WM_PROJECT_SITE ) then
-@@ -202,7 +215,11 @@ unset siteDir
+@@ -205,7 +218,11 @@ endif
+ unset siteDir
  
- _foamAddPath ${FOAM_USER_APPBIN}:${FOAM_SITE_APPBIN}:${FOAM_APPBIN}
  # Make sure to pick up dummy versions of external libraries last
 -_foamAddLib  ${FOAM_USER_LIBBIN}:${FOAM_SITE_LIBBIN}:${FOAM_LIBBIN}:${FOAM_EXT_LIBBIN}:${FOAM_LIBBIN}/dummy
 +_foamAddLib ${FOAM_LIBBIN}/dummy
@@ -678,7 +634,7 @@ index f7cf4020c..580667000 100644
  
  # Compiler settings
  # ~~~~~~~~~~~~~~~~~
-@@ -341,4 +358,4 @@ endsw
+@@ -350,4 +367,4 @@ endsw
  unset minBufferSize
  unsetenv WM_COMPILER_TYPE
  
@@ -1121,7 +1077,7 @@ index b368cc51a..56bca560b 100644
  
  
 diff --git a/etc/config.sh/settings b/etc/config.sh/settings
-index d48896bac..9a3bfba53 100644
+index b3b71c1bc..6357f304c 100644
 --- a/etc/config.sh/settings
 +++ b/etc/config.sh/settings
 @@ -131,7 +131,12 @@ SunOS)
@@ -1147,9 +1103,9 @@ index d48896bac..9a3bfba53 100644
  
  # Site-specific directory
  siteDir="${WM_PROJECT_SITE:-$WM_PROJECT_INST_DIR/site}"
-@@ -204,7 +209,12 @@ unset siteDir
+@@ -207,7 +212,12 @@ fi
+ unset siteDir
  
- _foamAddPath $FOAM_USER_APPBIN:$FOAM_SITE_APPBIN:$FOAM_APPBIN
  # Make sure to pick up dummy versions of external libraries last
 -_foamAddLib  $FOAM_USER_LIBBIN:$FOAM_SITE_LIBBIN:$FOAM_LIBBIN:$FOAM_EXT_LIBBIN:$FOAM_LIBBIN/dummy
 +if [ -n "$FOAM_EXT_LIBBIN" ]
@@ -1161,7 +1117,7 @@ index d48896bac..9a3bfba53 100644
  
  # Compiler settings
  # ~~~~~~~~~~~~~~~~~
-@@ -297,4 +307,6 @@ system)
+@@ -300,4 +310,6 @@ system)
      ;;
  esac
  
@@ -1356,7 +1312,7 @@ index d2c5194f8..f779dacca 100644
 -#------------------------------------------------------------------------------
 +#--------------------- vi: set ft=tcsh et sw=4 ts=4 sts=4: ---------------------
 diff --git a/src/Allwmake b/src/Allwmake
-index 29f8b1f14..18c261d2e 100755
+index bcc574e2d..5a957e781 100755
 --- a/src/Allwmake
 +++ b/src/Allwmake
 @@ -12,11 +12,13 @@ wmakeCheckPwd "$WM_PROJECT_DIR/src" || {
@@ -1374,7 +1330,7 @@ index 29f8b1f14..18c261d2e 100755
  # Update OpenFOAM version strings if required
  wmakePrintBuild -check || wrmo OpenFOAM/global/global.o 2>/dev/null
 diff --git a/src/OSspecific/POSIX/POSIX.C b/src/OSspecific/POSIX/POSIX.C
-index f8c840468..17cf058a5 100644
+index 74a801a30..ad85c97bc 100644
 --- a/src/OSspecific/POSIX/POSIX.C
 +++ b/src/OSspecific/POSIX/POSIX.C
 @@ -56,7 +56,11 @@ Description
@@ -1768,7 +1724,7 @@ index b3fb45c9b..4cbcb2928 100644
          static void* mallocNan(size_t size);
          #endif
 diff --git a/src/OpenFOAM/Make/files b/src/OpenFOAM/Make/files
-index cb7645f7c..9b17a343b 100644
+index f97bb5afe..05bc7c1c1 100644
 --- a/src/OpenFOAM/Make/files
 +++ b/src/OpenFOAM/Make/files
 @@ -29,11 +29,13 @@ $(chars)/wchar/wcharIO.C
@@ -2252,10 +2208,10 @@ index 7c6c07708..a2d01e160 100644
  
  // ************************************************************************* //
 diff --git a/src/OpenFOAM/primitives/strings/word/wordIOList.C b/src/OpenFOAM/primitives/strings/word/wordIOList.C
-index b5fee5be9..60b3c4a32 100644
+index 726885e03..155f5b1e5 100644
 --- a/src/OpenFOAM/primitives/strings/word/wordIOList.C
 +++ b/src/OpenFOAM/primitives/strings/word/wordIOList.C
-@@ -53,7 +53,7 @@ void Foam::printTable
+@@ -54,7 +54,7 @@ void Foam::printTable
      {
          forAll(wll, i)
          {
@@ -2311,7 +2267,7 @@ index 69f63dbe5..18d31d422 100644
 +EXE_INC += -I$(ParMGridGen)/MGridGen/IMlib/lnInclude
 +endif
 diff --git a/src/parallel/decompose/Allwmake b/src/parallel/decompose/Allwmake
-index ea8550c8c..430392f5e 100755
+index c2a0a6629..170516d91 100755
 --- a/src/parallel/decompose/Allwmake
 +++ b/src/parallel/decompose/Allwmake
 @@ -6,7 +6,9 @@ cd ${0%/*} || exit 1    # Run from this directory
@@ -2446,10 +2402,10 @@ index cf6e54861..e3b7efff8 100644
 +LIB_LIBS += -lboost_system
 +endif
 diff --git a/src/thermophysicalModels/basic/basicThermo/basicThermo.C b/src/thermophysicalModels/basic/basicThermo/basicThermo.C
-index 0960bbb1f..9d4edaefe 100644
+index 030cf0bad..f0b196781 100644
 --- a/src/thermophysicalModels/basic/basicThermo/basicThermo.C
 +++ b/src/thermophysicalModels/basic/basicThermo/basicThermo.C
-@@ -138,7 +138,7 @@ Foam::wordList Foam::basicThermo::splitThermoName
+@@ -136,7 +136,7 @@ Foam::wordList Foam::basicThermo::splitThermoName
          }
          else if ((endc = thermoName.find(',', beg)) != string::npos)
          {
