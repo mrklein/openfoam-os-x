@@ -1,15 +1,7 @@
  Allwmake                                           |   5 +-
  applications/Allwmake                              |   2 +
+ .../foamMultiRun/regionSolvers/regionSolvers.C     |   2 +-
  .../fluent3DMeshToFoam/fluent3DMeshToFoam.L        |   4 +-
- .../utilities/mesh/generation/foamyMesh/Allwmake   |   5 +-
- .../DelaunayMesh/DelaunayMesh.C                    |   7 +-
- .../DelaunayMesh/DistributedDelaunayMesh.C         |   6 +-
- .../foamyMesh/conformalVoronoiMesh/Make/options    |   1 +
- .../cellShapeControlMesh/cellShapeControlMesh.H    |   7 ++
- .../CGALTriangulation3DKernel.H                    |   5 +
- .../generation/foamyMesh/foamyHexMesh/Make/options |   1 +
- .../foamyMesh/foamyQuadMesh/Make/options           |   1 +
- .../foamyQuadMesh/insertSurfaceNearestPointPairs.C |   2 +-
  .../postProcessing/graphics/PVReaders/Allwmake     |   6 +
  bin/foamMonitor                                    |  15 ++-
  bin/paraFoam                                       |   6 +
@@ -29,14 +21,14 @@
  etc/config.sh/unset                                |  25 +++-
  etc/cshrc                                          |  55 +++++++--
  src/Allwmake                                       |   2 +
- src/OSspecific/POSIX/POSIX.C                       |  33 +++++
+ src/OSspecific/POSIX/POSIX.C                       |  35 +++++-
  src/OSspecific/POSIX/clockTime/clockTime.H         |   3 +
  src/OSspecific/POSIX/fileStat.C                    |   2 +
  src/OSspecific/POSIX/printStack.C                  |  43 ++++++-
  src/OSspecific/POSIX/signals/sigFpe.C              |  79 +++++++++++-
  src/OSspecific/POSIX/signals/sigFpe.H              |  12 +-
  src/OpenFOAM/Make/files                            |   2 +
- src/OpenFOAM/containers/Lists/UList/UList.C        |   3 +-
+ src/OpenFOAM/containers/Lists/UList/UList.C        |   1 +
  .../db/dynamicLibrary/dynamicCode/dynamicCode.C    |   4 +
  .../db/dynamicLibrary/dynamicCode/dynamicCode.H    |   4 +
  src/OpenFOAM/primitives/Scalar/doubleFloat.H       |  40 ++++++
@@ -57,8 +49,10 @@
  src/parallel/decompose/metisDecomp/Allwmake        |  14 ++-
  src/parallel/decompose/ptscotchDecomp/Make/options |  16 +--
  src/parallel/decompose/scotchDecomp/Make/options   |  10 +-
+ src/parallel/parallel/multiRegionPrefixer.C        |   2 +-
  src/renumber/SloanRenumber/Make/options            |  14 ++-
  .../basic/basicThermo/basicThermo.C                |   2 +-
+ wmake/makefiles/files                              |   2 +-
  wmake/makefiles/general                            |   4 +
  wmake/rules/General/transform                      |   1 -
  wmake/rules/darwin64Clang/CGAL                     |   9 ++
@@ -77,11 +71,12 @@
  wmake/rules/darwin64Clang/yacc                     |  13 ++
  wmake/src/Makefile                                 |   2 +
  wmake/wmake                                        |   5 +
+ wmake/wmakeLnInclude                               |  13 ++
  wmake/wmakeLnIncludeAll                            |   1 +
- 80 files changed, 1265 insertions(+), 97 deletions(-)
+ 75 files changed, 1250 insertions(+), 96 deletions(-)
 
 diff --git a/Allwmake b/Allwmake
-index 3f6a7523d..00810aff6 100755
+index 3f6a7523d2..00810aff6e 100755
 --- a/Allwmake
 +++ b/Allwmake
 @@ -12,11 +12,13 @@ wmakeCheckPwd "$WM_PROJECT_DIR" || {
@@ -109,7 +104,7 @@ index 3f6a7523d..00810aff6 100755
  
  # Compile OpenFOAM libraries and applications
 diff --git a/applications/Allwmake b/applications/Allwmake
-index 2b725832b..8f96f6ec1 100755
+index d11e7c8e1d..c653bfaacc 100755
 --- a/applications/Allwmake
 +++ b/applications/Allwmake
 @@ -12,11 +12,13 @@ wmakeCheckPwd "$WM_PROJECT_DIR/applications" || {
@@ -125,9 +120,22 @@ index 2b725832b..8f96f6ec1 100755
 +}
  
  wmake -all $targetType solvers
- wmake -all $targetType utilities
+ modules/Allwmake $targetType $*
+diff --git a/applications/solvers/foamMultiRun/regionSolvers/regionSolvers.C b/applications/solvers/foamMultiRun/regionSolvers/regionSolvers.C
+index 1fc8d5a125..af79364936 100644
+--- a/applications/solvers/foamMultiRun/regionSolvers/regionSolvers.C
++++ b/applications/solvers/foamMultiRun/regionSolvers/regionSolvers.C
+@@ -136,7 +136,7 @@ Foam::regionSolvers::regionSolvers(const Time& runTime)
+         solvers_.set(i, solver::New(solverName, regions_[i]));
+ 
+         prefixes_[i] = regionName;
+-        nRegionNameChars = max(nRegionNameChars, regionName.size());
++        nRegionNameChars = std::max(nRegionNameChars, regionName.size());
+     }
+ 
+     nRegionNameChars++;
 diff --git a/applications/utilities/mesh/conversion/fluent3DMeshToFoam/fluent3DMeshToFoam.L b/applications/utilities/mesh/conversion/fluent3DMeshToFoam/fluent3DMeshToFoam.L
-index 91e4ff09a..b97c3bf52 100644
+index 91e4ff09a5..b97c3bf524 100644
 --- a/applications/utilities/mesh/conversion/fluent3DMeshToFoam/fluent3DMeshToFoam.L
 +++ b/applications/utilities/mesh/conversion/fluent3DMeshToFoam/fluent3DMeshToFoam.L
 @@ -1078,8 +1078,8 @@ int main(int argc, char *argv[])
@@ -141,165 +149,8 @@ index 91e4ff09a..b97c3bf52 100644
                              )
                              {
                                  nbrPatchis[nbrPatchi] = patchi;
-diff --git a/applications/utilities/mesh/generation/foamyMesh/Allwmake b/applications/utilities/mesh/generation/foamyMesh/Allwmake
-index 194ec84b4..ec0b9d7ae 100755
---- a/applications/utilities/mesh/generation/foamyMesh/Allwmake
-+++ b/applications/utilities/mesh/generation/foamyMesh/Allwmake
-@@ -4,8 +4,11 @@ cd ${0%/*} || exit 1    # Run from this directory
- # Parse arguments for library compilation
- . $WM_PROJECT_DIR/wmake/scripts/AllwmakeParseArguments
- 
-+CGAL_CONF_FILE=config.sh/CGAL
-+[ $(uname -s) ] && CGAL_CONF_FILE=config.sh/mac/CGAL
-+
- # Get BOOST_ARCH_PATH, CGAL_ARCH_PATH
--if settings=`$WM_PROJECT_DIR/bin/foamEtcFile config.sh/CGAL`
-+if settings=`$WM_PROJECT_DIR/bin/foamEtcFile $CGAL_CONF_FILE`
- then
-     . $settings
-     if [ -n "$BOOST_ARCH_PATH" ]
-diff --git a/applications/utilities/mesh/generation/foamyMesh/conformalVoronoiMesh/DelaunayMesh/DelaunayMesh.C b/applications/utilities/mesh/generation/foamyMesh/conformalVoronoiMesh/DelaunayMesh/DelaunayMesh.C
-index 73a3323d3..7b1a6b466 100644
---- a/applications/utilities/mesh/generation/foamyMesh/conformalVoronoiMesh/DelaunayMesh/DelaunayMesh.C
-+++ b/applications/utilities/mesh/generation/foamyMesh/conformalVoronoiMesh/DelaunayMesh/DelaunayMesh.C
-@@ -24,6 +24,9 @@ License
- \*---------------------------------------------------------------------------*/
- 
- #include "DelaunayMesh.H"
-+
-+#include <random>
-+
- #include "labelPair.H"
- #include "PrintTable.H"
- #include "pointIOField.H"
-@@ -302,7 +305,9 @@ Foam::Map<Foam::label> Foam::DelaunayMesh<Triangulation>::rangeInsertWithInfo
-         );
-     }
- 
--    std::random_shuffle(points.begin(), points.end());
-+    std::random_device rng;
-+    std::mt19937 urng(rng());
-+    std::shuffle(points.begin(), points.end(), urng);
- 
-     spatial_sort
-     (
-diff --git a/applications/utilities/mesh/generation/foamyMesh/conformalVoronoiMesh/DelaunayMesh/DistributedDelaunayMesh.C b/applications/utilities/mesh/generation/foamyMesh/conformalVoronoiMesh/DelaunayMesh/DistributedDelaunayMesh.C
-index c7c60bcf8..61e45f6c8 100644
---- a/applications/utilities/mesh/generation/foamyMesh/conformalVoronoiMesh/DelaunayMesh/DistributedDelaunayMesh.C
-+++ b/applications/utilities/mesh/generation/foamyMesh/conformalVoronoiMesh/DelaunayMesh/DistributedDelaunayMesh.C
-@@ -23,6 +23,8 @@ License
- 
- \*---------------------------------------------------------------------------*/
- 
-+#include <random>
-+
- #include "DistributedDelaunayMesh.H"
- #include "meshSearch.H"
- #include "distributionMap.H"
-@@ -900,7 +902,9 @@ Foam::DistributedDelaunayMesh<Triangulation>::rangeInsertReferredWithInfo
-         );
-     }
- 
--    std::random_shuffle(pointsBbDistSqr.begin(), pointsBbDistSqr.end());
-+    std::random_device rng;
-+    std::mt19937 urng(rng());
-+    std::shuffle(pointsBbDistSqr.begin(), pointsBbDistSqr.end(), urng);
- 
-     // Sort in ascending order by the distance of the point from the centre
-     // of the processor bounding box
-diff --git a/applications/utilities/mesh/generation/foamyMesh/conformalVoronoiMesh/Make/options b/applications/utilities/mesh/generation/foamyMesh/conformalVoronoiMesh/Make/options
-index 3102dfc3e..297498412 100644
---- a/applications/utilities/mesh/generation/foamyMesh/conformalVoronoiMesh/Make/options
-+++ b/applications/utilities/mesh/generation/foamyMesh/conformalVoronoiMesh/Make/options
-@@ -6,6 +6,7 @@ CGAL_EXACT =
- CGAL_INEXACT = -DCGAL_INEXACT
- 
- include $(GENERAL_RULES)/CGAL
-+-include $(RULES)/CGAL
- 
- EXE_INC = \
-     ${ROUNDING_MATH} \
-diff --git a/applications/utilities/mesh/generation/foamyMesh/conformalVoronoiMesh/cellShapeControl/cellShapeControlMesh/cellShapeControlMesh.H b/applications/utilities/mesh/generation/foamyMesh/conformalVoronoiMesh/cellShapeControl/cellShapeControlMesh/cellShapeControlMesh.H
-index 9bffa7810..843b2357d 100644
---- a/applications/utilities/mesh/generation/foamyMesh/conformalVoronoiMesh/cellShapeControl/cellShapeControlMesh/cellShapeControlMesh.H
-+++ b/applications/utilities/mesh/generation/foamyMesh/conformalVoronoiMesh/cellShapeControl/cellShapeControlMesh/cellShapeControlMesh.H
-@@ -43,7 +43,14 @@ SourceFiles
- #include "fileName.H"
- #include "searchableSurfaces.H"
- #include "conformationSurfaces.H"
-+
-+#pragma clang diagnostic push
-+#pragma clang diagnostic ignored "-W#pragma-messages"
-+
- #include "DistributedDelaunayMesh.H"
-+
-+#pragma clang diagnostic pop
-+
- #include "CGALTriangulation3Ddefs.H"
- #include "backgroundMeshDecomposition.H"
- #include "boundBox.H"
-diff --git a/applications/utilities/mesh/generation/foamyMesh/conformalVoronoiMesh/conformalVoronoiMesh/CGALTriangulation3DKernel.H b/applications/utilities/mesh/generation/foamyMesh/conformalVoronoiMesh/conformalVoronoiMesh/CGALTriangulation3DKernel.H
-index 2f53d51e0..bad8b4ff1 100644
---- a/applications/utilities/mesh/generation/foamyMesh/conformalVoronoiMesh/conformalVoronoiMesh/CGALTriangulation3DKernel.H
-+++ b/applications/utilities/mesh/generation/foamyMesh/conformalVoronoiMesh/conformalVoronoiMesh/CGALTriangulation3DKernel.H
-@@ -33,6 +33,9 @@ Description
- 
- // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
- 
-+#pragma clang diagnostic push
-+#pragma clang diagnostic ignored "-W#pragma-messages"
-+
- #include "CGAL/Delaunay_triangulation_3.h"
- 
- #ifdef CGAL_INEXACT
-@@ -60,6 +63,8 @@ Description
- 
- // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
- 
-+#pragma clang diagnostic pop
-+
- #endif
- 
- // ************************************************************************* //
-diff --git a/applications/utilities/mesh/generation/foamyMesh/foamyHexMesh/Make/options b/applications/utilities/mesh/generation/foamyMesh/foamyHexMesh/Make/options
-index 804498da0..7ddef6f21 100644
---- a/applications/utilities/mesh/generation/foamyMesh/foamyHexMesh/Make/options
-+++ b/applications/utilities/mesh/generation/foamyMesh/foamyHexMesh/Make/options
-@@ -6,6 +6,7 @@ CGAL_EXACT =
- CGAL_INEXACT = -DCGAL_INEXACT
- 
- include $(GENERAL_RULES)/CGAL
-+-include $(RULES)/CGAL
- 
- EXE_INC = \
-     ${ROUNDING_MATH} \
-diff --git a/applications/utilities/mesh/generation/foamyMesh/foamyQuadMesh/Make/options b/applications/utilities/mesh/generation/foamyMesh/foamyQuadMesh/Make/options
-index 37dda1856..28ecb42c8 100644
---- a/applications/utilities/mesh/generation/foamyMesh/foamyQuadMesh/Make/options
-+++ b/applications/utilities/mesh/generation/foamyMesh/foamyQuadMesh/Make/options
-@@ -2,6 +2,7 @@ EXE_DEBUG = -DFULLDEBUG -g -O0
- EXE_NDEBUG = -DNDEBUG
- 
- include $(GENERAL_RULES)/CGAL
-+-include $(RULES)/CGAL
- 
- EXE_INC = \
-     ${ROUNDING_MATH} \
-diff --git a/applications/utilities/mesh/generation/foamyMesh/foamyQuadMesh/insertSurfaceNearestPointPairs.C b/applications/utilities/mesh/generation/foamyMesh/foamyQuadMesh/insertSurfaceNearestPointPairs.C
-index 48d9ed870..843f28abd 100644
---- a/applications/utilities/mesh/generation/foamyMesh/foamyQuadMesh/insertSurfaceNearestPointPairs.C
-+++ b/applications/utilities/mesh/generation/foamyMesh/foamyQuadMesh/insertSurfaceNearestPointPairs.C
-@@ -142,7 +142,7 @@ void Foam::CV2D::insertSurfaceNearestPointPairs()
-     Info<< "insertSurfaceNearestPointPairs: ";
- 
-     label nSurfacePointsEst =
--        min
-+        std::min
-         (
-             number_of_vertices(),
-             size_t(10*sqrt(scalar(number_of_vertices())))
 diff --git a/applications/utilities/postProcessing/graphics/PVReaders/Allwmake b/applications/utilities/postProcessing/graphics/PVReaders/Allwmake
-index f270c064b..7e474f909 100755
+index f270c064b0..7e474f9093 100755
 --- a/applications/utilities/postProcessing/graphics/PVReaders/Allwmake
 +++ b/applications/utilities/postProcessing/graphics/PVReaders/Allwmake
 @@ -4,6 +4,12 @@ cd ${0%/*} || exit 1    # Run from this directory
@@ -316,7 +167,7 @@ index f270c064b..7e474f909 100755
  then
      echo "    Warning: ParaView not found in $ParaView_DIR. Skipping."
 diff --git a/bin/foamMonitor b/bin/foamMonitor
-index 32b62d792..603771302 100755
+index 32b62d7929..6037713029 100755
 --- a/bin/foamMonitor
 +++ b/bin/foamMonitor
 @@ -64,9 +64,14 @@ error() {
@@ -371,7 +222,7 @@ index 32b62d792..603771302 100755
      test "$mod_time" -gt "$idle_ago" || break
      sleep "$refresh"
 diff --git a/bin/paraFoam b/bin/paraFoam
-index aab19870b..d2ca9569b 100755
+index aab19870ba..d2ca9569bc 100755
 --- a/bin/paraFoam
 +++ b/bin/paraFoam
 @@ -101,6 +101,12 @@ extension=OpenFOAM
@@ -388,7 +239,7 @@ index aab19870b..d2ca9569b 100755
  while [ "$#" -gt 0 ]
  do
 diff --git a/bin/tools/RunFunctions b/bin/tools/RunFunctions
-index 1f21022b2..b57655033 100644
+index 1f21022b23..b576550339 100644
 --- a/bin/tools/RunFunctions
 +++ b/bin/tools/RunFunctions
 @@ -28,6 +28,9 @@
@@ -402,7 +253,7 @@ index 1f21022b2..b57655033 100644
  {
      for i in "$@"; do
 diff --git a/etc/bashrc b/etc/bashrc
-index 99aa258f5..e5d7d9c04 100644
+index 99aa258f56..e5d7d9c047 100644
 --- a/etc/bashrc
 +++ b/etc/bashrc
 @@ -52,6 +52,16 @@ export FOAM_INST_DIR=$HOME/$WM_PROJECT
@@ -538,7 +389,7 @@ index 99aa258f5..e5d7d9c04 100644
  [ "$BASH" ] && . $WM_PROJECT_DIR/etc/config.sh/bash_completion
 diff --git a/etc/config.csh/mac/paraview b/etc/config.csh/mac/paraview
 new file mode 100644
-index 000000000..53adbcca5
+index 0000000000..53adbcca5b
 --- /dev/null
 +++ b/etc/config.csh/mac/paraview
 @@ -0,0 +1,13 @@
@@ -556,7 +407,7 @@ index 000000000..53adbcca5
 +
 +#----------------------------- vi: set ft=csh et: ----------------------------
 diff --git a/etc/config.csh/mpi b/etc/config.csh/mpi
-index 78b14e474..db7040a51 100644
+index 78b14e4742..db7040a513 100644
 --- a/etc/config.csh/mpi
 +++ b/etc/config.csh/mpi
 @@ -262,7 +262,10 @@ endsw
@@ -578,7 +429,7 @@ index 78b14e474..db7040a51 100644
 -#------------------------------------------------------------------------------
 +#-------------------- vi: set ft=tcsh et sw=4 ts=4 sts=4: ---------------------
 diff --git a/etc/config.csh/settings b/etc/config.csh/settings
-index d4d8836a6..ca2534282 100644
+index 15bb9b725b..4260b3d621 100644
 --- a/etc/config.csh/settings
 +++ b/etc/config.csh/settings
 @@ -32,8 +32,12 @@
@@ -621,7 +472,7 @@ index d4d8836a6..ca2534282 100644
  
  # Site-specific directory
  if ( $?WM_PROJECT_SITE ) then
-@@ -205,7 +218,11 @@ endif
+@@ -206,7 +219,11 @@ endif
  unset siteDir
  
  # Make sure to pick up dummy versions of external libraries last
@@ -634,14 +485,14 @@ index d4d8836a6..ca2534282 100644
  
  # Compiler settings
  # ~~~~~~~~~~~~~~~~~
-@@ -350,4 +367,4 @@ endsw
+@@ -342,4 +359,4 @@ endsw
  unset minBufferSize
  unsetenv WM_COMPILER_TYPE
  
 -#------------------------------------------------------------------------------
 +#-------------------- vi: set ft=tcsh et sw=4 ts=4 sts=4: ---------------------
 diff --git a/etc/config.csh/unset b/etc/config.csh/unset
-index d3de9c6fd..73ca8a9a2 100644
+index 12dbe46593..cf3eaf553d 100644
 --- a/etc/config.csh/unset
 +++ b/etc/config.csh/unset
 @@ -29,6 +29,8 @@
@@ -683,7 +534,7 @@ index d3de9c6fd..73ca8a9a2 100644
  
  
  #------------------------------------------------------------------------------
-@@ -146,11 +153,21 @@ if ( $?foamClean ) then
+@@ -139,11 +146,21 @@ if ( $?foamClean ) then
      set cleaned=`$foamClean "$PATH" "$foamOldDirs"`
      if ( $status == 0 ) setenv PATH $cleaned
  
@@ -710,7 +561,7 @@ index d3de9c6fd..73ca8a9a2 100644
      endif
  
      if ($?MANPATH) then
-@@ -163,7 +180,7 @@ if ( $?foamClean ) then
+@@ -156,7 +173,7 @@ if ( $?foamClean ) then
  endif
  
  
@@ -719,7 +570,7 @@ index d3de9c6fd..73ca8a9a2 100644
  
  #------------------------------------------------------------------------------
  # Cleanup aliases
-@@ -173,6 +190,7 @@ unalias wm64
+@@ -166,6 +183,7 @@ unalias wm64
  unalias wm32
  unalias wmSP
  unalias wmDP
@@ -727,7 +578,7 @@ index d3de9c6fd..73ca8a9a2 100644
  
  unalias wmRefresh
  unalias wmUnset
-@@ -195,4 +213,4 @@ unalias foamVersion
+@@ -188,4 +206,4 @@ unalias foamVersion
  unalias foamPV
  
  
@@ -735,7 +586,7 @@ index d3de9c6fd..73ca8a9a2 100644
 +#-------------------- vi: set ft=tcsh et sw=4 ts=4 sts=4: ---------------------
 diff --git a/etc/config.sh/mac/CGAL b/etc/config.sh/mac/CGAL
 new file mode 100644
-index 000000000..fc6393cf7
+index 0000000000..fc6393cf7d
 --- /dev/null
 +++ b/etc/config.sh/mac/CGAL
 @@ -0,0 +1,47 @@
@@ -788,7 +639,7 @@ index 000000000..fc6393cf7
 +# vim: set ft=sh:
 diff --git a/etc/config.sh/mac/functions b/etc/config.sh/mac/functions
 new file mode 100644
-index 000000000..f2a5d841e
+index 0000000000..f2a5d841e7
 --- /dev/null
 +++ b/etc/config.sh/mac/functions
 @@ -0,0 +1,134 @@
@@ -928,7 +779,7 @@ index 000000000..f2a5d841e
 +# vim: set ft=sh:
 diff --git a/etc/config.sh/mac/metis b/etc/config.sh/mac/metis
 new file mode 100644
-index 000000000..bb87346f7
+index 0000000000..bb87346f7b
 --- /dev/null
 +++ b/etc/config.sh/mac/metis
 @@ -0,0 +1,44 @@
@@ -978,7 +829,7 @@ index 000000000..bb87346f7
 +#------------------------------------------------------------------------------
 diff --git a/etc/config.sh/mac/paraview b/etc/config.sh/mac/paraview
 new file mode 100644
-index 000000000..cc69c1942
+index 0000000000..cc69c19423
 --- /dev/null
 +++ b/etc/config.sh/mac/paraview
 @@ -0,0 +1,18 @@
@@ -1002,7 +853,7 @@ index 000000000..cc69c1942
 +fi
 diff --git a/etc/config.sh/mac/scotch b/etc/config.sh/mac/scotch
 new file mode 100644
-index 000000000..e62931c9b
+index 0000000000..e62931c9b1
 --- /dev/null
 +++ b/etc/config.sh/mac/scotch
 @@ -0,0 +1,47 @@
@@ -1054,7 +905,7 @@ index 000000000..e62931c9b
 +
 +#------------------------------------------------------------------------------
 diff --git a/etc/config.sh/mpi b/etc/config.sh/mpi
-index b368cc51a..56bca560b 100644
+index b368cc51ad..56bca560b2 100644
 --- a/etc/config.sh/mpi
 +++ b/etc/config.sh/mpi
 @@ -47,7 +47,7 @@ SYSTEMOPENMPI)
@@ -1077,7 +928,7 @@ index b368cc51a..56bca560b 100644
  
  
 diff --git a/etc/config.sh/settings b/etc/config.sh/settings
-index b3b71c1bc..6357f304c 100644
+index b7540d195f..7430f181f4 100644
 --- a/etc/config.sh/settings
 +++ b/etc/config.sh/settings
 @@ -131,7 +131,12 @@ SunOS)
@@ -1103,7 +954,7 @@ index b3b71c1bc..6357f304c 100644
  
  # Site-specific directory
  siteDir="${WM_PROJECT_SITE:-$WM_PROJECT_INST_DIR/site}"
-@@ -207,7 +212,12 @@ fi
+@@ -208,7 +213,12 @@ fi
  unset siteDir
  
  # Make sure to pick up dummy versions of external libraries last
@@ -1117,7 +968,7 @@ index b3b71c1bc..6357f304c 100644
  
  # Compiler settings
  # ~~~~~~~~~~~~~~~~~
-@@ -300,4 +310,6 @@ system)
+@@ -297,4 +307,6 @@ system)
      ;;
  esac
  
@@ -1125,7 +976,7 @@ index b3b71c1bc..6357f304c 100644
 +
  #------------------------------------------------------------------------------
 diff --git a/etc/config.sh/unset b/etc/config.sh/unset
-index f3d72d1a4..820996c50 100644
+index 9daa01a9fd..6250bad0ce 100644
 --- a/etc/config.sh/unset
 +++ b/etc/config.sh/unset
 @@ -29,6 +29,9 @@
@@ -1155,7 +1006,7 @@ index f3d72d1a4..820996c50 100644
  
  
  #------------------------------------------------------------------------------
-@@ -140,12 +144,24 @@ unset FOAMY_HEX_MESH
+@@ -133,12 +137,24 @@ unset PV_PLUGIN_PATH
  if [ -n "$foamClean" ]
  then
      cleaned=`$foamClean "$PATH" "$foamOldDirs"` && PATH="$cleaned"
@@ -1182,7 +1033,7 @@ index f3d72d1a4..820996c50 100644
  [ -n "$MANPATH" ] || unset MANPATH
  [ -n "$LD_PRELOAD" ] || unset LD_PRELOAD
  
-@@ -161,6 +177,7 @@ unalias wm64
+@@ -154,6 +170,7 @@ unalias wm64
  unalias wm32
  unalias wmSP
  unalias wmDP
@@ -1190,14 +1041,14 @@ index f3d72d1a4..820996c50 100644
  
  unalias wmUnset
  
-@@ -183,4 +200,4 @@ unset foamVersion
+@@ -176,4 +193,4 @@ unset foamVersion
  unset foamPV
  
  
 -#------------------------------------------------------------------------------
 +#--------------------- vi: set ft=sh et sw=4 ts=4 sts=4: ----------------------
 diff --git a/etc/cshrc b/etc/cshrc
-index d2c5194f8..f779dacca 100644
+index d2c5194f8d..f779dacca8 100644
 --- a/etc/cshrc
 +++ b/etc/cshrc
 @@ -51,6 +51,8 @@ setenv FOAM_INST_DIR `lsof +p $$ |& grep -oE '/.*'$WM_PROJECT'[^/]*/etc/cshrc' |
@@ -1312,7 +1163,7 @@ index d2c5194f8..f779dacca 100644
 -#------------------------------------------------------------------------------
 +#--------------------- vi: set ft=tcsh et sw=4 ts=4 sts=4: ---------------------
 diff --git a/src/Allwmake b/src/Allwmake
-index bcc574e2d..5a957e781 100755
+index a1ee472f6e..bab5cbcd35 100755
 --- a/src/Allwmake
 +++ b/src/Allwmake
 @@ -12,11 +12,13 @@ wmakeCheckPwd "$WM_PROJECT_DIR/src" || {
@@ -1330,7 +1181,7 @@ index bcc574e2d..5a957e781 100755
  # Update OpenFOAM version strings if required
  wmakePrintBuild -check || wrmo OpenFOAM/global/global.o 2>/dev/null
 diff --git a/src/OSspecific/POSIX/POSIX.C b/src/OSspecific/POSIX/POSIX.C
-index 74a801a30..ad85c97bc 100644
+index 96f9118a60..48420bae52 100644
 --- a/src/OSspecific/POSIX/POSIX.C
 +++ b/src/OSspecific/POSIX/POSIX.C
 @@ -56,7 +56,11 @@ Description
@@ -1361,6 +1212,15 @@ index 74a801a30..ad85c97bc 100644
      }
      else
      {
+@@ -995,7 +1005,7 @@ bool Foam::mvBak(const fileName& src, const std::string& ext)
+             fileName dstName(src + "." + ext);
+             if (n)
+             {
+-                sprintf(index, "%02d", n);
++                snprintf(index, 3, "%02d", n);
+                 dstName += index;
+             }
+ 
 @@ -1241,6 +1251,20 @@ void* Foam::dlOpen(const fileName& lib, const bool check)
              << " : dlopen of " << lib << std::endl;
      }
@@ -1412,7 +1272,7 @@ index 74a801a30..ad85c97bc 100644
      {
          std::cout
 diff --git a/src/OSspecific/POSIX/clockTime/clockTime.H b/src/OSspecific/POSIX/clockTime/clockTime.H
-index 4319b64b1..9d76efe22 100644
+index 4319b64b16..9d76efe228 100644
 --- a/src/OSspecific/POSIX/clockTime/clockTime.H
 +++ b/src/OSspecific/POSIX/clockTime/clockTime.H
 @@ -37,6 +37,9 @@ SourceFiles
@@ -1426,7 +1286,7 @@ index 4319b64b1..9d76efe22 100644
  // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
  
 diff --git a/src/OSspecific/POSIX/fileStat.C b/src/OSspecific/POSIX/fileStat.C
-index ffb26041c..3cf965064 100644
+index ffb26041ca..3cf9650648 100644
 --- a/src/OSspecific/POSIX/fileStat.C
 +++ b/src/OSspecific/POSIX/fileStat.C
 @@ -29,7 +29,9 @@ License
@@ -1440,7 +1300,7 @@ index ffb26041c..3cf965064 100644
  // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
  
 diff --git a/src/OSspecific/POSIX/printStack.C b/src/OSspecific/POSIX/printStack.C
-index 84003866d..487c17a2b 100644
+index 84003866dd..487c17a2b3 100644
 --- a/src/OSspecific/POSIX/printStack.C
 +++ b/src/OSspecific/POSIX/printStack.C
 @@ -84,7 +84,11 @@ string pOpen(const string &cmd, label line=0)
@@ -1537,7 +1397,7 @@ index 84003866d..487c17a2b 100644
  
      return res;
 diff --git a/src/OSspecific/POSIX/signals/sigFpe.C b/src/OSspecific/POSIX/signals/sigFpe.C
-index f9c05bb04..ae9099d9d 100644
+index f9c05bb04c..ae9099d9de 100644
 --- a/src/OSspecific/POSIX/signals/sigFpe.C
 +++ b/src/OSspecific/POSIX/signals/sigFpe.C
 @@ -37,6 +37,12 @@ License
@@ -1683,7 +1543,7 @@ index f9c05bb04..ae9099d9d 100644
          {
              if (mallocNanActive_)
 diff --git a/src/OSspecific/POSIX/signals/sigFpe.H b/src/OSspecific/POSIX/signals/sigFpe.H
-index b3fb45c9b..4cbcb2928 100644
+index b3fb45c9b0..4cbcb29283 100644
 --- a/src/OSspecific/POSIX/signals/sigFpe.H
 +++ b/src/OSspecific/POSIX/signals/sigFpe.H
 @@ -54,6 +54,10 @@ SourceFiles
@@ -1724,7 +1584,7 @@ index b3fb45c9b..4cbcb2928 100644
          static void* mallocNan(size_t size);
          #endif
 diff --git a/src/OpenFOAM/Make/files b/src/OpenFOAM/Make/files
-index f97bb5afe..05bc7c1c1 100644
+index efc2755dab..36fb959ac3 100644
 --- a/src/OpenFOAM/Make/files
 +++ b/src/OpenFOAM/Make/files
 @@ -29,11 +29,13 @@ $(chars)/wchar/wcharIO.C
@@ -1742,7 +1602,7 @@ index f97bb5afe..05bc7c1c1 100644
  $(ints)/int32/int32IO.C
  $(ints)/int64/int64.C
 diff --git a/src/OpenFOAM/containers/Lists/UList/UList.C b/src/OpenFOAM/containers/Lists/UList/UList.C
-index 6fc254498..898936cdf 100644
+index b3d4bf03c6..d9b42c8d06 100644
 --- a/src/OpenFOAM/containers/Lists/UList/UList.C
 +++ b/src/OpenFOAM/containers/Lists/UList/UList.C
 @@ -28,6 +28,7 @@ License
@@ -1753,17 +1613,8 @@ index 6fc254498..898936cdf 100644
  
  // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
  
-@@ -142,7 +143,7 @@ void Foam::stableSort(UList<T>& a, const Cmp& cmp)
- template<class T>
- void Foam::shuffle(UList<T>& a)
- {
--    std::random_shuffle(a.begin(), a.end());
-+    std::shuffle(a.begin(), a.end(), std::default_random_engine());
- }
- 
- 
 diff --git a/src/OpenFOAM/db/dynamicLibrary/dynamicCode/dynamicCode.C b/src/OpenFOAM/db/dynamicLibrary/dynamicCode/dynamicCode.C
-index 742b8a049..a23a48678 100644
+index 5e3fb9b348..d70811306e 100644
 --- a/src/OpenFOAM/db/dynamicLibrary/dynamicCode/dynamicCode.C
 +++ b/src/OpenFOAM/db/dynamicLibrary/dynamicCode/dynamicCode.C
 @@ -346,7 +346,11 @@ Foam::fileName Foam::dynamicCode::codeRelPath() const
@@ -1779,7 +1630,7 @@ index 742b8a049..a23a48678 100644
  
  
 diff --git a/src/OpenFOAM/db/dynamicLibrary/dynamicCode/dynamicCode.H b/src/OpenFOAM/db/dynamicLibrary/dynamicCode/dynamicCode.H
-index 7aeacaf2a..def41b811 100644
+index 7aeacaf2a2..def41b811f 100644
 --- a/src/OpenFOAM/db/dynamicLibrary/dynamicCode/dynamicCode.H
 +++ b/src/OpenFOAM/db/dynamicLibrary/dynamicCode/dynamicCode.H
 @@ -219,7 +219,11 @@ public:
@@ -1795,7 +1646,7 @@ index 7aeacaf2a..def41b811 100644
  
          //- Path for specified code name relative to \$FOAM_CASE
 diff --git a/src/OpenFOAM/primitives/Scalar/doubleFloat.H b/src/OpenFOAM/primitives/Scalar/doubleFloat.H
-index 8c783b4ce..366eb21e9 100644
+index 8c783b4cea..366eb21e96 100644
 --- a/src/OpenFOAM/primitives/Scalar/doubleFloat.H
 +++ b/src/OpenFOAM/primitives/Scalar/doubleFloat.H
 @@ -31,6 +31,46 @@ License
@@ -1846,7 +1697,7 @@ index 8c783b4ce..366eb21e9 100644
  
  namespace Foam
 diff --git a/src/OpenFOAM/primitives/hashes/Hasher/Hasher.C b/src/OpenFOAM/primitives/hashes/Hasher/Hasher.C
-index 65193a0b1..ce0ef8e14 100644
+index a17bfcf2bf..64ef2df7dd 100644
 --- a/src/OpenFOAM/primitives/hashes/Hasher/Hasher.C
 +++ b/src/OpenFOAM/primitives/hashes/Hasher/Hasher.C
 @@ -457,7 +457,7 @@ static unsigned jenkins_hashbig
@@ -1860,7 +1711,7 @@ index 65193a0b1..ce0ef8e14 100644
          }
 diff --git a/src/OpenFOAM/primitives/ints/int16/int16.C b/src/OpenFOAM/primitives/ints/int16/int16.C
 new file mode 100644
-index 000000000..240b8f63b
+index 0000000000..240b8f63b7
 --- /dev/null
 +++ b/src/OpenFOAM/primitives/ints/int16/int16.C
 @@ -0,0 +1,48 @@
@@ -1914,7 +1765,7 @@ index 000000000..240b8f63b
 +// ************************************************************************* //
 diff --git a/src/OpenFOAM/primitives/ints/int16/int16.H b/src/OpenFOAM/primitives/ints/int16/int16.H
 new file mode 100644
-index 000000000..b4f92c01c
+index 0000000000..b4f92c01ca
 --- /dev/null
 +++ b/src/OpenFOAM/primitives/ints/int16/int16.H
 @@ -0,0 +1,73 @@
@@ -1992,7 +1843,7 @@ index 000000000..b4f92c01c
 +
 +// ************************************************************************* //
 diff --git a/src/OpenFOAM/primitives/ints/int64/int64.H b/src/OpenFOAM/primitives/ints/int64/int64.H
-index a9fe1c743..e8580d70a 100644
+index a9fe1c743a..e8580d70a5 100644
 --- a/src/OpenFOAM/primitives/ints/int64/int64.H
 +++ b/src/OpenFOAM/primitives/ints/int64/int64.H
 @@ -68,6 +68,11 @@ bool read(const char*, int64_t&);
@@ -2008,7 +1859,7 @@ index a9fe1c743..e8580d70a 100644
  {
      os << value;
 diff --git a/src/OpenFOAM/primitives/ints/int64/int64IO.C b/src/OpenFOAM/primitives/ints/int64/int64IO.C
-index 1b197b5c2..d49b8208b 100644
+index 1b197b5c26..d49b8208bd 100644
 --- a/src/OpenFOAM/primitives/ints/int64/int64IO.C
 +++ b/src/OpenFOAM/primitives/ints/int64/int64IO.C
 @@ -99,5 +99,17 @@ Foam::Ostream& Foam::operator<<(Ostream& os, const int64_t i)
@@ -2030,7 +1881,7 @@ index 1b197b5c2..d49b8208b 100644
  
  // ************************************************************************* //
 diff --git a/src/OpenFOAM/primitives/ints/uint/uint.H b/src/OpenFOAM/primitives/ints/uint/uint.H
-index 0698df700..fe3828e06 100644
+index 0698df700c..fe3828e06f 100644
 --- a/src/OpenFOAM/primitives/ints/uint/uint.H
 +++ b/src/OpenFOAM/primitives/ints/uint/uint.H
 @@ -35,6 +35,7 @@ SourceFiles
@@ -2043,7 +1894,7 @@ index 0698df700..fe3828e06 100644
  
 diff --git a/src/OpenFOAM/primitives/ints/uint16/uint16.C b/src/OpenFOAM/primitives/ints/uint16/uint16.C
 new file mode 100644
-index 000000000..b98b7b1fe
+index 0000000000..b98b7b1fef
 --- /dev/null
 +++ b/src/OpenFOAM/primitives/ints/uint16/uint16.C
 @@ -0,0 +1,48 @@
@@ -2097,7 +1948,7 @@ index 000000000..b98b7b1fe
 +// ************************************************************************* //
 diff --git a/src/OpenFOAM/primitives/ints/uint16/uint16.H b/src/OpenFOAM/primitives/ints/uint16/uint16.H
 new file mode 100644
-index 000000000..9b23ce566
+index 0000000000..9b23ce5660
 --- /dev/null
 +++ b/src/OpenFOAM/primitives/ints/uint16/uint16.H
 @@ -0,0 +1,73 @@
@@ -2175,7 +2026,7 @@ index 000000000..9b23ce566
 +
 +// ************************************************************************* //
 diff --git a/src/OpenFOAM/primitives/ints/uint64/uint64.H b/src/OpenFOAM/primitives/ints/uint64/uint64.H
-index 146e6bd55..22cedd882 100644
+index 146e6bd55b..22cedd882d 100644
 --- a/src/OpenFOAM/primitives/ints/uint64/uint64.H
 +++ b/src/OpenFOAM/primitives/ints/uint64/uint64.H
 @@ -68,6 +68,10 @@ bool read(const char*, uint64_t&);
@@ -2190,7 +2041,7 @@ index 146e6bd55..22cedd882 100644
  template<>
  class pTraits<uint64_t>
 diff --git a/src/OpenFOAM/primitives/ints/uint64/uint64IO.C b/src/OpenFOAM/primitives/ints/uint64/uint64IO.C
-index 7c6c07708..a2d01e160 100644
+index 7c6c077088..a2d01e160c 100644
 --- a/src/OpenFOAM/primitives/ints/uint64/uint64IO.C
 +++ b/src/OpenFOAM/primitives/ints/uint64/uint64IO.C
 @@ -96,5 +96,13 @@ Foam::Ostream& Foam::operator<<(Ostream& os, const uint64_t i)
@@ -2208,7 +2059,7 @@ index 7c6c07708..a2d01e160 100644
  
  // ************************************************************************* //
 diff --git a/src/OpenFOAM/primitives/strings/word/wordIOList.C b/src/OpenFOAM/primitives/strings/word/wordIOList.C
-index 726885e03..155f5b1e5 100644
+index 726885e033..155f5b1e5c 100644
 --- a/src/OpenFOAM/primitives/strings/word/wordIOList.C
 +++ b/src/OpenFOAM/primitives/strings/word/wordIOList.C
 @@ -54,7 +54,7 @@ void Foam::printTable
@@ -2221,7 +2072,7 @@ index 726885e03..155f5b1e5 100644
      }
  
 diff --git a/src/fvAgglomerationMethods/Allwmake b/src/fvAgglomerationMethods/Allwmake
-index dcef4328c..48abdf020 100755
+index dcef4328c2..48abdf0204 100755
 --- a/src/fvAgglomerationMethods/Allwmake
 +++ b/src/fvAgglomerationMethods/Allwmake
 @@ -4,10 +4,14 @@ cd ${0%/*} || exit 1    # Run from this directory
@@ -2243,7 +2094,7 @@ index dcef4328c..48abdf020 100755
  fi
  
 diff --git a/src/fvAgglomerationMethods/MGridGenGamgAgglomeration/Make/options b/src/fvAgglomerationMethods/MGridGenGamgAgglomeration/Make/options
-index 69f63dbe5..18d31d422 100644
+index 69f63dbe57..18d31d4220 100644
 --- a/src/fvAgglomerationMethods/MGridGenGamgAgglomeration/Make/options
 +++ b/src/fvAgglomerationMethods/MGridGenGamgAgglomeration/Make/options
 @@ -7,9 +7,15 @@ endif
@@ -2267,7 +2118,7 @@ index 69f63dbe5..18d31d422 100644
 +EXE_INC += -I$(ParMGridGen)/MGridGen/IMlib/lnInclude
 +endif
 diff --git a/src/parallel/decompose/Allwmake b/src/parallel/decompose/Allwmake
-index c2a0a6629..170516d91 100755
+index c2a0a6629e..170516d911 100755
 --- a/src/parallel/decompose/Allwmake
 +++ b/src/parallel/decompose/Allwmake
 @@ -6,7 +6,9 @@ cd ${0%/*} || exit 1    # Run from this directory
@@ -2290,7 +2141,7 @@ index c2a0a6629..170516d91 100755
  
  # Define how to create an mpi-versioned library of $targetType
 diff --git a/src/parallel/decompose/metisDecomp/Allwmake b/src/parallel/decompose/metisDecomp/Allwmake
-index c52b1e52a..46df365ab 100755
+index c52b1e52a0..46df365ab8 100755
 --- a/src/parallel/decompose/metisDecomp/Allwmake
 +++ b/src/parallel/decompose/metisDecomp/Allwmake
 @@ -4,12 +4,20 @@ cd ${0%/*} || exit 1    # Run from this directory
@@ -2325,7 +2176,7 @@ index c52b1e52a..46df365ab 100755
  
  #------------------------------------------------------------------------------
 diff --git a/src/parallel/decompose/ptscotchDecomp/Make/options b/src/parallel/decompose/ptscotchDecomp/Make/options
-index 2af0fddac..d800c63fb 100644
+index 2af0fddac9..d800c63fbe 100644
 --- a/src/parallel/decompose/ptscotchDecomp/Make/options
 +++ b/src/parallel/decompose/ptscotchDecomp/Make/options
 @@ -3,15 +3,17 @@
@@ -2354,7 +2205,7 @@ index 2af0fddac..d800c63fb 100644
 +LIB_LIBS += -L$(SCOTCH_ARCH_PATH)/lib
 +endif
 diff --git a/src/parallel/decompose/scotchDecomp/Make/options b/src/parallel/decompose/scotchDecomp/Make/options
-index 038f88d5f..bb8abb485 100644
+index 038f88d5f7..bb8abb485f 100644
 --- a/src/parallel/decompose/scotchDecomp/Make/options
 +++ b/src/parallel/decompose/scotchDecomp/Make/options
 @@ -6,12 +6,14 @@
@@ -2376,8 +2227,21 @@ index 038f88d5f..bb8abb485 100644
 +EXE_INC += -I/usr/include/scotch
 +LIB_LIBS += -L$(FOAM_EXT_LIBBIN) -lrt
 +endif
+diff --git a/src/parallel/parallel/multiRegionPrefixer.C b/src/parallel/parallel/multiRegionPrefixer.C
+index a48dc1f105..9c6bc2effa 100644
+--- a/src/parallel/parallel/multiRegionPrefixer.C
++++ b/src/parallel/parallel/multiRegionPrefixer.C
+@@ -42,7 +42,7 @@ Foam::string::size_type Foam::multiRegionPrefixer::prefixWidth() const
+     {
+         forAll(regionNames_, regionj)
+         {
+-            n = max(n, regionNames_[regionj].size() + 1);
++            n = std::max(n, regionNames_[regionj].size() + 1);
+         }
+     }
+ 
 diff --git a/src/renumber/SloanRenumber/Make/options b/src/renumber/SloanRenumber/Make/options
-index cf6e54861..e3b7efff8 100644
+index cf6e548615..e3b7efff8a 100644
 --- a/src/renumber/SloanRenumber/Make/options
 +++ b/src/renumber/SloanRenumber/Make/options
 @@ -5,7 +5,19 @@ EXE_INC = \
@@ -2402,10 +2266,10 @@ index cf6e54861..e3b7efff8 100644
 +LIB_LIBS += -lboost_system
 +endif
 diff --git a/src/thermophysicalModels/basic/basicThermo/basicThermo.C b/src/thermophysicalModels/basic/basicThermo/basicThermo.C
-index 030cf0bad..f0b196781 100644
+index 6e78628adf..a86fd320a6 100644
 --- a/src/thermophysicalModels/basic/basicThermo/basicThermo.C
 +++ b/src/thermophysicalModels/basic/basicThermo/basicThermo.C
-@@ -136,7 +136,7 @@ Foam::wordList Foam::basicThermo::splitThermoName
+@@ -100,7 +100,7 @@ Foam::wordList Foam::basicThermo::splitThermoName
          }
          else if ((endc = thermoName.find(',', beg)) != string::npos)
          {
@@ -2414,8 +2278,18 @@ index 030cf0bad..f0b196781 100644
          }
          else
          {
+diff --git a/wmake/makefiles/files b/wmake/makefiles/files
+index 20c2797c60..cd39b339ce 100644
+--- a/wmake/makefiles/files
++++ b/wmake/makefiles/files
+@@ -1,4 +1,4 @@
+-#----------------------------*- makefile-gmake -*------------------------------
++ #----------------------------*-makefile-gmake -*------------------------------
+ # =========                 |
+ # \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+ #  \\    /   O peration     | Website:  https://openfoam.org
 diff --git a/wmake/makefiles/general b/wmake/makefiles/general
-index e549260f3..fb23b8ee2 100644
+index e549260f3b..fb23b8ee24 100644
 --- a/wmake/makefiles/general
 +++ b/wmake/makefiles/general
 @@ -88,7 +88,11 @@ endif
@@ -2431,7 +2305,7 @@ index e549260f3..fb23b8ee2 100644
  # Project executable
  EXE             = $(WM_PROJECT).out
 diff --git a/wmake/rules/General/transform b/wmake/rules/General/transform
-index efb86df86..f7caf9384 100644
+index efb86df866..f7caf93843 100644
 --- a/wmake/rules/General/transform
 +++ b/wmake/rules/General/transform
 @@ -31,7 +31,6 @@ $(OBJECTS_DIR)/%.dep : %
@@ -2444,7 +2318,7 @@ index efb86df86..f7caf9384 100644
  #------------------------------------------------------------------------------
 diff --git a/wmake/rules/darwin64Clang/CGAL b/wmake/rules/darwin64Clang/CGAL
 new file mode 100644
-index 000000000..a1e88161d
+index 0000000000..a1e88161dd
 --- /dev/null
 +++ b/wmake/rules/darwin64Clang/CGAL
 @@ -0,0 +1,9 @@
@@ -2459,7 +2333,7 @@ index 000000000..a1e88161d
 +CGAL_LIBS = -L$(GMP_ARCH_PATH)/lib -L$(MPFR_ARCH_PATH)/lib -lgmp -lmpfr
 diff --git a/wmake/rules/darwin64Clang/bison b/wmake/rules/darwin64Clang/bison
 new file mode 100644
-index 000000000..3d11bf122
+index 0000000000..3d11bf122a
 --- /dev/null
 +++ b/wmake/rules/darwin64Clang/bison
 @@ -0,0 +1,13 @@
@@ -2478,7 +2352,7 @@ index 000000000..3d11bf122
 +    $(CC) $(c++FLAGS) -c  $(@D)/$(<F).C -o $@
 diff --git a/wmake/rules/darwin64Clang/c b/wmake/rules/darwin64Clang/c
 new file mode 100644
-index 000000000..3ce40f206
+index 0000000000..3ce40f2060
 --- /dev/null
 +++ b/wmake/rules/darwin64Clang/c
 @@ -0,0 +1,23 @@
@@ -2507,7 +2381,7 @@ index 000000000..3ce40f206
 +#----------------------------- vi: set ft=make: -------------------------------
 diff --git a/wmake/rules/darwin64Clang/c++ b/wmake/rules/darwin64Clang/c++
 new file mode 100644
-index 000000000..158758097
+index 0000000000..09a80ab67a
 --- /dev/null
 +++ b/wmake/rules/darwin64Clang/c++
 @@ -0,0 +1,35 @@
@@ -2518,7 +2392,7 @@ index 000000000..158758097
 +
 +c++WARN     = -Wall -Wextra -Wno-unused-parameter -Wno-overloaded-virtual \
 +              -Wno-unused-variable -Wno-unused-local-typedef -Wno-invalid-offsetof \
-+	      -Wno-deprecated-register -Wno-undefined-var-template
++	      -Wno-deprecated-register -Wno-undefined-var-template -Wno-unqualified-std-cast-call
 +
 +c++LESSWARN = -Wno-shift-negative-value
 +
@@ -2548,7 +2422,7 @@ index 000000000..158758097
 +#----------------------------- vi: set ft=make: -------------------------------
 diff --git a/wmake/rules/darwin64Clang/c++Debug b/wmake/rules/darwin64Clang/c++Debug
 new file mode 100644
-index 000000000..0ed0af6c0
+index 0000000000..0ed0af6c02
 --- /dev/null
 +++ b/wmake/rules/darwin64Clang/c++Debug
 @@ -0,0 +1,4 @@
@@ -2558,7 +2432,7 @@ index 000000000..0ed0af6c0
 +#----------------------------- vi: set ft=make: -------------------------------
 diff --git a/wmake/rules/darwin64Clang/c++Opt b/wmake/rules/darwin64Clang/c++Opt
 new file mode 100644
-index 000000000..db785436b
+index 0000000000..db785436bc
 --- /dev/null
 +++ b/wmake/rules/darwin64Clang/c++Opt
 @@ -0,0 +1,5 @@
@@ -2569,7 +2443,7 @@ index 000000000..db785436b
 +#----------------------------- vi: set ft=make: -------------------------------
 diff --git a/wmake/rules/darwin64Clang/c++Prof b/wmake/rules/darwin64Clang/c++Prof
 new file mode 100644
-index 000000000..f86e0d9f9
+index 0000000000..f86e0d9f93
 --- /dev/null
 +++ b/wmake/rules/darwin64Clang/c++Prof
 @@ -0,0 +1,4 @@
@@ -2579,7 +2453,7 @@ index 000000000..f86e0d9f9
 +#----------------------------- vi: set ft=make: -------------------------------
 diff --git a/wmake/rules/darwin64Clang/cDebug b/wmake/rules/darwin64Clang/cDebug
 new file mode 100644
-index 000000000..d45598959
+index 0000000000..d45598959b
 --- /dev/null
 +++ b/wmake/rules/darwin64Clang/cDebug
 @@ -0,0 +1,4 @@
@@ -2589,7 +2463,7 @@ index 000000000..d45598959
 +#----------------------------- vi: set ft=make: -------------------------------
 diff --git a/wmake/rules/darwin64Clang/cOpt b/wmake/rules/darwin64Clang/cOpt
 new file mode 100644
-index 000000000..0c2e03c5e
+index 0000000000..0c2e03c5e1
 --- /dev/null
 +++ b/wmake/rules/darwin64Clang/cOpt
 @@ -0,0 +1,4 @@
@@ -2599,7 +2473,7 @@ index 000000000..0c2e03c5e
 +#----------------------------- vi: set ft=make: -------------------------------
 diff --git a/wmake/rules/darwin64Clang/cProf b/wmake/rules/darwin64Clang/cProf
 new file mode 100644
-index 000000000..864f043d5
+index 0000000000..864f043d5c
 --- /dev/null
 +++ b/wmake/rules/darwin64Clang/cProf
 @@ -0,0 +1,4 @@
@@ -2609,7 +2483,7 @@ index 000000000..864f043d5
 +#----------------------------- vi: set ft=make: -------------------------------
 diff --git a/wmake/rules/darwin64Clang/flex b/wmake/rules/darwin64Clang/flex
 new file mode 100644
-index 000000000..a0ef4ee25
+index 0000000000..a0ef4ee25e
 --- /dev/null
 +++ b/wmake/rules/darwin64Clang/flex
 @@ -0,0 +1,5 @@
@@ -2620,7 +2494,7 @@ index 000000000..a0ef4ee25
 +    $(cc) $(cFLAGS) -c  $(@D)/$(<F).c -o $@
 diff --git a/wmake/rules/darwin64Clang/flex++ b/wmake/rules/darwin64Clang/flex++
 new file mode 100644
-index 000000000..a9b72667c
+index 0000000000..a9b72667c9
 --- /dev/null
 +++ b/wmake/rules/darwin64Clang/flex++
 @@ -0,0 +1,5 @@
@@ -2631,7 +2505,7 @@ index 000000000..a9b72667c
 +    $(CC) $(c++FLAGS) $(c++LESSWARN) -c $(@D)/$(<F).C -o $@
 diff --git a/wmake/rules/darwin64Clang/general b/wmake/rules/darwin64Clang/general
 new file mode 100644
-index 000000000..e3d90086e
+index 0000000000..e3d90086e7
 --- /dev/null
 +++ b/wmake/rules/darwin64Clang/general
 @@ -0,0 +1,16 @@
@@ -2653,7 +2527,7 @@ index 000000000..e3d90086e
 +#----------------------------- vi: set ft=make: -------------------------------
 diff --git a/wmake/rules/darwin64Clang/yacc b/wmake/rules/darwin64Clang/yacc
 new file mode 100644
-index 000000000..d96342637
+index 0000000000..d96342637e
 --- /dev/null
 +++ b/wmake/rules/darwin64Clang/yacc
 @@ -0,0 +1,13 @@
@@ -2671,7 +2545,7 @@ index 000000000..d96342637
 +    mv y.tab.h $(@D)/parser.H $(AND) \
 +    $(CC) $(c++FLAGS) -c $(@D)/$(<F).C -o $@
 diff --git a/wmake/src/Makefile b/wmake/src/Makefile
-index a0d87a84e..16279c000 100644
+index a0d87a84e7..16279c0006 100644
 --- a/wmake/src/Makefile
 +++ b/wmake/src/Makefile
 @@ -52,6 +52,8 @@ WM_COMPILE_OPTION = Opt
@@ -2684,7 +2558,7 @@ index a0d87a84e..16279c000 100644
  #------------------------------------------------------------------------------
  # Targets
 diff --git a/wmake/wmake b/wmake/wmake
-index 307114655..24becb484 100755
+index 307114655d..24becb4844 100755
 --- a/wmake/wmake
 +++ b/wmake/wmake
 @@ -122,6 +122,11 @@ useAllCores()
@@ -2699,8 +2573,36 @@ index 307114655..24becb484 100755
      export WM_NCOMPPROCS
  }
  
+diff --git a/wmake/wmakeLnInclude b/wmake/wmakeLnInclude
+index 300aba62a4..4954fc9656 100755
+--- a/wmake/wmakeLnInclude
++++ b/wmake/wmakeLnInclude
+@@ -173,10 +173,23 @@ filter()
+     shift
+ }
+ 
++if [ "$(uname -s)" = "Darwin" ]; then
++# Implementation is taken from: http://mywiki.wooledge.org/BashFAQ/001
++while IFS= read -r; do pruneNames+=("$REPLY"); done < <(filter name lnInclude Make config noLink)
++[[ $REPLY ]] && pruneNames+=("$REPLY")
++# We use two different arrays instead of original single array implementation
++while IFS= read -r; do prunePathsPrime+=("$REPLY"); done < <(find .. -mindepth 2 -type d -name Make -exec dirname "{}" \+)
++[[ $REPLY ]] && prunePathsPrime+=("$REPLY")
++while IFS= read -r; do prunePaths+=("$REPLY"); done < <(filter path "${prunePathsPrime[@]}")
++[[ $REPLY ]] && prunePaths+=("$REPLY")
++while IFS= read -r; do matchNames+=("$REPLY"); done < <(filter name '*.[CHh]' '*.[ch]xx' '*.[ch]pp' '*.type')
++[[ $REPLY ]] && matchNames+=("$REPLY")
++else
+ mapfile -t pruneNames < <(filter name lnInclude Make config noLink)
+ mapfile -t prunePaths < <(find .. -mindepth 2 -type d -name Make -printf '%h\n')
+ mapfile -t prunePaths < <(filter path "${prunePaths[@]}")
+ mapfile -t matchNames < <(filter name '*.[CHh]' '*.[ch]xx' '*.[ch]pp' '*.type')
++fi
+ 
+ find .. \
+     \( "${pruneNames[@]}" -o "${prunePaths[@]}" \) -prune \
 diff --git a/wmake/wmakeLnIncludeAll b/wmake/wmakeLnIncludeAll
-index 6a119d259..0bf0eaed1 100755
+index 6a119d259e..0bf0eaed15 100755
 --- a/wmake/wmakeLnIncludeAll
 +++ b/wmake/wmakeLnIncludeAll
 @@ -128,6 +128,7 @@ then
