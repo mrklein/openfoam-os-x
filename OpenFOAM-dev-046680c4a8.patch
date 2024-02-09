@@ -1,7 +1,5 @@
  Allwmake                                           |   5 +-
  applications/Allwmake                              |   2 +
- .../foamMultiRun/regionSolvers/regionSolvers.C     |   2 +-
- .../fluent3DMeshToFoam/fluent3DMeshToFoam.L        |   4 +-
  .../postProcessing/graphics/PVReaders/Allwmake     |   6 +
  bin/foamMonitor                                    |  15 ++-
  bin/paraFoam                                       |   6 +
@@ -33,6 +31,7 @@
  .../db/dynamicLibrary/dynamicCode/dynamicCode.H    |   4 +
  src/OpenFOAM/primitives/Scalar/doubleFloat.H       |  40 ++++++
  src/OpenFOAM/primitives/hashes/Hasher/Hasher.C     |   2 +-
+ src/OpenFOAM/primitives/ints/int/int.H             |   4 +
  src/OpenFOAM/primitives/ints/int16/int16.C         |  48 ++++++++
  src/OpenFOAM/primitives/ints/int16/int16.H         |  73 +++++++++++
  src/OpenFOAM/primitives/ints/int64/int64.H         |   5 +
@@ -42,16 +41,13 @@
  src/OpenFOAM/primitives/ints/uint16/uint16.H       |  73 +++++++++++
  src/OpenFOAM/primitives/ints/uint64/uint64.H       |   4 +
  src/OpenFOAM/primitives/ints/uint64/uint64IO.C     |   8 ++
- src/OpenFOAM/primitives/strings/word/wordIOList.C  |   2 +-
  src/fvAgglomerationMethods/Allwmake                |  10 +-
  .../MGridGenGamgAgglomeration/Make/options         |  14 ++-
  src/parallel/decompose/Allwmake                    |   5 +-
  src/parallel/decompose/metisDecomp/Allwmake        |  14 ++-
  src/parallel/decompose/ptscotchDecomp/Make/options |  16 +--
  src/parallel/decompose/scotchDecomp/Make/options   |  10 +-
- src/parallel/parallel/multiRegionPrefixer.C        |   2 +-
  src/renumber/SloanRenumber/Make/options            |  14 ++-
- .../basic/basicThermo/basicThermo.C                |   2 +-
  wmake/makefiles/files                              |   2 +-
  wmake/makefiles/general                            |   4 +
  wmake/rules/General/transform                      |   1 -
@@ -73,7 +69,7 @@
  wmake/wmake                                        |   5 +
  wmake/wmakeLnInclude                               |  13 ++
  wmake/wmakeLnIncludeAll                            |   1 +
- 75 files changed, 1250 insertions(+), 96 deletions(-)
+ 71 files changed, 1248 insertions(+), 90 deletions(-)
 
 diff --git a/Allwmake b/Allwmake
 index 3f6a7523d2..00810aff6e 100755
@@ -121,34 +117,6 @@ index d11e7c8e1d..c653bfaacc 100755
  
  wmake -all $targetType solvers
  modules/Allwmake $targetType $*
-diff --git a/applications/solvers/foamMultiRun/regionSolvers/regionSolvers.C b/applications/solvers/foamMultiRun/regionSolvers/regionSolvers.C
-index 1fc8d5a125..af79364936 100644
---- a/applications/solvers/foamMultiRun/regionSolvers/regionSolvers.C
-+++ b/applications/solvers/foamMultiRun/regionSolvers/regionSolvers.C
-@@ -136,7 +136,7 @@ Foam::regionSolvers::regionSolvers(const Time& runTime)
-         solvers_.set(i, solver::New(solverName, regions_[i]));
- 
-         prefixes_[i] = regionName;
--        nRegionNameChars = max(nRegionNameChars, regionName.size());
-+        nRegionNameChars = std::max(nRegionNameChars, regionName.size());
-     }
- 
-     nRegionNameChars++;
-diff --git a/applications/utilities/mesh/conversion/fluent3DMeshToFoam/fluent3DMeshToFoam.L b/applications/utilities/mesh/conversion/fluent3DMeshToFoam/fluent3DMeshToFoam.L
-index 91e4ff09a5..b97c3bf524 100644
---- a/applications/utilities/mesh/conversion/fluent3DMeshToFoam/fluent3DMeshToFoam.L
-+++ b/applications/utilities/mesh/conversion/fluent3DMeshToFoam/fluent3DMeshToFoam.L
-@@ -1078,8 +1078,8 @@ int main(int argc, char *argv[])
-                             if
-                             (
-                                 nbrType != type
--                             && nbrName(min(name.size(), nbrName.size()))
--                             == name(min(name.size(), nbrName.size()))
-+                             && nbrName(std::min(name.size(), nbrName.size()))
-+                             == name(std::min(name.size(), nbrName.size()))
-                             )
-                             {
-                                 nbrPatchis[nbrPatchi] = patchi;
 diff --git a/applications/utilities/postProcessing/graphics/PVReaders/Allwmake b/applications/utilities/postProcessing/graphics/PVReaders/Allwmake
 index f270c064b0..7e474f9093 100755
 --- a/applications/utilities/postProcessing/graphics/PVReaders/Allwmake
@@ -239,7 +207,7 @@ index aab19870ba..d2ca9569bc 100755
  while [ "$#" -gt 0 ]
  do
 diff --git a/bin/tools/RunFunctions b/bin/tools/RunFunctions
-index 1f21022b23..b576550339 100644
+index 55776db644..fb52df49d8 100644
 --- a/bin/tools/RunFunctions
 +++ b/bin/tools/RunFunctions
 @@ -28,6 +28,9 @@
@@ -1163,7 +1131,7 @@ index d2c5194f8d..f779dacca8 100644
 -#------------------------------------------------------------------------------
 +#--------------------- vi: set ft=tcsh et sw=4 ts=4 sts=4: ---------------------
 diff --git a/src/Allwmake b/src/Allwmake
-index a1ee472f6e..bab5cbcd35 100755
+index d316083b34..0d6f2b252e 100755
 --- a/src/Allwmake
 +++ b/src/Allwmake
 @@ -12,11 +12,13 @@ wmakeCheckPwd "$WM_PROJECT_DIR/src" || {
@@ -1584,7 +1552,7 @@ index b3fb45c9b0..4cbcb29283 100644
          static void* mallocNan(size_t size);
          #endif
 diff --git a/src/OpenFOAM/Make/files b/src/OpenFOAM/Make/files
-index efc2755dab..36fb959ac3 100644
+index 063fd992d5..6e4998b2ec 100644
 --- a/src/OpenFOAM/Make/files
 +++ b/src/OpenFOAM/Make/files
 @@ -29,11 +29,13 @@ $(chars)/wchar/wcharIO.C
@@ -1709,6 +1677,28 @@ index a17bfcf2bf..64ef2df7dd 100644
                  break;
              case 0 : return c;
          }
+diff --git a/src/OpenFOAM/primitives/ints/int/int.H b/src/OpenFOAM/primitives/ints/int/int.H
+index 6b0d74c25b..fae1ab8988 100644
+--- a/src/OpenFOAM/primitives/ints/int/int.H
++++ b/src/OpenFOAM/primitives/ints/int/int.H
+@@ -37,6 +37,9 @@ SourceFiles
+ 
+ #include "int32.H"
+ #include "int64.H"
++#ifdef __APPLE__
++#include "string.H"
++#endif
+ 
+ // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+ 
+@@ -63,6 +66,7 @@ MAXMIN(int32_t, int32_t, int32_t)
+ MAXMIN(int64_t, int64_t, int32_t)
+ MAXMIN(int64_t, int32_t, int64_t)
+ MAXMIN(int64_t, int64_t, int64_t)
++MAXMIN(string::size_type,string::size_type,string::size_type)
+ 
+ 
+ // * * * * * * * * * * * * * * * IOstream Operators  * * * * * * * * * * * * //
 diff --git a/src/OpenFOAM/primitives/ints/int16/int16.C b/src/OpenFOAM/primitives/ints/int16/int16.C
 new file mode 100644
 index 0000000000..240b8f63b7
@@ -1843,7 +1833,7 @@ index 0000000000..b4f92c01ca
 +
 +// ************************************************************************* //
 diff --git a/src/OpenFOAM/primitives/ints/int64/int64.H b/src/OpenFOAM/primitives/ints/int64/int64.H
-index a9fe1c743a..e8580d70a5 100644
+index c39286b996..d4bdd876c2 100644
 --- a/src/OpenFOAM/primitives/ints/int64/int64.H
 +++ b/src/OpenFOAM/primitives/ints/int64/int64.H
 @@ -68,6 +68,11 @@ bool read(const char*, int64_t&);
@@ -2026,7 +2016,7 @@ index 0000000000..9b23ce5660
 +
 +// ************************************************************************* //
 diff --git a/src/OpenFOAM/primitives/ints/uint64/uint64.H b/src/OpenFOAM/primitives/ints/uint64/uint64.H
-index 146e6bd55b..22cedd882d 100644
+index 31d2a0aa36..008a00c465 100644
 --- a/src/OpenFOAM/primitives/ints/uint64/uint64.H
 +++ b/src/OpenFOAM/primitives/ints/uint64/uint64.H
 @@ -68,6 +68,10 @@ bool read(const char*, uint64_t&);
@@ -2058,19 +2048,6 @@ index 7c6c077088..a2d01e160c 100644
 +
  
  // ************************************************************************* //
-diff --git a/src/OpenFOAM/primitives/strings/word/wordIOList.C b/src/OpenFOAM/primitives/strings/word/wordIOList.C
-index 726885e033..155f5b1e5c 100644
---- a/src/OpenFOAM/primitives/strings/word/wordIOList.C
-+++ b/src/OpenFOAM/primitives/strings/word/wordIOList.C
-@@ -54,7 +54,7 @@ void Foam::printTable
-     {
-         forAll(wll, i)
-         {
--            columnWidth[j] = max(columnWidth[j], wll[i][j].size());
-+            columnWidth[j] = std::max(columnWidth[j], wll[i][j].size());
-         }
-     }
- 
 diff --git a/src/fvAgglomerationMethods/Allwmake b/src/fvAgglomerationMethods/Allwmake
 index dcef4328c2..48abdf0204 100755
 --- a/src/fvAgglomerationMethods/Allwmake
@@ -2227,19 +2204,6 @@ index 038f88d5f7..bb8abb485f 100644
 +EXE_INC += -I/usr/include/scotch
 +LIB_LIBS += -L$(FOAM_EXT_LIBBIN) -lrt
 +endif
-diff --git a/src/parallel/parallel/multiRegionPrefixer.C b/src/parallel/parallel/multiRegionPrefixer.C
-index a48dc1f105..9c6bc2effa 100644
---- a/src/parallel/parallel/multiRegionPrefixer.C
-+++ b/src/parallel/parallel/multiRegionPrefixer.C
-@@ -42,7 +42,7 @@ Foam::string::size_type Foam::multiRegionPrefixer::prefixWidth() const
-     {
-         forAll(regionNames_, regionj)
-         {
--            n = max(n, regionNames_[regionj].size() + 1);
-+            n = std::max(n, regionNames_[regionj].size() + 1);
-         }
-     }
- 
 diff --git a/src/renumber/SloanRenumber/Make/options b/src/renumber/SloanRenumber/Make/options
 index cf6e548615..e3b7efff8a 100644
 --- a/src/renumber/SloanRenumber/Make/options
@@ -2265,19 +2229,6 @@ index cf6e548615..e3b7efff8a 100644
 +else
 +LIB_LIBS += -lboost_system
 +endif
-diff --git a/src/thermophysicalModels/basic/basicThermo/basicThermo.C b/src/thermophysicalModels/basic/basicThermo/basicThermo.C
-index 6e78628adf..a86fd320a6 100644
---- a/src/thermophysicalModels/basic/basicThermo/basicThermo.C
-+++ b/src/thermophysicalModels/basic/basicThermo/basicThermo.C
-@@ -100,7 +100,7 @@ Foam::wordList Foam::basicThermo::splitThermoName
-         }
-         else if ((endc = thermoName.find(',', beg)) != string::npos)
-         {
--            end = min(endb, endc);
-+            end = std::min(endb, endc);
-         }
-         else
-         {
 diff --git a/wmake/makefiles/files b/wmake/makefiles/files
 index 20c2797c60..cd39b339ce 100644
 --- a/wmake/makefiles/files
