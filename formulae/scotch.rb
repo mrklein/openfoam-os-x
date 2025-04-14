@@ -26,6 +26,12 @@ class Scotch < Formula
       cflags  += %w[-DCOMMON_FILE_COMPRESS_LZMA]   if build.with? "xz"
       ldflags += %W[-L#{Formula["xz"].lib} -llzma] if build.with? "xz"
 
+      if OS.mac?
+        if MacOS.version >= :sequoia
+          cflags << "-std=gnu89"
+        end
+      end
+      
       make_args = ["CCS=#{ENV["CC"]}",
                    "CCP=mpicc",
                    "CCD=mpicc",
