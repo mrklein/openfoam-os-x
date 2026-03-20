@@ -2,7 +2,7 @@ SUFFIXES += .c
 
 cWARN        = -Wall
 
-cc          = xcrun cc -arch x86_64
+cc          = xcrun cc -arch $(shell uname -m)
 
 include $(RULES)/c$(WM_COMPILE_OPTION)
 
