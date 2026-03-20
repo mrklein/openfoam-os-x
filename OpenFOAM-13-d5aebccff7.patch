@@ -1193,7 +1193,7 @@ index 84003866dd..487c17a2b3 100644
 +#if defined(darwin64)
 +            "echo 'image lookup -va " + myAddress + "'"
 +          + " | xcrun lldb "
-+          + "-O 'target create --no-dependents -a x86_64 "
++          + "-O 'target create --no-dependents "
 +          + filename
 +          + "' -o '"
 +          + "target modules load -f "
@@ -1258,12 +1258,14 @@ diff --git a/src/OSspecific/POSIX/signals/sigFpe.C b/src/OSspecific/POSIX/signal
 index f9c05bb04c..ae9099d9de 100644
 --- a/src/OSspecific/POSIX/signals/sigFpe.C
 +++ b/src/OSspecific/POSIX/signals/sigFpe.C
-@@ -37,6 +37,12 @@ License
+@@ -37,6 +37,14 @@ License
      #include <malloc.h>
  #endif
  
-+#if defined(darwin64)
++#if defined(darwin64) && (defined(__x86_64__) || defined(__i386__))
 +#include <xmmintrin.h>
++#endif
++#if defined(darwin64)
 +#include <sys/mman.h>
 +#include <unistd.h>
 +#endif
@@ -1271,7 +1273,7 @@ index f9c05bb04c..ae9099d9de 100644
  #include <limits>
  
  // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
-@@ -50,6 +56,26 @@ void Foam::sigFpe::fillNan(UList<scalar>& lst)
+@@ -50,6 +58,26 @@ void Foam::sigFpe::fillNan(UList<scalar>& lst)
  
  bool Foam::sigFpe::mallocNanActive_ = false;
  
@@ -1298,7 +1300,7 @@ index f9c05bb04c..ae9099d9de 100644
  
  #ifdef LINUX
  extern "C"
-@@ -84,7 +110,7 @@ void* Foam::sigFpe::mallocNan(size_t size)
+@@ -84,7 +112,7 @@ void* Foam::sigFpe::mallocNan(size_t size)
  #endif
  
  
@@ -1307,7 +1309,7 @@ index f9c05bb04c..ae9099d9de 100644
  void Foam::sigFpe::sigHandler(int)
  {
      // Reset old handling
-@@ -120,7 +146,7 @@ Foam::sigFpe::~sigFpe()
+@@ -120,7 +148,7 @@ Foam::sigFpe::~sigFpe()
  {
      if (env("FOAM_SIGFPE"))
      {
@@ -1316,7 +1318,7 @@ index f9c05bb04c..ae9099d9de 100644
          // Reset signal
          if
          (
-@@ -137,10 +163,24 @@ Foam::sigFpe::~sigFpe()
+@@ -137,10 +165,24 @@ Foam::sigFpe::~sigFpe()
  
      if (env("FOAM_SETNAN"))
      {
@@ -1342,7 +1344,7 @@ index f9c05bb04c..ae9099d9de 100644
      }
  }
  
-@@ -160,15 +200,21 @@ void Foam::sigFpe::set(const bool verbose)
+@@ -160,15 +202,21 @@ void Foam::sigFpe::set(const bool verbose)
      {
          bool supported = false;
  
@@ -1358,14 +1360,14 @@ index f9c05bb04c..ae9099d9de 100644
            | FE_OVERFLOW
          );
 +        #endif  // LINUX_GNUC
-+        #if defined(darwin64)
++        #if defined(darwin64) && (defined(__x86_64__) || defined(__i386__))
 +        _mm_setcsr(_MM_MASK_MASK &~
 +                   (_MM_MASK_OVERFLOW|_MM_MASK_INVALID|_MM_MASK_DIV_ZERO));
 +        #endif
  
          struct sigaction newAction;
          newAction.sa_handler = sigHandler;
-@@ -200,10 +246,33 @@ void Foam::sigFpe::set(const bool verbose)
+@@ -200,10 +248,33 @@ void Foam::sigFpe::set(const bool verbose)
  
      if (env("FOAM_SETNAN"))
      {
@@ -2121,7 +2123,7 @@ index 0000000000..3ce40f2060
 +
 +cWARN        = -Wall
 +
-+cc          = xcrun cc -arch x86_64
++cc          = xcrun cc -arch $(shell uname -m)
 +
 +include $(RULES)/c$(WM_COMPILE_OPTION)
 +
@@ -2157,7 +2159,7 @@ index 0000000000..09a80ab67a
 +
 +c++LESSWARN = -Wno-shift-negative-value
 +
-+CC          = xcrun c++ -arch x86_64 -std=c++14
++CC          = xcrun c++ -arch $(shell uname -m) -std=c++14
 +
 +include $(RULES)/c++$(WM_COMPILE_OPTION)
 +
@@ -2349,7 +2351,7 @@ index 0000000000..3ce40f2060
 +
 +cWARN        = -Wall
 +
-+cc          = xcrun cc -arch x86_64
++cc          = xcrun cc -arch $(shell uname -m)
 +
 +include $(RULES)/c$(WM_COMPILE_OPTION)
 +
@@ -2385,7 +2387,7 @@ index 0000000000..09a80ab67a
 +
 +c++LESSWARN = -Wno-shift-negative-value
 +
-+CC          = xcrun c++ -arch x86_64 -std=c++14
++CC          = xcrun c++ -arch $(shell uname -m) -std=c++14
 +
 +include $(RULES)/c++$(WM_COMPILE_OPTION)
 +

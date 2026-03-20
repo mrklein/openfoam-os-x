@@ -9,7 +9,7 @@ c++WARN     = -Wall -Wextra -Wno-unused-parameter -Wno-overloaded-virtual \
 
 c++LESSWARN = -Wno-shift-negative-value
 
-CC          = xcrun c++ -arch x86_64 -std=c++14
+CC          = xcrun c++ -arch $(shell uname -m) -std=c++14
 
 include $(RULES)/c++$(WM_COMPILE_OPTION)
 

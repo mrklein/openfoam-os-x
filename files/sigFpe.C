@@ -44,8 +44,10 @@ License
 
 #endif
 
-#if defined(__APPLE__)
+#if defined(__APPLE__) && (defined(__x86_64__) || defined(__i386__))
 #include <xmmintrin.h>
+#endif
+#if defined(__APPLE__)
 #include <malloc/malloc.h>
 #include <sys/mman.h>
 #include <unistd.h>
@@ -227,7 +229,7 @@ void Foam::sigFpe::set(const bool verbose)
           | FE_OVERFLOW
         );
 #       endif
-#       if defined(__APPLE__)
+#       if defined(__APPLE__) && (defined(__x86_64__) || defined(__i386__))
         _mm_setcsr(_MM_MASK_MASK &~
                    (_MM_MASK_OVERFLOW|_MM_MASK_INVALID|_MM_MASK_DIV_ZERO));
 #       endif

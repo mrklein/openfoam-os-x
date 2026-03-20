@@ -134,7 +134,7 @@ void printSourceFileAndLine
           + filename
           + "'"
           + " | xcrun lldb "
-          + "-O 'target create --no-dependents -a x86_64 "
+          + "-O 'target create --no-dependents "
           + filename
           + "' -o '"
           + "target modules load -f "
